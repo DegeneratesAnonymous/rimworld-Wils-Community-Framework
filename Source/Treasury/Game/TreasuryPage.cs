@@ -78,37 +78,43 @@ namespace FamilyLife
         private static float Overview(Rect r, FamilyComponent c, float y)
         {
             var reg = c.Registry; var l = reg.Ledger(); var pay = reg.Payroll(); int today = TreasuryService.Today(); var map = Find.AnyPlayerHomeMap;
-            y = Line(r, y, "WFL_Tr_CommunityFunds".Translate(l.Balance(Ledger.CommunityId)));
             int physical = TreasuryService.PhysicalSilver(map);
-            y = Line(r, y, "WFL_Tr_Claims".Translate(l.TotalClaims, physical));
-            y = Line(r, y, "WFL_Tr_Owned".Translate(l.TotalClaims, l.TotalAvailable, l.Unbacked), l.Unbacked > 0);
-            if (l.Unbacked > 0) y = Line(r, y, "WFL_Tr_Bearer".Translate(l.CommunityShare, l.SpilledToOwners), true);
             int owedWages = l.Debts.Where(d => d.Active && d.Kind == DebtKind.Wage).Sum(d => d.Outstanding);
-            if (owedWages > 0) y = Line(r, y, "WFL_Tr_WagesOwedTotal".Translate(owedWages, pay.WorkersMissing(2).Count), true);
-            if (l.Unbacked > 0) y = Line(r, y, "WFL_Tr_Discrepancy".Translate(l.Unbacked, l.TotalAvailable), true);
-            else if (physical > l.TotalClaims + 3) y = Line(r, y, "WFL_Tr_Surplus".Translate(physical - l.TotalClaims));
             var personal = l.Accounts.Where(a => a.Kind != AccountKind.Community && !a.Closed).ToList();
-            y = Line(r, y, "WFL_Tr_Wealth".Translate(personal.Sum(a => a.Balance), personal.Count));
+            y = CommunityPageLayout.Section(r, 0f, y, r.width, "Financial position", a =>
+            {
+                float h = CommunityPageLayout.Line(a, 0f, "Community " + l.Balance(Ledger.CommunityId) + " silver   •   Spendable now " + l.TotalAvailable + "   •   Physical silver " + physical + "   •   Wages owed " + owedWages, l.Unbacked > 0 || owedWages > 0);
+                h = CommunityPageLayout.Line(a, h, "Claims " + l.TotalClaims + "   •   Personal and household wealth " + personal.Sum(x => x.Balance) + " in " + personal.Count + " accounts");
+                if (l.Unbacked > 0) h = CommunityPageLayout.Line(a, h, "Warning: " + l.Unbacked + " silver of recorded claims is not physically backed.", true);
+                else if (physical > l.TotalClaims + 3) h = CommunityPageLayout.Line(a, h, "Unassigned physical surplus: " + (physical - l.TotalClaims) + " silver", true);
+                return h;
+            });
             var zone = map?.zoneManager.AllZones.OfType<Zone_Treasury>().OrderBy(z => z.ID).FirstOrDefault();
-            y = Line(r, y, "WFL_Tr_ZoneStatus".Translate(zone == null ? "WFL_Tr_NoZone".Translate().ToString() : zone.GetInspectString().Replace('\n', ' ')));
-            y = Line(r, y, "WFL_Tr_Treasurer".Translate(Names(c, TreasuryRoles.Treasurer)));
-            y = Line(r, y, "WFL_Tr_Collector".Translate(Names(c, TreasuryRoles.TaxCollector)));
             int days = PayCalendar.NextPayday(today + 1) - today;
-            y = Line(r, y, "WFL_Tr_NextPayday".Translate(days, pay.PendingTotal));
             var open = l.Debts.Where(d => d.Active).ToList();
-            y = Line(r, y, "WFL_Tr_DebtsTotal".Translate(open.Sum(d => d.Outstanding), open.Count));
-            y = Line(r, y, "WFL_Tr_IncomeShare".Translate(reg.Treasury().CommunityPercent));
-            var st = reg.Treasury(); int pct = st.CommunityPercent;
-            float v = Widgets.HorizontalSlider(new Rect(4f, y, 240f, 20f), pct, 0f, 100f, true, null, null, null, 5f); if ((int)v != pct) st.CommunityPercent = (int)v;
-            y += 26f;
-            y = Heading(r, y + 6f, "WFL_Tr_Valuables".Translate());
-            var names = st.Valuables.All.Select(val => { var d = DefDatabase<ThingDef>.GetNamedSilentFail(val.DefName); return (d != null ? d.LabelCap.ToString() : val.DefName) + (val.Liquid ? " (" + "WFL_Tr_Liquid".Translate() + ")" : ""); }).ToList();
-            y = Line(r, y, string.Join(", ", names));
-            if (Widgets.ButtonText(new Rect(4f, y, 260f, 26f), "WFL_Tr_ChooseValuables".Translate())) Find.WindowStack.Add(new Dialog_Valuables(st));
-            y += 30f;
-            y = Heading(r, y + 6f, "WFL_Tr_Transactions".Translate());
-            foreach (var t in l.History.Reverse().Take(6)) y = Line(r, y, TxText(c, t), true);
-            return y;
+            float w = CommunityPageLayout.ColumnWidth(r);
+            float left = CommunityPageLayout.Section(r, 0f, y, w, "People and schedule", a =>
+            {
+                float h = CommunityPageLayout.Line(a, 0f, "Treasurer: " + Names(c, TreasuryRoles.Treasurer));
+                h = CommunityPageLayout.Line(a, h, "Tax collector: " + Names(c, TreasuryRoles.TaxCollector));
+                h = CommunityPageLayout.Line(a, h, "Next payday in " + days + " days   •   " + pay.PendingTotal + " silver waiting");
+                h = CommunityPageLayout.Line(a, h, open.Count + " open debt" + (open.Count == 1 ? "" : "s") + " totaling " + open.Sum(d => d.Outstanding) + " silver", open.Count > 0);
+                return CommunityPageLayout.Line(a, h, "Treasury zone: " + (zone == null ? "not designated" : zone.GetInspectString().Replace('\n', ' ')), zone == null);
+            });
+            bool columns = CommunityPageLayout.TwoColumns(r); var st = reg.Treasury();
+            float right = CommunityPageLayout.Section(r, columns ? w + CommunityPageLayout.Gap : 0f, columns ? y : left, w, "Allocation and valuables", a =>
+            {
+                float h = CommunityPageLayout.Slider(a, 0f, "Community share", ref st.CommunityPercent, 0, 100, "%");
+                h = CommunityPageLayout.Line(a, h, "Recognised valuables", true);
+                var names = st.Valuables.All.Select(val => { var d = DefDatabase<ThingDef>.GetNamedSilentFail(val.DefName); return (d != null ? d.LabelCap.ToString() : val.DefName) + (val.Liquid ? " (" + "WFL_Tr_Liquid".Translate() + ")" : ""); }).ToList();
+                h = CommunityPageLayout.Line(a, h, string.Join(", ", names));
+                return CommunityPageLayout.Button(a, h, "WFL_Tr_ChooseValuables".Translate(), () => Find.WindowStack.Add(new Dialog_Valuables(st)));
+            });
+            float bottom = Math.Max(left, right);
+            return CommunityPageLayout.Section(r, 0f, bottom, r.width, "Recent transactions", a =>
+            {
+                float h = 0f; foreach (var t in l.History.Reverse().Take(6)) h = CommunityPageLayout.Line(a, h, TxText(c, t), true); return h;
+            });
         }
 
         private static string TxText(FamilyComponent c, Transaction t) => "WFL_Tr_TxLine".Translate(t.Day % PayCalendar.DaysPerYear + 1, t.Kind, t.Amount, t.From == null ? "WFL_Tr_Outside".Translate().ToString() : NameOf(c, t.From), t.To == null ? "WFL_Tr_Outside".Translate().ToString() : NameOf(c, t.To));

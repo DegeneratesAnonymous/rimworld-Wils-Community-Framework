@@ -13,93 +13,151 @@ namespace FamilyLife
     {
         private static int selected;
         private static string rename;
+        private static int tab;
+        private static readonly string[] Tabs={"Overview","Premises","Customers","Finance","Character","Activity"};
         public static float Draw(Rect rect,FamilyComponent c)
         {
-            var book=c.Registry.Establishments();float y=rect.y;float width=rect.width;
-            Action<string> label=text=>{Widgets.Label(new Rect(rect.x,y,width,28),text);y+=30;};
-            Func<string,bool> button=text=>{bool clicked=Widgets.ButtonText(new Rect(rect.x,y,width,28),text);y+=32;return clicked;};
-            label("Establishments — restaurants, taverns, inns and shops");
-            if(button("Create establishment")) Menu(Enum.GetValues(typeof(EstablishmentKind)).Cast<EstablishmentKind>().Select(kind=>new FloatMenuOption(kind.ToString(),()=>{var e=book.Create(Find.CurrentMap.uniqueID,kind);selected=e.Id;rename=e.Name;})));
+            var book=c.Registry.Establishments();float y=0f,x=0f;
+            if(Widgets.ButtonText(new Rect(rect.x,rect.y,150f,28f),"+ New establishment"))Menu(Enum.GetValues(typeof(EstablishmentKind)).Cast<EstablishmentKind>().Select(kind=>new FloatMenuOption(kind.ToString(),()=>{var e=book.Create(Find.CurrentMap.uniqueID,kind);selected=e.Id;rename=e.Name;tab=0;})));
+            x=158f;
             foreach(var e in book.Businesses)
             {
-                var bank=FamilyFramework.Commerce.Bank;string coverage=HospitalityService.Coverage(e).Count()+" working";
-                if(button(e.Name+" · "+(HospitalityService.Map(e)!=null&&e.OpenAt(GenLocalDate.HourOfDay(HospitalityService.Map(e)))?"Open":"Closed")+" · "+coverage+" · reputation "+e.Reputation)) {selected=e.Id;rename=e.Name;}
+                float width=Mathf.Min(230f,Mathf.Max(130f,Text.CalcSize(e.Name).x+48f));if(x+width>rect.width){x=0f;y+=32f;}
+                bool open=HospitalityService.Map(e)!=null&&e.OpenAt(GenLocalDate.HourOfDay(HospitalityService.Map(e)));string title=(e.Id==selected?"• ":"")+e.Name+"  "+(open?"Open":"Closed");
+                if(Widgets.ButtonText(new Rect(rect.x+x,rect.y+y,width,28f),title)){selected=e.Id;rename=e.Name;tab=0;}x+=width+6f;
             }
-            var current=book.ById(selected);if(current==null)return y-rect.y;
-            var b=current;
-            Widgets.DrawLineHorizontal(rect.x,y,width);y+=10;
-            rename=Widgets.TextField(new Rect(rect.x,y,width,28),rename??b.Name);b.Name=rename.Length>60?rename.Substring(0,60):rename;y+=32;
-            Check(rect,ref y,"Open for business",ref b.Enabled);
-            label("Owner: "+OwnerName(b,c));
-            if(button("Change owner"))
+            y+=36f;if(selected==0&&book.Businesses.Count>0){selected=book.Businesses[0].Id;rename=book.Businesses[0].Name;}
+            var b=book.ById(selected);
+            if(b==null)return CommunityPageLayout.Line(new Rect(rect.x,rect.y+y,rect.width,rect.height-y),0f,"Create a restaurant, tavern, inn or shop to begin.",true)+y;
+            y=CommunityPageLayout.Section(rect,0f,y,rect.width,b.Kind+" summary",r=>Summary(r,c,b));
+            y=CommunityPageLayout.Tabs(new Rect(rect.x,rect.y,rect.width,rect.height),y,Tabs,tab,i=>tab=i);
+            switch(tab)
             {
-                var options=new List<FloatMenuOption>{new FloatMenuOption("Community",()=>{b.Owner=EstablishmentOwner.Community;b.OwnerId=0;})};
-                foreach(var p in c.Registry.Persons.Where(p=>p.InColony&&!p.Juvenile)) {var who=p;options.Add(new FloatMenuOption(who.Name,()=>{b.Owner=EstablishmentOwner.Person;b.OwnerId=who.Id;}));}
-                foreach(var h in c.Registry.Households.Where(h=>h.ResidentIds.Any(id=>c.Registry.GetPerson(id)?.InColony==true))) {var house=h;options.Add(new FloatMenuOption("Household: "+string.Join(", ",house.ResidentIds.Select(id=>c.Registry.GetPerson(id)?.Name).Where(n=>n!=null)),()=>{b.Owner=EstablishmentOwner.Household;b.OwnerId=house.Id;}));}
-                Menu(options);
+                case 0:return Overview(rect,y,c,b);
+                case 1:return Premises(rect,y,b);
+                case 2:return Customers(rect,y,c,b,book);
+                case 3:return Finance(rect,y,b,book);
+                case 4:return Character(rect,y,b);
+                default:return Activity(rect,y,c,b,book);
             }
-            label("Staff: "+string.Join(", ",b.Staff.Select(id=>c.TryGetPawn(id)?.LabelShort??("#"+id))));
-            if(button("Assign / remove staff")) Menu(c.Registry.Persons.Where(p=>p.InColony&&!p.Juvenile).Select(p=>new FloatMenuOption((b.Staff.Contains(p.Id)?"Remove ":"Assign ")+p.Name,()=>{if(!b.Staff.Remove(p.Id)){b.Staff.Add(p.Id);if(b.Kind!=EstablishmentKind.Shop)c.Registry.Assignments().Assign(p.Id,CareerService.Professions.ById(CulinaryCareers.Cook),c.Registry.Careers(),FrameworkServices.Now);}})));
-            label("Staff use personal Work hours and Cooking / Craft / Sell priorities. Uncovered service pauses for necessary breaks.");
-            if(b.Kind==EstablishmentKind.Shop)
-            {
-                label("Workshop identity: "+b.WorkshopFocus);
-                if(button("Change workshop identity"))Menu(Enum.GetValues(typeof(WorkshopFocus)).Cast<WorkshopFocus>().Select(f=>new FloatMenuOption(f.ToString(),()=>b.WorkshopFocus=f)));
-                label("Focused workshops sell matching recorded workshop goods; General shops continue to sell any stocked item.");
-            }
-            foreach(var entry in new[]{new[]{"Service area","Service"},new[]{"Sales stock area","Stock"},new[]{"Private storage area","Storage"},new[]{"Sales containers","StockContainer"},new[]{"Storage containers","StorageContainer"},new[]{"Counter","Counter"},new[]{"Kitchen benches","Bench"}})
-            {
-                string mode=entry[1];if(button("Designate "+entry[0])) Activate(b,mode);
-            }
-            if(b.Kind==EstablishmentKind.Inn&&button("Designate guest beds"))Activate(b,"Bed");
-            label("Service: "+b.ServiceCells.Count+" cells · sales: "+b.StockCells.Count+" cells / "+b.StockContainers.Count+" containers · storage: "+b.StorageCells.Count+" cells / "+b.StorageContainers.Count+" containers");
-            label("Counter: "+b.Counter+" · benches: "+b.Benches.Count+" · guest beds: "+b.Beds.Count);
-            if(button("Erase designated cells / unselect objects")) Menu(new[]{"Service","Stock","Storage","StockContainer","StorageContainer","Counter","Bench","Bed"}.Select(mode=>new FloatMenuOption(mode,()=>Activate(b,mode,true))));
-            if(button("Ban / allow individual customer"))Menu(c.Registry.Persons.Where(p=>p.InColony||book.Guests.Any(g=>g.Pawn==p.Id)).Select(p=>new FloatMenuOption((b.BannedCustomers.Contains(p.Id)?"Allow ":"Ban ")+p.Name,()=>{if(!b.BannedCustomers.Remove(p.Id))b.BannedCustomers.Add(p.Id); })));
-            if(button("Exclude / allow family"))Menu(c.Registry.Persons.Where(p=>p.PrimaryLineageId>0).GroupBy(p=>p.PrimaryLineageId).Select(g=>new FloatMenuOption((b.ExcludedFamilies.Contains(g.Key)?"Allow ":"Exclude ")+g.First().Name+" family",()=>{if(!b.ExcludedFamilies.Remove(g.Key))b.ExcludedFamilies.Add(g.Key); })));
-            label("Customers");Check(rect,ref y,"Residents",ref b.Residents);Check(rect,ref y,"Visitors",ref b.Visitors);Check(rect,ref y,"Alcohol service (respects customer restrictions)",ref b.Alcohol);Check(rect,ref y,"Refuse further alcohol to intoxicated customers",ref b.CutOffDrunks);Check(rect,ref y,"Quiet house rules",ref b.Quiet);
-            Slider(rect,ref y,"Opening hour",ref b.OpenHour,0,23);Slider(rect,ref y,"Closing hour",ref b.CloseHour,0,23);
-            label("Equal opening and closing hours means closed; overnight schedules are supported.");
-            Slider(rect,ref y,"Prices (% market value)",ref b.PricePercent,25,250);Slider(rect,ref y,"Lodging per night (silver)",ref b.RoomPrice,1,50);Slider(rect,ref y,"Maximum guest stay (days)",ref b.MaxStay,1,10);Slider(rect,ref y,"Household spending allowance / day",ref b.HouseholdBudget,0,100);
-            Slider(rect,ref y,"Base wage (milli-silver / work hour)",ref b.BasePayMilli,0,2000);Slider(rect,ref y,"Staff share of collected sales (%)",ref b.StaffShare,0,80);
-            for(int i=0;i<4;i++){int value=b.Weights[i];Slider(rect,ref y,((ContributionKind)i)+" credit weight",ref value,0,10);b.Weights[i]=value;}
-            Slider(rect,ref y,"Business reserve (silver)",ref b.Reserve,0,500);
-            if(button("Suggested pay from owner's personality"))HospitalityService.OwnerPreset(b);
-            var finance=FamilyFramework.Commerce.Bank;
-            if(finance==null) label("Treasury unavailable: paid orders and new paid shifts paused; saved obligations retained.");
-            else
-            {
-                string account=finance.Business(b.Id);label("Business spendable: "+finance.Available(account)+" · wage debt: "+finance.Owed(account)+" · pending base pay: "+book.Earnings.Where(e=>e.Business==b.Id&&!e.Posted).Sum(e=>e.Silver)+" · staff pool: "+b.BonusPool);
-                if(button("Fund business: 25 silver from owner"))HospitalityService.Fund(b,25);
-                if(button("Withdraw available profit: "+book.Withdrawable(b,finance)))HospitalityService.Withdraw(b);
-            }
-            foreach(var adapter in OptionalCommerceHooks.Status)label("Compatibility: "+adapter);
-            label("Character: "+b.Personality.Description);
-            label("Warmth "+b.Personality.Culture.Warmth+" · refinement "+b.Personality.Culture.Refinement+" · thrift "+b.Personality.Culture.Frugality+" · discipline "+b.Personality.Culture.Discipline+" · revelry "+b.Personality.Culture.Revelry);
-            label("Staff climate: "+b.Personality.StaffClimate+"/100 · "+EstablishmentPersonalityService.OwnerMood(b));
-            Check(rect,ref y,"Allow autonomous owner conversations",ref b.Personality.OwnerAutonomy);
-            Check(rect,ref y,"Allow discretionary owner bonuses from free business funds",ref b.Personality.AllowBonuses);
-            Check(rect,ref y,"Require equal treatment (prevent family favoritism)",ref b.Personality.EqualTreatment);
-            label(b.Personality.LastReason);
-            label("Character develops gradually from owners, staff and recent customers. A bad mood changes conversations, not earned wages or your policy settings.");
-            label("Reputation: food "+b.Food+" · service "+b.Service+" · comfort "+b.Comfort+" · value "+b.Value+" · safety "+b.Safety);
-            label("Atmosphere: "+(b.Rowdiness>60?"Rowdy":b.Rowdiness<30?"Peaceful":"Sociable")+" · completed visits "+b.Visits+" · collected sales "+b.Revenue);
-            label("Recovery: improve supplies, seating, coverage and value; enforce alcohol / quiet rules. New experiences gradually outweigh older ones.");
-            foreach(var guest in book.Guests.Where(g=>g.Business==b.Id))label((HospitalityService.Pawn(guest.Pawn)?.LabelShort??"Guest")+": until day "+guest.UntilDay+", "+guest.Extensions+" extensions"+(guest.Leaving?"; leaving":""));
-            if(button("Reserve a family meal / celebration (50 silver budget)")) Menu(c.Registry.Households.Where(h=>h.ResidentIds.Any(id=>c.Registry.GetPerson(id)?.InColony==true)).Select(h=>new FloatMenuOption("Household #"+h.Id,()=>HospitalityStories.BookMeal(b,BookingKind.Celebration,h.Id,h.ResidentIds.Count,50))));
-            if(button("Commission a community meal (100 silver budget)"))HospitalityStories.BookMeal(b,BookingKind.CommunityMeal,0,c.Registry.Persons.Count(p=>p.InColony),100);
-            if(b.Kind==EstablishmentKind.Inn&&button("Offer emergency meals / shelter (100 silver community budget)"))HospitalityStories.BookMeal(b,BookingKind.EmergencyShelter,0,c.Registry.Persons.Count(p=>p.InColony),100);
-            label("Bookings reserve the sponsor's actual funds; unused funds are released when the booking expires. Customers still choose whether to attend.");
-            foreach(var booking in c.Registry.HospitalityBookings().Bookings.Where(x=>x.Business==b.Id&&!x.Closed))label(booking.Kind+": "+booking.Served+" served; "+(booking.Budget-booking.Committed)+" silver budget remaining");
-            if(button("Resolve a recent bill with a full refund"))Menu(book.Orders.Where(o=>o.Business==b.Id&&o.Stage==ServiceStage.Settled&&!o.Refunded).Select(o=>new FloatMenuOption((HospitalityService.Pawn(o.Customer)?.LabelShort??"Customer #"+o.Customer)+": "+o.Price+" silver",()=>HospitalityStories.Refund(o))));
-            label("Recent activity");foreach(var line in book.History.AsEnumerable().Reverse().Take(15))label(line);
-            return y-rect.y;
         }
+        private static float Summary(Rect r,FamilyComponent c,Establishment b)
+        {
+            float y=0f;rename=Widgets.TextField(new Rect(0f,y,Mathf.Min(360f,r.width*.55f),28f),rename??b.Name);b.Name=(rename??"").Length>60?rename.Substring(0,60):rename??b.Name;
+            bool enabled=b.Enabled;y=CommunityPageLayout.Toggle(r,y+34f,"Open for business",ref enabled);b.Enabled=enabled;
+            bool open=HospitalityService.Map(b)!=null&&b.OpenAt(GenLocalDate.HourOfDay(HospitalityService.Map(b)));int working=HospitalityService.Coverage(b).Count();
+            y=CommunityPageLayout.Line(r,y,(open?"Open now":"Closed now")+"   •   "+working+" working   •   reputation "+b.Reputation+"   •   "+b.Visits+" completed visits");
+            return CommunityPageLayout.Line(r,y,"Owner: "+OwnerName(b,c)+"   •   Staff: "+(b.Staff.Count==0?"none":string.Join(", ",b.Staff.Select(id=>c.TryGetPawn(id)?.LabelShort??("#"+id)))),b.Staff.Count==0);
+        }
+        private static float Overview(Rect rect,float y,FamilyComponent c,Establishment b)
+        {
+            float w=CommunityPageLayout.ColumnWidth(rect),left=CommunityPageLayout.Section(rect,0f,y,w,"People",r=>
+            {
+                float h=CommunityPageLayout.Line(r,0f,"Owner: "+OwnerName(b,c));
+                h=CommunityPageLayout.Button(r,h,"Change owner",()=>OwnerMenu(b,c));
+                string staff=b.Staff.Count==0?"none assigned":string.Join(", ",b.Staff.Select(id=>c.TryGetPawn(id)?.LabelShort??("#"+id)));
+                h=CommunityPageLayout.Line(r,h,"Staff: "+staff,b.Staff.Count==0);
+                h=CommunityPageLayout.Button(r,h,"Assign or remove staff",()=>StaffMenu(b,c));
+                return CommunityPageLayout.Line(r,h,"Work hours and Cooking, Crafting, or Sell priorities decide what each employee does.",true);
+            });
+            bool columns=CommunityPageLayout.TwoColumns(rect);float right=CommunityPageLayout.Section(rect,columns?w+CommunityPageLayout.Gap:0f,columns?y:left,w,"Hours and prices",r=>
+            {
+                float h=CommunityPageLayout.Slider(r,0f,"Opens",ref b.OpenHour,0,23,"h");h=CommunityPageLayout.Slider(r,h,"Closes",ref b.CloseHour,0,23,"h");
+                h=CommunityPageLayout.Slider(r,h,"Price",ref b.PricePercent,25,250,"%");
+                if(b.Kind==EstablishmentKind.Inn){h=CommunityPageLayout.Slider(r,h,"Room per night",ref b.RoomPrice,1,50," silver");h=CommunityPageLayout.Slider(r,h,"Maximum stay",ref b.MaxStay,1,10," days");}
+                h=CommunityPageLayout.Slider(r,h,"Household allowance",ref b.HouseholdBudget,0,100," silver/day");
+                if(b.Kind==EstablishmentKind.Shop){h=CommunityPageLayout.Line(r,h,"Workshop focus: "+b.WorkshopFocus);h=CommunityPageLayout.Button(r,h,"Change workshop focus",()=>Menu(Enum.GetValues(typeof(WorkshopFocus)).Cast<WorkshopFocus>().Select(f=>new FloatMenuOption(f.ToString(),()=>b.WorkshopFocus=f))));}
+                return CommunityPageLayout.Line(r,h,"Matching opening and closing hours means closed. Overnight schedules are supported.",true);
+            });
+            return columns?Math.Max(left,right):right;
+        }
+        private static float Premises(Rect rect,float y,Establishment b)
+        {
+            return CommunityPageLayout.Section(rect,0f,y,rect.width,"Premises setup",r=>
+            {
+                var actions=new List<KeyValuePair<string,Action>>{
+                    Pair("Service area",()=>Activate(b,"Service")),Pair("Sales floor",()=>Activate(b,"Stock")),Pair("Private storage",()=>Activate(b,"Storage")),
+                    Pair("Sales containers",()=>Activate(b,"StockContainer")),Pair("Storage containers",()=>Activate(b,"StorageContainer")),Pair("Service counter",()=>Activate(b,"Counter")),Pair("Kitchen benches",()=>Activate(b,"Bench"))};
+                if(b.Kind==EstablishmentKind.Inn)actions.Add(Pair("Guest beds",()=>Activate(b,"Bed")));
+                float h=CommunityPageLayout.ButtonGrid(r,0f,actions,r.width>700f?3:2);
+                h=CommunityPageLayout.Line(r,h,"Service "+b.ServiceCells.Count+" cells   •   Sales "+b.StockCells.Count+" cells / "+b.StockContainers.Count+" containers   •   Storage "+b.StorageCells.Count+" cells / "+b.StorageContainers.Count+" containers");
+                h=CommunityPageLayout.Line(r,h,"Counter "+(b.Counter==0?"not set":"set")+"   •   "+b.Benches.Count+" benches   •   "+b.Beds.Count+" guest beds",b.Counter==0);
+                return CommunityPageLayout.Button(r,h,"Remove a designated area or object",()=>Menu(new[]{"Service","Stock","Storage","StockContainer","StorageContainer","Counter","Bench","Bed"}.Select(mode=>new FloatMenuOption(mode,()=>Activate(b,mode,true)))));
+            });
+        }
+        private static float Customers(Rect rect,float y,FamilyComponent c,Establishment b,EstablishmentBook book)
+        {
+            float w=CommunityPageLayout.ColumnWidth(rect),left=CommunityPageLayout.Section(rect,0f,y,w,"Who may visit",r=>
+            {
+                float h=0f;h=CommunityPageLayout.Toggle(r,h,"Residents",ref b.Residents);h=CommunityPageLayout.Toggle(r,h,"Visitors",ref b.Visitors);
+                h=CommunityPageLayout.Button(r,h,"Manage individual bans",()=>Menu(c.Registry.Persons.Where(p=>p.InColony||book.Guests.Any(g=>g.Pawn==p.Id)).Select(p=>new FloatMenuOption((b.BannedCustomers.Contains(p.Id)?"Allow ":"Ban ")+p.Name,()=>{if(!b.BannedCustomers.Remove(p.Id))b.BannedCustomers.Add(p.Id);})))) ;
+                h=CommunityPageLayout.Button(r,h,"Manage excluded families",()=>Menu(c.Registry.Persons.Where(p=>p.PrimaryLineageId>0).GroupBy(p=>p.PrimaryLineageId).Select(g=>new FloatMenuOption((b.ExcludedFamilies.Contains(g.Key)?"Allow ":"Exclude ")+g.First().Name+" family",()=>{if(!b.ExcludedFamilies.Remove(g.Key))b.ExcludedFamilies.Add(g.Key);})))) ;
+                return CommunityPageLayout.Line(r,h,b.BannedCustomers.Count+" individual bans   •   "+b.ExcludedFamilies.Count+" excluded families",true);
+            });
+            bool columns=CommunityPageLayout.TwoColumns(rect);float right=CommunityPageLayout.Section(rect,columns?w+CommunityPageLayout.Gap:0f,columns?y:left,w,"House rules",r=>
+            {
+                float h=0f;h=CommunityPageLayout.Toggle(r,h,"Serve alcohol",ref b.Alcohol);h=CommunityPageLayout.Toggle(r,h,"Cut off intoxicated customers",ref b.CutOffDrunks);h=CommunityPageLayout.Toggle(r,h,"Quiet house",ref b.Quiet);return h;
+            });
+            return columns?Math.Max(left,right):right;
+        }
+        private static float Finance(Rect rect,float y,Establishment b,EstablishmentBook book)
+        {
+            float w=CommunityPageLayout.ColumnWidth(rect),left=CommunityPageLayout.Section(rect,0f,y,w,"Pay policy",r=>
+            {
+                float h=CommunityPageLayout.Slider(r,0f,"Base wage",ref b.BasePayMilli,0,2000," milli-silver/hour");h=CommunityPageLayout.Slider(r,h,"Staff sales share",ref b.StaffShare,0,80,"%");
+                for(int i=0;i<4;i++){int value=b.Weights[i];h=CommunityPageLayout.Slider(r,h,((ContributionKind)i)+" credit",ref value,0,10);b.Weights[i]=value;}
+                return CommunityPageLayout.Button(r,h,"Use owner's suggested pay policy",()=>HospitalityService.OwnerPreset(b));
+            });
+            bool columns=CommunityPageLayout.TwoColumns(rect);float right=CommunityPageLayout.Section(rect,columns?w+CommunityPageLayout.Gap:0f,columns?y:left,w,"Business account",r=>
+            {
+                float h=CommunityPageLayout.Slider(r,0f,"Cash reserve",ref b.Reserve,0,500," silver");var finance=FamilyFramework.Commerce.Bank;
+                if(finance==null)return CommunityPageLayout.Line(r,h,"Treasury unavailable. Paid orders and new paid shifts are paused; existing obligations are retained.",true);
+                string account=finance.Business(b.Id);h=CommunityPageLayout.Line(r,h,"Spendable "+finance.Available(account)+"   •   Wage debt "+finance.Owed(account)+"   •   Pending pay "+book.Earnings.Where(e=>e.Business==b.Id&&!e.Posted).Sum(e=>e.Silver)+"   •   Staff pool "+b.BonusPool);
+                h=CommunityPageLayout.ButtonGrid(r,h,new[]{Pair("Fund 25 silver",()=>HospitalityService.Fund(b,25)),Pair("Withdraw profit ("+book.Withdrawable(b,finance)+")",()=>HospitalityService.Withdraw(b))});
+                foreach(var adapter in OptionalCommerceHooks.Status)h=CommunityPageLayout.Line(r,h,"Compatibility: "+adapter,true);return h;
+            });
+            return columns?Math.Max(left,right):right;
+        }
+        private static float Character(Rect rect,float y,Establishment b)
+        {
+            float w=CommunityPageLayout.ColumnWidth(rect),left=CommunityPageLayout.Section(rect,0f,y,w,"Business character",r=>
+            {
+                float h=CommunityPageLayout.Line(r,0f,b.Personality.Description);h=CommunityPageLayout.Line(r,h,"Warmth "+b.Personality.Culture.Warmth+"   •   Refinement "+b.Personality.Culture.Refinement+"   •   Thrift "+b.Personality.Culture.Frugality+"   •   Discipline "+b.Personality.Culture.Discipline+"   •   Revelry "+b.Personality.Culture.Revelry,true);
+                h=CommunityPageLayout.Line(r,h,"Staff climate "+b.Personality.StaffClimate+"/100   •   Owner "+EstablishmentPersonalityService.OwnerMood(b));
+                h=CommunityPageLayout.Toggle(r,h,"Autonomous owner conversations",ref b.Personality.OwnerAutonomy);h=CommunityPageLayout.Toggle(r,h,"Discretionary owner bonuses",ref b.Personality.AllowBonuses);h=CommunityPageLayout.Toggle(r,h,"Require equal treatment",ref b.Personality.EqualTreatment);return CommunityPageLayout.Line(r,h,b.Personality.LastReason,true);
+            });
+            bool columns=CommunityPageLayout.TwoColumns(rect);float right=CommunityPageLayout.Section(rect,columns?w+CommunityPageLayout.Gap:0f,columns?y:left,w,"Reputation",r=>
+            {
+                float h=CommunityPageLayout.Line(r,0f,"Overall "+b.Reputation+"/100   •   "+(b.Rowdiness>60?"Rowdy":b.Rowdiness<30?"Peaceful":"Sociable"));h=CommunityPageLayout.Line(r,h,"Food "+b.Food+"   •   Service "+b.Service+"   •   Comfort "+b.Comfort+"   •   Value "+b.Value+"   •   Safety "+b.Safety);
+                h=CommunityPageLayout.Line(r,h,"Improve weak scores through supplies, seating, coverage and fair prices. House rules affect safety and atmosphere.",true);return h;
+            });
+            return columns?Math.Max(left,right):right;
+        }
+        private static float Activity(Rect rect,float y,FamilyComponent c,Establishment b,EstablishmentBook book)
+        {
+            float w=CommunityPageLayout.ColumnWidth(rect),left=CommunityPageLayout.Section(rect,0f,y,w,"Bookings and guests",r=>
+            {
+                float h=CommunityPageLayout.Button(r,0f,"Reserve a family celebration (50 silver)",()=>Menu(c.Registry.Households.Where(x=>x.ResidentIds.Any(id=>c.Registry.GetPerson(id)?.InColony==true)).Select(x=>new FloatMenuOption("Household #"+x.Id,()=>HospitalityStories.BookMeal(b,BookingKind.Celebration,x.Id,x.ResidentIds.Count,50)))));
+                h=CommunityPageLayout.Button(r,h,"Commission a community meal (100 silver)",()=>HospitalityStories.BookMeal(b,BookingKind.CommunityMeal,0,c.Registry.Persons.Count(p=>p.InColony),100));if(b.Kind==EstablishmentKind.Inn)h=CommunityPageLayout.Button(r,h,"Offer emergency meals and shelter (100 silver)",()=>HospitalityStories.BookMeal(b,BookingKind.EmergencyShelter,0,c.Registry.Persons.Count(p=>p.InColony),100));
+                foreach(var booking in c.Registry.HospitalityBookings().Bookings.Where(x=>x.Business==b.Id&&!x.Closed))h=CommunityPageLayout.Line(r,h,booking.Kind+": "+booking.Served+" served, "+(booking.Budget-booking.Committed)+" silver remaining");
+                foreach(var guest in book.Guests.Where(g=>g.Business==b.Id))h=CommunityPageLayout.Line(r,h,(HospitalityService.Pawn(guest.Pawn)?.LabelShort??"Guest")+": until day "+guest.UntilDay+(guest.Leaving?"; leaving":""));
+                return CommunityPageLayout.Line(r,h,"Unused booking funds are released when the booking expires.",true);
+            });
+            bool columns=CommunityPageLayout.TwoColumns(rect);float right=CommunityPageLayout.Section(rect,columns?w+CommunityPageLayout.Gap:0f,columns?y:left,w,"Recent activity",r=>
+            {
+                float h=CommunityPageLayout.Button(r,0f,"Refund a recent bill",()=>Menu(book.Orders.Where(o=>o.Business==b.Id&&o.Stage==ServiceStage.Settled&&!o.Refunded).Select(o=>new FloatMenuOption((HospitalityService.Pawn(o.Customer)?.LabelShort??"Customer #"+o.Customer)+": "+o.Price+" silver",()=>HospitalityStories.Refund(o)))));foreach(var line in book.History.AsEnumerable().Reverse().Take(10))h=CommunityPageLayout.Line(r,h,line,true);return h;
+            });
+            return columns?Math.Max(left,right):right;
+        }
+        private static void OwnerMenu(Establishment b,FamilyComponent c)
+        {
+            var options=new List<FloatMenuOption>{new FloatMenuOption("Community",()=>{b.Owner=EstablishmentOwner.Community;b.OwnerId=0;})};foreach(var p in c.Registry.Persons.Where(p=>p.InColony&&!p.Juvenile)){var who=p;options.Add(new FloatMenuOption(who.Name,()=>{b.Owner=EstablishmentOwner.Person;b.OwnerId=who.Id;}));}foreach(var h in c.Registry.Households.Where(h=>h.ResidentIds.Any(id=>c.Registry.GetPerson(id)?.InColony==true))){var house=h;options.Add(new FloatMenuOption("Household: "+string.Join(", ",house.ResidentIds.Select(id=>c.Registry.GetPerson(id)?.Name).Where(n=>n!=null)),()=>{b.Owner=EstablishmentOwner.Household;b.OwnerId=house.Id;}));}Menu(options);
+        }
+        private static void StaffMenu(Establishment b,FamilyComponent c)=>Menu(c.Registry.Persons.Where(p=>p.InColony&&!p.Juvenile).Select(p=>new FloatMenuOption((b.Staff.Contains(p.Id)?"Remove ":"Assign ")+p.Name,()=>{if(!b.Staff.Remove(p.Id)){b.Staff.Add(p.Id);if(b.Kind!=EstablishmentKind.Shop)c.Registry.Assignments().Assign(p.Id,CareerService.Professions.ById(CulinaryCareers.Cook),c.Registry.Careers(),FrameworkServices.Now);}})));
+        private static KeyValuePair<string,Action> Pair(string label,Action action)=>new KeyValuePair<string,Action>(label,action);
         private static string OwnerName(Establishment b,FamilyComponent c)=>b.Owner==EstablishmentOwner.Community?"Community":b.Owner==EstablishmentOwner.Person?c.Registry.GetPerson(b.OwnerId)?.Name??"Former owner":"Household #"+b.OwnerId;
         private static void Menu(IEnumerable<FloatMenuOption> options)=>Find.WindowStack.Add(new FloatMenu(options.ToList()));
         private static void Activate(Establishment b,string mode,bool erase=false){Find.MainTabsRoot.SetCurrentTab(null);Find.DesignatorManager.Select(new EstablishmentDesignator(b.Id,mode,erase));}
-        private static void Check(Rect rect,ref float y,string text,ref bool value){Widgets.CheckboxLabeled(new Rect(rect.x,y,rect.width,26),text,ref value);y+=28;}
-        private static void Slider(Rect rect,ref float y,string text,ref int value,int min,int max){Widgets.Label(new Rect(rect.x,y,rect.width,24),text+": "+value);y+=24;value=(int)Math.Round(Widgets.HorizontalSlider(new Rect(rect.x,y,rect.width,22),value,min,max,true));y+=28;}
     }
     public sealed class EstablishmentDesignator : Designator_Cells
     {

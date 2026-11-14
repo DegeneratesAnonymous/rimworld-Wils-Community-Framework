@@ -234,4 +234,3 @@
 - Households: partners who move in together form one, children stay with parents, adult children stay until they pair up, anyone can be moved by hand.
 - Families window (bottom bar) and a Family tab on colonists.
 - Builds for RimWorld 1.6 and 1.7. Requires Harmony only.
-

@@ -16,25 +16,31 @@ namespace FamilyLife
 
         public static float Draw(Rect r, FamilyComponent c)
         {
-            var reg = c.Registry; float w = CommunityPageLayout.ColumnWidth(r);
-            float left = CommunityPageLayout.Section(r, 0f, 0f, w, "WFL_Edu_Instructors".Translate(), a =>
+            var reg = c.Registry; var instructors=EducationCareers.Instructors(reg);var running=ClassSessions.RunningSessions.Where(s=>!s.Finished).ToList();var due=EducationEvents.EligibleNow(c,FrameworkServices.Now);
+            float top=CommunityPageLayout.Section(r,0f,0f,r.width,"Education overview",a=>
             {
-                float y = 0f; var instructors = EducationCareers.Instructors(reg);
+                float y=CommunityPageLayout.Line(a,0f,instructors.Count+" instructor"+(instructors.Count==1?"":"s")+"   •   "+running.Count+" active class"+(running.Count==1?"":"es")+"   •   "+due.Count+" assessment"+(due.Count==1?"":"s")+" due");
+                return CommunityPageLayout.Button(a,y,"Manage education professions",()=>MainTabWindow_Community.Open(Framework.ModuleCatalog.FrameworkId+".professions"));
+            });
+            float w = CommunityPageLayout.ColumnWidth(r);
+            float left = CommunityPageLayout.Section(r, 0f, top, w, "WFL_Edu_Instructors".Translate(), a =>
+            {
+                float y = 0f;
                 if (instructors.Count == 0) y = CommunityPageLayout.Line(a, y, "WFL_Edu_None".Translate(), true);
                 foreach (int id in instructors) y = CommunityPageLayout.Line(a, y, (c.TryGetPawn(id)?.LabelShort ?? "#" + id) + " - " + string.Join(", ", reg.Assignments().RolesOf(id).Select(x => { var role = CareerService.Professions.All.FirstOrDefault(p => p.Id == x); return role != null ? CareerService.TitleOf(role, reg) : x; })));
                 return y;
             });
             left = CommunityPageLayout.Section(r, 0f, left, w, "WFL_Edu_Classes".Translate(), a =>
             {
-                float y = 0f; var running = ClassSessions.RunningSessions.Where(s => !s.Finished).ToList();
+                float y = 0f;
                 if (running.Count == 0) y = CommunityPageLayout.Line(a, y, "WFL_Edu_NoClasses".Translate(), true);
                 foreach (var s in running) y = CommunityPageLayout.Line(a, y, "WFL_Edu_ClassLine".Translate(c.TryGetPawn(s.TeacherId)?.LabelShort ?? "#" + s.TeacherId, s.Subject, s.Roster.Count));
                 return y;
             });
             bool columns = CommunityPageLayout.TwoColumns(r);
-            float right = CommunityPageLayout.Section(r, columns ? w + CommunityPageLayout.Gap : 0f, columns ? 0f : left, w, "WFL_Edu_Assessments".Translate(), a =>
+            float right = CommunityPageLayout.Section(r, columns ? w + CommunityPageLayout.Gap : 0f, columns ? top : left, w, "WFL_Edu_Assessments".Translate(), a =>
             {
-                float y = 0f; int now = FrameworkServices.Now; var due = EducationEvents.EligibleNow(c, now);
+                float y = 0f; int now = FrameworkServices.Now;
                 if (due.Count == 0) return CommunityPageLayout.Line(a, y, "WFL_Edu_NoAssessments".Translate(), true);
                 y = CommunityPageLayout.Line(a, y, "WFL_Edu_AssessmentsDue".Translate(string.Join(", ", due.Select(p => p.LabelShort))));
                 y = CommunityPageLayout.Button(a, y, "WFL_Event_Begin".Translate(), () => EducationEvents.BeginAll(c, now));
