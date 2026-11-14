@@ -29,6 +29,11 @@ namespace FamilyLife.Tests
             string fw = RepoPaths.Framework.Replace('\\', '/') + "/";
             if (f.StartsWith(edu)) return "education";
             if (f.StartsWith(care) || f.StartsWith(fw + "Care/")) return "care";
+            foreach (var module in new[] { "Treasury", "Hospitality", "Crafting", "Agriculture" })
+            {
+                string root = RepoPaths.ModuleSource(module).Replace('\\', '/') + "/";
+                if (f.StartsWith(root)) return module.ToLowerInvariant();
+            }
             return "shared";
         }
 
@@ -253,6 +258,7 @@ namespace FamilyLife.Tests
         [InlineData("WilsTreasury", "Wil's Role Modules : Treasury")]
         [InlineData("WilsHospitality", "Wil's Role Modules : Cooking &amp; Hospitality")]
         [InlineData("WilsCrafting", "Wil's Role Modules : Crafting")]
+        [InlineData("WilsAgriculture", "Wil's Role Modules : Agriculture")]
         public void Optional_packages_follow_the_role_module_naming_convention(string folder, string title)
         {
             string xml = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Packages", folder, "About", "About.xml"));

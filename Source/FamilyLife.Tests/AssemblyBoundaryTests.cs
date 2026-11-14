@@ -146,5 +146,14 @@ namespace FamilyLife.Tests
             Assert.Contains("FamilyLife",crafting.References);Assert.DoesNotContain("WilsHospitality",crafting.References);Assert.DoesNotContain("WilsTreasury",crafting.References);Assert.Empty(crafting.Types.Intersect(framework.Types));
             var dlls=Directory.GetFiles(Path.GetDirectoryName(crafting.Path),"*.dll").Select(Path.GetFileName).ToList();Assert.Equal(new[]{"WilsCrafting.dll"},dlls);
         }
+        [Theory]
+        [InlineData("1.6")]
+        [InlineData("1.7")]
+        public void Agriculture_uses_only_the_framework_contract_and_ships_only_its_assembly(string version)
+        {
+            var agriculture=Read(Module(version,"WilsAgriculture","WilsAgriculture"));var framework=Read(Framework(version));
+            Assert.Contains("FamilyLife",agriculture.References);Assert.DoesNotContain("WilsHospitality",agriculture.References);Assert.DoesNotContain("WilsTreasury",agriculture.References);Assert.Empty(agriculture.Types.Intersect(framework.Types));
+            var dlls=Directory.GetFiles(Path.GetDirectoryName(agriculture.Path),"*.dll").Select(Path.GetFileName).ToList();Assert.Equal(new[]{"WilsAgriculture.dll"},dlls);
+        }
     }
 }

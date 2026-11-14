@@ -1,6 +1,6 @@
 # Installing Wil's Community Framework and its role modules
 
-Wil's Community Framework and its optional role modules are six packages. **This module candidate has not been gameplay-validated in this environment**; the steps are what the layout and the scripts are built for, and [MODULE-VERIFICATION.md](MODULE-VERIFICATION.md) is how to check them.
+Wil's Community Framework and its optional role modules are seven packages. **This module candidate has not been gameplay-validated in this environment**; the steps are what the layout and the scripts are built for, and [MODULE-VERIFICATION.md](MODULE-VERIFICATION.md) is how to check them.
 
 | Package | Folder in `Mods` | packageId | What it gives you |
 |---|---|---|---|
@@ -10,10 +10,11 @@ Wil's Community Framework and its optional role modules are six packages. **This
 | Wil's Role Modules : Treasury | `WilsTreasury` | `SpacemanWil.WilsTreasury` | Accounts, physical silver backing, wages, debts and taxation |
 | Wil's Role Modules : Cooking & Hospitality | `WilsHospitality` | `SpacemanWil.WilsHospitality` | Cooking careers, establishments, service, shops and inns; paid operations use Treasury's optional commerce capability |
 | Wil's Role Modules : Crafting | `WilsCrafting` | `SpacemanWil.WilsCrafting` | Crafting careers, specialties, commercial workshops and specialty product bonuses |
+| Wil's Role Modules : Agriculture | `WilsAgriculture` | `SpacemanWil.WilsAgriculture` | Plant, hunting and livestock careers with managed automatic hunting |
 
 Education and Community Care each need only Wil's Community Framework (and Harmony). They never need each other: any of the four combinations is valid.
 
-**Load order:** Harmony, Wil's Community Framework, then the Treasury, Education and/or Community Care role modules, then Cooking & Hospitality and Crafting (their `About.xml` says `loadAfter`; RimWorld's mod manager will sort them). Each module announces itself when the game starts; if the framework is missing or loads after, the module will not work and the log says why.
+**Load order:** Harmony, Wil's Community Framework, then the Treasury, Education and/or Community Care role modules, followed by Cooking & Hospitality, Crafting and Agriculture (their `About.xml` says `loadAfter`; RimWorld's mod manager will sort them). Each module announces itself when the game starts; if the framework is missing or loads after, the module will not work and the log says why.
 
 ## Updating an existing game that used the all-in-one mod
 

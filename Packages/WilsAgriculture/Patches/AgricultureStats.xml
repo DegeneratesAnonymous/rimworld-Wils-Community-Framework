@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="PlantHarvestYield"]/parts</xpath><value>
+    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Horticulturist</specialty><factor>1.15</factor><label>Horticulturist</label></li>
+    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Herbalist</specialty><factor>1.20</factor><label>Herbalist</label><target>medicine</target></li>
+  </value></Operation>
+  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="PlantWorkSpeed"]/parts</xpath><value>
+    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Arborist</specialty><factor>1.20</factor><label>Arborist</label><target>tree</target></li>
+  </value></Operation>
+  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="AnimalGatherSpeed"]/parts</xpath><value>
+    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Shepherd</specialty><factor>1.20</factor><label>Shepherd</label></li>
+  </value></Operation>
+  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="AnimalGatherYield"]/parts</xpath><value>
+    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Breeder</specialty><factor>1.15</factor><label>Breeder</label></li>
+  </value></Operation>
+  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="TameAnimalChance"]/parts</xpath><value>
+    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Beastmaster</specialty><factor>1.15</factor><label>Beastmaster</label></li>
+  </value></Operation>
+  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="TrainAnimalChance"]/parts</xpath><value>
+    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Beastmaster</specialty><factor>1.15</factor><label>Beastmaster</label></li>
+  </value></Operation>
+</Patch>

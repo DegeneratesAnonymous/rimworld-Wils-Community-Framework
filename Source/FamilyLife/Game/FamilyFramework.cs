@@ -41,6 +41,8 @@ namespace FamilyLife
         public static readonly ContributionList<Action<Thing, Thing, int>> StackMerged = new ContributionList<Action<Thing, Thing, int>>(Catalog);
         public static readonly ContributionList<Func<Thing, Thing, bool>> BillIngredientAllowed = new ContributionList<Func<Thing, Thing, bool>>(Catalog);
         public static readonly ContributionList<Func<Pawn, Thing, bool>> FoodAccess = new ContributionList<Func<Pawn, Thing, bool>>(Catalog);
+        /// <summary>Optional modules may reserve only the automatic hunt targets they own. Forced player orders are never filtered.</summary>
+        public static readonly ContributionList<Func<Pawn,Thing,bool>> HuntWorkAllowed = new ContributionList<Func<Pawn,Thing,bool>>(Catalog);
         public static readonly ContributionList<Action<Pawn,Pawn,InteractionDef>> SocialInteraction = new ContributionList<Action<Pawn,Pawn,InteractionDef>>(Catalog);
         public static readonly ContributionList<Func<Verse.AI.Group.Lord,bool>> TimedDepartureAllowed = new ContributionList<Func<Verse.AI.Group.Lord,bool>>(Catalog);
         public static readonly ContributionList<Func<Pawn,Thing,string,bool>> ExternalCommerceAllowed = new ContributionList<Func<Pawn,Thing,string,bool>>(Catalog);
