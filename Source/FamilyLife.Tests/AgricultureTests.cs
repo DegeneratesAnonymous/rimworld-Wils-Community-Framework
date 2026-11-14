@@ -42,6 +42,21 @@ namespace FamilyLife.Tests
             string about=File.ReadAllText(Path.Combine(root,"About","About.xml"));Assert.Contains("<name>Wil's Role Modules : Agriculture</name>",about);Assert.Contains("<packageId>SpacemanWil.WilsAgriculture</packageId>",about);
         }
 
+        [Fact] public void Agriculture_stat_patches_create_missing_parts_lists_or_append_to_existing_ones()
+        {
+            string file=Path.Combine(RepoPaths.Root(),"Packages","WilsAgriculture","Patches","AgricultureStats.xml");
+            var operations=XDocument.Load(file).Root.Elements("Operation").ToList();
+            Assert.Equal(6,operations.Count);
+            foreach(var operation in operations)
+            {
+                Assert.Equal("PatchOperationConditional",(string)operation.Attribute("Class"));
+                Assert.EndsWith("/parts",(string)operation.Element("xpath"));
+                Assert.Equal("PatchOperationAdd",(string)operation.Element("match").Attribute("Class"));
+                Assert.EndsWith("/parts",(string)operation.Element("match").Element("xpath"));
+                Assert.NotNull(operation.Element("nomatch").Element("value").Element("parts"));
+            }
+        }
+
         [Fact] public void Every_agriculture_role_has_five_positive_negative_and_relationship_events()
         {
             foreach(var role in AgricultureEvents.Roles){var events=AgricultureEvents.All.Where(e=>e.Role==role).ToList();Assert.Equal(5,events.Count(e=>e.Mood>0));Assert.Equal(5,events.Count(e=>e.Mood<0));Assert.Equal(5,events.Count(e=>e.Opinion!=0));}

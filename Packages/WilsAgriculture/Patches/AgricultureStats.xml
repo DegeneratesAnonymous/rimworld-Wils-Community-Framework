@@ -1,22 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Patch>
-  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="PlantHarvestYield"]/parts</xpath><value>
-    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Horticulturist</specialty><factor>1.15</factor><label>Horticulturist</label></li>
-    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Herbalist</specialty><factor>1.20</factor><label>Herbalist</label><target>medicine</target></li>
-  </value></Operation>
-  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="PlantWorkSpeed"]/parts</xpath><value>
-    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Arborist</specialty><factor>1.20</factor><label>Arborist</label><target>tree</target></li>
-  </value></Operation>
-  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="AnimalGatherSpeed"]/parts</xpath><value>
-    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Shepherd</specialty><factor>1.20</factor><label>Shepherd</label></li>
-  </value></Operation>
-  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="AnimalGatherYield"]/parts</xpath><value>
-    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Breeder</specialty><factor>1.15</factor><label>Breeder</label></li>
-  </value></Operation>
-  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="TameAnimalChance"]/parts</xpath><value>
-    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Beastmaster</specialty><factor>1.15</factor><label>Beastmaster</label></li>
-  </value></Operation>
-  <Operation Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="TrainAnimalChance"]/parts</xpath><value>
-    <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Beastmaster</specialty><factor>1.15</factor><label>Beastmaster</label></li>
-  </value></Operation>
+  <!-- Most vanilla StatDefs do not declare a parts list. Append when one exists;
+       otherwise create the list and its first Agriculture part together. -->
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/StatDef[defName="PlantHarvestYield"]/parts</xpath>
+    <match Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="PlantHarvestYield"]/parts</xpath>
+      <value>
+        <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Horticulturist</specialty><factor>1.15</factor><label>Horticulturist</label></li>
+        <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Herbalist</specialty><factor>1.20</factor><label>Herbalist</label><target>medicine</target></li>
+      </value>
+    </match>
+    <nomatch Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="PlantHarvestYield"]</xpath>
+      <value><parts>
+        <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Horticulturist</specialty><factor>1.15</factor><label>Horticulturist</label></li>
+        <li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Herbalist</specialty><factor>1.20</factor><label>Herbalist</label><target>medicine</target></li>
+      </parts></value>
+    </nomatch>
+  </Operation>
+
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/StatDef[defName="PlantWorkSpeed"]/parts</xpath>
+    <match Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="PlantWorkSpeed"]/parts</xpath>
+      <value><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Arborist</specialty><factor>1.20</factor><label>Arborist</label><target>tree</target></li></value>
+    </match>
+    <nomatch Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="PlantWorkSpeed"]</xpath>
+      <value><parts><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Arborist</specialty><factor>1.20</factor><label>Arborist</label><target>tree</target></li></parts></value>
+    </nomatch>
+  </Operation>
+
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/StatDef[defName="AnimalGatherSpeed"]/parts</xpath>
+    <match Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="AnimalGatherSpeed"]/parts</xpath>
+      <value><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Shepherd</specialty><factor>1.20</factor><label>Shepherd</label></li></value>
+    </match>
+    <nomatch Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="AnimalGatherSpeed"]</xpath>
+      <value><parts><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Shepherd</specialty><factor>1.20</factor><label>Shepherd</label></li></parts></value>
+    </nomatch>
+  </Operation>
+
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/StatDef[defName="AnimalGatherYield"]/parts</xpath>
+    <match Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="AnimalGatherYield"]/parts</xpath>
+      <value><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Breeder</specialty><factor>1.15</factor><label>Breeder</label></li></value>
+    </match>
+    <nomatch Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="AnimalGatherYield"]</xpath>
+      <value><parts><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Breeder</specialty><factor>1.15</factor><label>Breeder</label></li></parts></value>
+    </nomatch>
+  </Operation>
+
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/StatDef[defName="TameAnimalChance"]/parts</xpath>
+    <match Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="TameAnimalChance"]/parts</xpath>
+      <value><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Beastmaster</specialty><factor>1.15</factor><label>Beastmaster</label></li></value>
+    </match>
+    <nomatch Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="TameAnimalChance"]</xpath>
+      <value><parts><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Beastmaster</specialty><factor>1.15</factor><label>Beastmaster</label></li></parts></value>
+    </nomatch>
+  </Operation>
+
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/StatDef[defName="TrainAnimalChance"]/parts</xpath>
+    <match Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="TrainAnimalChance"]/parts</xpath>
+      <value><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Beastmaster</specialty><factor>1.15</factor><label>Beastmaster</label></li></value>
+    </match>
+    <nomatch Class="PatchOperationAdd">
+      <xpath>Defs/StatDef[defName="TrainAnimalChance"]</xpath>
+      <value><parts><li Class="FamilyLife.StatPart_AgricultureSpecialty"><specialty>Beastmaster</specialty><factor>1.15</factor><label>Beastmaster</label></li></parts></value>
+    </nomatch>
+  </Operation>
 </Patch>
