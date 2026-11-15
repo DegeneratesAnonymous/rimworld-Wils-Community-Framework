@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?><LanguageData>
+<WFL_Intelligence_Career>Intelligence</WFL_Intelligence_Career>
+<wils.intelligence.assistant_label>Assistant</wils.intelligence.assistant_label><wils.intelligence.researcher_label>Researcher</wils.intelligence.researcher_label>
+<wils.intelligence.inventor_label>Inventor</wils.intelligence.inventor_label><wils.intelligence.analyst_label>Analyst</wils.intelligence.analyst_label>
+<wils.intelligence.geneticist_label>Geneticist</wils.intelligence.geneticist_label><wils.intelligence.darkscholar_label>Dark Scholar</wils.intelligence.darkscholar_label>
+<wils.intelligence.author_label>Author</wils.intelligence.author_label>
+<WFL_Intelligence_InventorBonus>Research on industrial-era and later projects goes 15% faster.</WFL_Intelligence_InventorBonus>
+<WFL_Intelligence_AnalystBonus>Research on any project goes 10% faster. Experience comes from operating scanners.</WFL_Intelligence_AnalystBonus>
+<WFL_Intelligence_GeneticistBonus>Research on gene and xenogerm projects goes 15% faster. Experience comes from making xenogerms.</WFL_Intelligence_GeneticistBonus>
+<WFL_Intelligence_DarkScholarBonus>Dark Study (needs Anomaly): Anomaly research goes 15% faster and study efficiency rises 20%.</WFL_Intelligence_DarkScholarBonus>
+<WFL_Intelligence_AuthorBonus>Books you write gain one quality band, up to Excellent.</WFL_Intelligence_AuthorBonus>
+</LanguageData>

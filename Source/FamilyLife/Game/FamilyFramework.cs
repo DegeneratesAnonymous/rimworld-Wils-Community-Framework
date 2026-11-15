@@ -62,6 +62,8 @@ namespace FamilyLife
         public static readonly ContributionList<Action<TradeReport>> TradeCompleted;          // a vanilla trade was completed (read-only; the framework owns the patch)
         public static readonly ContributionList<Action<int, string>> SilverReceived;          // silver arrived from a quest reward: (amount, idempotency key)
         public static readonly ContributionList<Action<LabourReport>> LabourDone;          // a vanilla job ended successfully (read-only)
+        public static readonly ContributionList<Action<CombatReport>> CombatEvents;          // a hostile blow or kill involving the player's faction (read-only; the framework owns the patch)
+        public static readonly ContributionList<Func<Pawn, Thing, float>> TargetBias;          // a shooter's preference between enemies: (shooter, candidate) -> a bounded nudge added to the game's own shooting score
         public static readonly ContributionList<Action<Pawn, float>> ResearchDone;          // research work was performed: (researcher, points)
         public static readonly ContributionList<Action<FamilyComponent, IList<FamilyEvent>, int>> FamilyEventsApplied;          // after each reconciliation of the family records: (component, the events it produced, now)
         public static readonly ContributionList<Action<Pawn, string, string, string, string, int>> WorkReported;          // a module reported finished professional work: (pawn, career, specialty, kind, activity key, tick)
@@ -94,6 +96,8 @@ namespace FamilyLife
             SilverReceived = new ContributionList<Action<int, string>>(Catalog);
             LabourDone = new ContributionList<Action<LabourReport>>(Catalog);
             ResearchDone = new ContributionList<Action<Pawn, float>>(Catalog);
+            CombatEvents = new ContributionList<Action<CombatReport>>(Catalog);
+            TargetBias = new ContributionList<Func<Pawn, Thing, float>>(Catalog);
             FamilyEventsApplied = new ContributionList<Action<FamilyComponent, IList<FamilyEvent>, int>>(Catalog);
             WorkReported = new ContributionList<Action<Pawn, string, string, string, string, int>>(Catalog);
             Resets = new ContributionList<Action>(Catalog);

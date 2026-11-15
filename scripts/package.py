@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assemble the six installable packages from already built assemblies; never stages into RimWorld."""
+"""Assemble the eight installable packages from already built assemblies; never stages into RimWorld."""
 from pathlib import Path
 import hashlib
 import json
@@ -9,7 +9,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGES = {"WilsFamilyLife": "FamilyLife", "WilsEducation": "WilsEducation", "WilsCommunityCare": "WilsCommunityCare", "WilsTreasury": "WilsTreasury", "WilsHospitality": "WilsHospitality", "WilsCrafting": "WilsCrafting"}
+PACKAGES = {"WilsFamilyLife": "FamilyLife", "WilsEducation": "WilsEducation", "WilsCommunityCare": "WilsCommunityCare", "WilsTreasury": "WilsTreasury", "WilsHospitality": "WilsHospitality", "WilsCrafting": "WilsCrafting", "WilsIntelligence": "WilsIntelligence", "WilsMilitary": "WilsMilitary"}
 
 def main():
     dest = ROOT / "dist" / "community-modules-test"
@@ -47,7 +47,7 @@ def main():
         for file in sorted(dest.rglob("*")):
             if file.is_file():
                 z.write(file, file.relative_to(dest))
-    print(f"Checked six packages for RimWorld 1.6 and 1.7: {archive}")
+    print(f"Checked eight packages for RimWorld 1.6 and 1.7: {archive}")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?><LanguageData>
+<WFL_Military_Career>Military</WFL_Military_Career>
+<wils.military.recruit_label>Recruit</wils.military.recruit_label>
+<wils.military.soldier_label>Soldier</wils.military.soldier_label>
+<wils.military.ranger_label>Ranger</wils.military.ranger_label>
+<wils.military.vanguard_label>Vanguard</wils.military.vanguard_label>
+<wils.military.guardian_label>Guardian</wils.military.guardian_label>
+<wils.military.duelist_label>Duelist</wils.military.duelist_label>
+<wils.military.marksman_label>Marksman</wils.military.marksman_label>
+<wils.military.gunner_label>Gunner</wils.military.gunner_label>
+<wils.military.sniper_label>Sniper</wils.military.sniper_label>
+<WFL_Military_VanguardBonus>Breaker: closes fast and breaks the enemy's line, going for their shooters. Moves 20% faster while closing on an enemy and hits 10% harder once engaged. Weakness: Harder to dodge with: dodge falls 15% while charging.</WFL_Military_VanguardBonus>
+<WFL_Military_GuardianBonus>Anchor: holds the line and covers wounded and downed friends. Takes 15% less damage while covering an ally. Weakness: Moves 8% slower and kills no faster than anyone.</WFL_Military_GuardianBonus>
+<WFL_Military_DuelistBonus>Skirmisher: wins a one-on-one and picks off an enemy who has strayed from the pack. Hits 15% better and dodges 20% better with one enemy near. Weakness: Dodge falls 15% once three or more are close.</WFL_Military_DuelistBonus>
+<WFL_Military_MarksmanBonus>Precision: steady, accurate fire at the middle distance on whoever is exposed. 10% more accurate between 12 and 30 cells; prefers exposed and armed targets. Weakness: 10% less accurate inside 6 cells.</WFL_Military_MarksmanBonus>
+<WFL_Military_GunnerBonus>Suppression: volume of fire that keeps the enemy's heads down at short range. Weapon cooldown 15% shorter (fires more often) and 5% more accurate within 12 cells; prefers the nearest enemy. Weakness: 8% less accurate beyond 20 cells.</WFL_Military_GunnerBonus>
+<WFL_Military_SniperBonus>Overwatch: patient long-range kills on the enemy's most dangerous. 15% more accurate beyond 25 cells once set up (not moving); prefers the most dangerous target. Weakness: 25% slower to aim, and 15% less accurate inside 10 cells.</WFL_Military_SniperBonus>
+</LanguageData>
