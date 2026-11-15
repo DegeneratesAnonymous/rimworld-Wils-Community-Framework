@@ -2,9 +2,11 @@
 
 ## Unreleased - Wil's Role Modules : Agriculture
 - Adds Forager, Tracker and Handler entry roles; Farmer, Hunter and Rancher qualifications; and nine assigned specialties for crops, wild game and livestock.
+- Splits the Agriculture profession display into clearly labeled Farmer (Plants), Hunter (Shooting + Animals), and Rancher (Animals) skill paths instead of presenting them as one shared promotion tree.
 - Adds an opt-in Agriculture page for automatic hunting policy. Trackers automatically select only nearby low-risk small game; Hunters and specialists unlock broader automatic choices. Player-designated hunts remain unrestricted and are never removed by the module.
 - Adds functional plant and animal specialty bonuses, automatic hunting cleanup, career experience from completed vanilla work, and five positive, five negative and five relationship events for every Agriculture role.
-- Offline evidence: all seven assemblies build for RimWorld 1.6 and 1.7, 1,482 tests pass, and the seven-package test archive validates. Live RimWorld testing remains required.
+- Moves the Community tab beside Architect, adds its bottom-bar icon, and gives every Community navigation destination an icon. Packaging now retains module-owned UI textures.
+- Offline evidence: all seven assemblies build for RimWorld 1.6 and 1.7, 1,486 tests pass, and the seven-package test archive validates. Live RimWorld testing remains required.
 
 ## Unreleased - Community window and Wil's Role Modules : Treasury (branch feature/community-treasury; see docs/TREASURY.md)
 - **Community window.** One window (main button "Community") with framework-owned navigation and pages registered through a generic page catalog: Overview, Families & Households (hosts the existing Families content), Professions, Community Assembly, Settings, and a page per installed module. Disabled or absent modules list nothing.

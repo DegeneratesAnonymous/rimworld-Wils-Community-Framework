@@ -22,10 +22,10 @@ namespace FamilyLife
         public static void Register(string moduleId)
         {
             coreModule = moduleId;
-            Add(moduleId, "overview", "WFL_Hub_Overview", 0, Overview, null);
-            Add(moduleId, "families", "WFL_Hub_Families", 10, Families, null);
-            Add(moduleId, "professions", "WFL_Hub_Professions", 20, Professions, null);
-            Add(moduleId, "assembly", "WFL_Hub_Assembly", 30, Assembly, null);
+            Add(moduleId, "overview", "WFL_Hub_Overview", 0, Overview, "WilsFamilyLife/Roles/colony_leader");
+            Add(moduleId, "families", "WFL_Hub_Families", 10, Families, "WilsFamilyLife/Roles/house_head");
+            Add(moduleId, "professions", "WFL_Hub_Professions", 20, Professions, "WilsFamilyLife/Roles/steward");
+            Add(moduleId, "assembly", "WFL_Hub_Assembly", 30, Assembly, "WilsFamilyLife/Roles/council_representative");
             Add(moduleId, "settings", "WFL_Hub_Settings", 90, Settings, null);
         }
 

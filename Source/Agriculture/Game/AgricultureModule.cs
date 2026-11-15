@@ -19,13 +19,13 @@ namespace FamilyLife
         {
             FamilyFramework.Catalog.Register(new ModuleInfo{Id=Id,Name="Wil's Role Modules : Agriculture",ApiVersion=FamilyFramework.ApiVersion,Requires=new[]{ModuleCatalog.FrameworkId}});
             CareerService.RegisterCareer(AgricultureCareers.Definition());
-            CareerService.RegisterRole(new ProfessionRole{Id=AgricultureCareers.Forager,ModuleId=Id,Career=AgricultureCareers.Career,Level=1});
-            CareerService.RegisterRole(new ProfessionRole{Id=AgricultureCareers.Tracker,ModuleId=Id,Career=AgricultureCareers.Career,Level=1});
-            CareerService.RegisterRole(new ProfessionRole{Id=AgricultureCareers.Handler,ModuleId=Id,Career=AgricultureCareers.Career,Level=1});
+            CareerService.RegisterRole(new ProfessionRole{Id=AgricultureCareers.Forager,ModuleId=Id,Career=AgricultureCareers.Career,Level=1,Path="Farmer"});
+            CareerService.RegisterRole(new ProfessionRole{Id=AgricultureCareers.Tracker,ModuleId=Id,Career=AgricultureCareers.Career,Level=1,Path="Hunter"});
+            CareerService.RegisterRole(new ProfessionRole{Id=AgricultureCareers.Handler,ModuleId=Id,Career=AgricultureCareers.Career,Level=1,Path="Rancher"});
             foreach(var branch in new[]{"Farmer","Hunter","Rancher"})CareerService.RegisterRole(new ProfessionRole{Id=AgricultureCareers.Role(branch),ModuleId=Id,Career=AgricultureCareers.Career,Level=2,Specialty=branch});
             foreach(var specialty in new[]{"Horticulturist","Herbalist","Arborist","Stalker","Gamekeeper","BigGameHunter","Shepherd","Breeder","Beastmaster"})
                 CareerService.RegisterRole(new ProfessionRole{Id=AgricultureCareers.Role(specialty),ModuleId=Id,Career=AgricultureCareers.Career,Level=3,Specialty=specialty,BonusKey="WFL_Agriculture_"+specialty+"Bonus"});
-            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect,FamilyComponent,float>>{Id=Id+".management",ModuleId=Id,LabelKey="WFL_Agriculture_Page",Order=150,Render=AgriculturePage.Draw,Status=AgriculturePage.Attention});
+            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect,FamilyComponent,float>>{Id=Id+".management",ModuleId=Id,LabelKey="WFL_Agriculture_Page",Order=150,Icon="WilsFamilyLife/Roles/protector_eye",Render=AgriculturePage.Draw,Status=AgriculturePage.Attention});
             FamilyFramework.Roster.Register(new WorkItem{Id=Id+".hunting",ModuleId=Id,Interval=2500,Run=AutomaticHunting.Run});
             FamilyFramework.HuntWorkAllowed.Add(Id+".workers",Id,AutomaticHunting.WorkerAllowed);
             FamilyFramework.LabourDone.Add(Id+".experience",Id,AgricultureWork.Completed);

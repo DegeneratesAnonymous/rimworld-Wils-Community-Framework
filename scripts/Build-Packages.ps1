@@ -38,7 +38,7 @@ Copy-Item (Join-Path $repo "LICENSE") $fw -Force
 # the module packages
 foreach ($pkg in "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsAgriculture") {
     $dest = Join-Path $dist $pkg; $src = Join-Path $repo "Packages\$pkg"
-    foreach ($dir in "About", "Defs", "Patches", "Languages", "1.6", "1.7") { if (Test-Path (Join-Path $src $dir)) { Copy-Tree (Join-Path $src $dir) (Join-Path $dest $dir) } }
+    foreach ($dir in "About", "Defs", "Patches", "Languages", "Textures", "1.6", "1.7") { if (Test-Path (Join-Path $src $dir)) { Copy-Tree (Join-Path $src $dir) (Join-Path $dest $dir) } }
     Copy-Item (Join-Path $repo "LICENSE") $dest -Force
 }
 
@@ -60,7 +60,9 @@ foreach ($entry in @(@("WilsFamilyLife", "SpacemanWil.WilsFamilyLife", "FamilyLi
 }
 # a module package carries no framework content, and the framework package carries no module content
 foreach ($pkg in "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsAgriculture") {
-    $forbidden = if ($pkg -eq "WilsTreasury") { @("Textures") } else { @("Patches", "Textures") }          # the Treasury package carries its own zone patch
+    $forbidden = @()
+    if ($pkg -notin "WilsTreasury", "WilsAgriculture") { $forbidden += "Patches" }
+    if ($pkg -ne "WilsHospitality") { $forbidden += "Textures" }
     foreach ($f in $forbidden) { if (Test-Path (Join-Path (Join-Path $dist $pkg) $f)) { $problems += "$pkg ships $f, which belongs to the framework" } }
 }
 $fwDefs = (Get-ChildItem (Join-Path $dist "WilsFamilyLife\Defs") -Recurse -Filter *.xml | Get-Content -Raw) -join "`n"
