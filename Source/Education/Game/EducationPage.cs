@@ -11,7 +11,7 @@ namespace FamilyLife
     {
         public const string PageId = "wils.education.education";
         public static void Register(string moduleId) =>
-            FamilyFramework.Pages.Register(new Framework.CommunityPage<Func<Rect, FamilyComponent, float>> { Id = PageId, ModuleId = moduleId, LabelKey = "WFL_Edu_Page", Order = 110, Render = Draw, Status = Attention, Icon = "WilsFamilyLife/Roles/teacher" });
+            FamilyFramework.Pages.Register(new Framework.CommunityPage<Func<Rect, FamilyComponent, float>> { Id = PageId, ModuleId = moduleId, LabelKey = "WFL_Edu_Page", Order = 110, Render = Draw, Status = Attention, Icon = "UI/Community/education" });
         private static int Attention() { var c = FamilyComponent.Current; return c == null ? 0 : EducationEvents.EligibleNow(c, FrameworkServices.Now).Count; }
 
         public static float Draw(Rect r, FamilyComponent c)

@@ -11,7 +11,7 @@ namespace FamilyLife
     {
         public const string PageId = "wils.care.care";
         public static void Register(string moduleId) =>
-            FamilyFramework.Pages.Register(new Framework.CommunityPage<Func<Rect, FamilyComponent, float>> { Id = PageId, ModuleId = moduleId, LabelKey = "WFL_Care_Page", Order = 120, Render = Draw, Status = Attention, Icon = "WilsFamilyLife/Roles/healer" });
+            FamilyFramework.Pages.Register(new Framework.CommunityPage<Func<Rect, FamilyComponent, float>> { Id = PageId, ModuleId = moduleId, LabelKey = "WFL_Care_Page", Order = 120, Render = Draw, Status = Attention, Icon = "UI/Community/care" });
         private static int Attention() { var c = FamilyComponent.Current; return c == null ? 0 : CareEvents.IsSickCount(c); }
 
         public static float Draw(Rect r, FamilyComponent c)

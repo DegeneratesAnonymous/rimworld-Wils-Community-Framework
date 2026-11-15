@@ -33,7 +33,7 @@ namespace FamilyLife
             CareerService.RegisterRole(new ProfessionRole { Id = TreasuryRoles.TaxCollector, ModuleId = Id, Career = TreasuryRoles.Career, Level = 2 });
             CareerService.Registered(Id);
 
-            FamilyFramework.Pages.Register(new CommunityPage<System.Func<Rect, FamilyComponent, float>> { Id = TreasuryService.PageId, ModuleId = Id, LabelKey = "WFL_Treasury_Page", Order = 130, Icon = "WilsFamilyLife/Roles/trusted_associate", Render = TreasuryPage.Draw, Status = TreasuryPage.Attention });
+            FamilyFramework.Pages.Register(new CommunityPage<System.Func<Rect, FamilyComponent, float>> { Id = TreasuryService.PageId, ModuleId = Id, LabelKey = "WFL_Treasury_Page", Order = 130, Icon = "UI/Community/treasury", Render = TreasuryPage.Draw, Status = TreasuryPage.Attention });
 
             FamilyFramework.TradeCompleted.Add("wils.treasury.trade", Id, TreasuryService.OnTrade);
             FamilyFramework.SilverReceived.Add("wils.treasury.reward", Id, TreasuryService.OnSilver);

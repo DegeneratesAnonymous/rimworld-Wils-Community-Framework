@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Bottom-bar version: a simple monochrome silhouette to match RimWorld's vanilla main-tab icons. -->
+  <g fill="#b9bfc0">
+    <circle cx="32" cy="14" r="7"/>
+    <circle cx="14" cy="25" r="6"/>
+    <circle cx="50" cy="25" r="6"/>
+    <path d="M18 49c1-16 6-25 14-25s13 9 14 25Z"/>
+    <path d="M3 50c1-13 4-20 11-20 5 0 8 4 10 11l-2 9Z"/>
+    <path d="M42 50c1-12 3-20 8-20 7 0 10 7 11 20Z"/>
+  </g>
+</svg>

@@ -5,9 +5,9 @@
     <defName>WFL_Community</defName>
     <label>community</label>
     <description>Families and households, professions, the community assembly and the pages of installed community modules.</description>
-    <workerClass>MainButtonWorker_ToggleTab</workerClass>
+    <workerClass>FamilyLife.CommunityMainButtonWorker</workerClass>
     <tabWindowClass>FamilyLife.MainTabWindow_Community</tabWindowClass>
-    <iconPath>WilsFamilyLife/Roles/council_representative</iconPath>
+    <iconPath>UI/Community/community</iconPath>
     <!-- Runtime registration places this immediately after Architect. This value is the safe XML fallback. -->
     <order>11</order>
     <validWithoutMap>false</validWithoutMap>
