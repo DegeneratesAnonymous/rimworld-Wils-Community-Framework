@@ -17,12 +17,12 @@ jobs:
           dotnet-version: 10.0.x
       - name: Build RimWorld 1.7
         run: |
-          for project in FamilyLife/FamilyLife Education/WilsEducation Care/WilsCommunityCare Treasury/WilsTreasury Hospitality/WilsHospitality Crafting/WilsCrafting; do
+          for project in FamilyLife/FamilyLife Education/WilsEducation Care/WilsCommunityCare Treasury/WilsTreasury Hospitality/WilsHospitality Crafting/WilsCrafting Intelligence/WilsIntelligence Military/WilsMilitary; do
             dotnet build "Source/$project.csproj" -c Release -p:GameVersion=1.7 -v minimal || exit 1
           done
       - name: Build RimWorld 1.6
         run: |
-          for project in FamilyLife/FamilyLife Education/WilsEducation Care/WilsCommunityCare Treasury/WilsTreasury Hospitality/WilsHospitality Crafting/WilsCrafting; do
+          for project in FamilyLife/FamilyLife Education/WilsEducation Care/WilsCommunityCare Treasury/WilsTreasury Hospitality/WilsHospitality Crafting/WilsCrafting Intelligence/WilsIntelligence Military/WilsMilitary; do
             dotnet build "Source/$project.csproj" -c Release -p:GameVersion=1.6 -v minimal || exit 1
           done
       - name: Test domain and assembly contracts
