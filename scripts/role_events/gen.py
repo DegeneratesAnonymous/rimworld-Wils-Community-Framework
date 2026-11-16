@@ -2,7 +2,7 @@
 # Usage: python scripts/role_events/gen.py   (then run the tests: they check every fact has its thought)
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from spec import INTEL, MIL, WARD
+from spec import INTEL, MIL, WARD, WORKS
 from xml.sax.saxutils import escape
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 
@@ -53,7 +53,7 @@ def cs(spec, prefix, cls, evt, header):
 def lang(spec, prefix):
     return ""
 
-check(INTEL); check(MIL); check(WARD)
+check(INTEL); check(MIL); check(WARD); check(WORKS)
 w = lambda p, t: (os.makedirs(os.path.dirname(p), exist_ok=True), open(p, "w", encoding="utf-8").write(t))
 w(ROOT + "/Packages/WilsIntelligence/Defs/IntelligenceThoughts.xml", xml(INTEL, "I"))
 w(ROOT + "/Packages/WilsMilitary/Defs/MilitaryThoughts.xml", xml(MIL, "M"))
@@ -61,4 +61,6 @@ w(ROOT + "/Source/Intelligence/Domain/IntelligenceEvents.cs", cs(INTEL, "I", "In
 w(ROOT + "/Source/Military/Domain/MilitaryEvents.cs", cs(MIL, "M", "MilitaryEvents", "MilitaryEvent", "Every Military role has five positive, five negative and five relationship events; the thought for each is in the package's Defs. Generated from one table so the facts and the thoughts cannot drift apart."))
 w(ROOT + "/Packages/WilsWardens/Defs/WardenThoughts.xml", xml(WARD, "W"))
 w(ROOT + "/Source/Wardens/Domain/WardenEvents.cs", cs(WARD, "W", "WardenEvents", "WardenEvent", "Every Warden role has five positive, five negative and five relationship events; the thought for each is in the package's Defs. Generated from one table so the facts and the thoughts cannot drift apart."))
+w(ROOT + "/Packages/WilsWorks/Defs/WorksThoughts.xml", xml(WORKS, "K"))
+w(ROOT + "/Source/Works/Domain/WorksEvents.cs", cs(WORKS, "K", "WorksEvents", "WorksEvent", "Every Works role has five positive, five negative and five relationship events; the thought for each is in the package's Defs. Generated from one table so the facts and the thoughts cannot drift apart."))
 print("ok", sum(len(d["P"]) + len(d["N"]) + len(d["S"]) for d in INTEL.values()), sum(len(d["P"]) + len(d["N"]) + len(d["S"]) for d in MIL.values()))

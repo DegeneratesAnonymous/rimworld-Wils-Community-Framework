@@ -1,4 +1,4 @@
-# Works (Construction and Mining) — design in progress, nothing built
+# Works (Construction and Mining) — slice 1 built
 
 Casters were considered and **set aside for now**: the owner could not see how those roles would casually benefit the community. They may return as their own module later.
 
@@ -20,3 +20,9 @@ Casters were considered and **set aside for now**: the owner could not see how t
 
 - What counts as experience: jobs finished, by kind (construction, repair, smoothing, mining, deep drilling), with Journeyman and specialty thresholds to be chosen.
 - Build slices and verification, as for Wardens: career tree and events first, then bonuses, then experience hooks, then places and the page, then rounds, then family effects.
+
+## Slice 1: the careers and events (built)
+
+- Module `wils.works`, assembly and package `WilsWorks`. Two careers: **Builder** (`wils.works.builder`: Labourer, Journeyman, then Mason, Carpenter, Engineer) and **Miner** (`wils.works.miner`: Labourer, Journeyman, then Prospector, Quarryman, Tunneller). The Journeyman needs skill 5 (Construction or Mining) and 120 experience; a specialty needs 250 general and 60 specialty experience and: Mason Construction 8; Carpenter Construction 8 and Crafting 4; Engineer Construction 8 and Intellectual 6; Prospector Mining 8 and Intellectual 4; Quarryman Mining 8; Tunneller Mining 10. (My defaults, to be tuned.)
+- 150 events (5 positive, 5 negative and 5 relationship for each of the 10 roles), generated from `scripts/role_events/spec.py` by `gen.py` into `WorksEvents.cs` and `WorksThoughts.xml`. Thoughts are prefixed `WFL_K_`.
+- **Nothing earns experience or does anything in the game yet.** Bonuses are slice 2, experience hooks slice 3, places and the page slice 4, maintenance rounds slice 5 and family effects slice 6.

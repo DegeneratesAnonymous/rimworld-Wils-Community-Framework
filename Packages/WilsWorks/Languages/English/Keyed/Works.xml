@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><LanguageData>
+<WFL_Works_Builder>Builder</WFL_Works_Builder><WFL_Works_Miner>Miner</WFL_Works_Miner>
+<wils.works.builderlabourer_label>Labourer (Builder)</wils.works.builderlabourer_label><wils.works.builderjourneyman_label>Journeyman (Builder)</wils.works.builderjourneyman_label>
+<wils.works.minerlabourer_label>Labourer (Miner)</wils.works.minerlabourer_label><wils.works.minerjourneyman_label>Journeyman (Miner)</wils.works.minerjourneyman_label>
+<wils.works.mason_label>Mason</wils.works.mason_label><wils.works.carpenter_label>Carpenter</wils.works.carpenter_label><wils.works.engineer_label>Engineer</wils.works.engineer_label>
+<wils.works.prospector_label>Prospector</wils.works.prospector_label><wils.works.quarryman_label>Quarryman</wils.works.quarryman_label><wils.works.tunneller_label>Tunneller</wils.works.tunneller_label>
+</LanguageData>

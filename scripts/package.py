@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assemble the nine installable packages from already built assemblies; never stages into RimWorld."""
+"""Assemble the ten installable packages from already built assemblies; never stages into RimWorld."""
 from pathlib import Path
 import hashlib
 import json
@@ -9,7 +9,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGES = {"WilsFamilyLife": "FamilyLife", "WilsEducation": "WilsEducation", "WilsCommunityCare": "WilsCommunityCare", "WilsTreasury": "WilsTreasury", "WilsHospitality": "WilsHospitality", "WilsCrafting": "WilsCrafting", "WilsIntelligence": "WilsIntelligence", "WilsMilitary": "WilsMilitary", "WilsWardens": "WilsWardens"}
+PACKAGES = {"WilsFamilyLife": "FamilyLife", "WilsEducation": "WilsEducation", "WilsCommunityCare": "WilsCommunityCare", "WilsTreasury": "WilsTreasury", "WilsHospitality": "WilsHospitality", "WilsCrafting": "WilsCrafting", "WilsIntelligence": "WilsIntelligence", "WilsMilitary": "WilsMilitary", "WilsWardens": "WilsWardens", "WilsWorks": "WilsWorks"}
 
 def main():
     dest = ROOT / "dist" / "community-modules-test"
@@ -47,7 +47,7 @@ def main():
         for file in sorted(dest.rglob("*")):
             if file.is_file():
                 z.write(file, file.relative_to(dest))
-    print(f"Checked nine packages for RimWorld 1.6 and 1.7: {archive}")
+    print(f"Checked ten packages for RimWorld 1.6 and 1.7: {archive}")
 
 if __name__ == "__main__":
     main()

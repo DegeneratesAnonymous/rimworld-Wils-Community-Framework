@@ -1,4 +1,4 @@
-# Assembles the nine installable packages under dist\ and checks each one's layout. Nothing is copied into the game; use Stage-ToRimWorld.ps1 for that.
+# Assembles the ten installable packages under dist\ and checks each one's layout. Nothing is copied into the game; use Stage-ToRimWorld.ps1 for that.
 #   dist\WilsFamilyLife       the framework package (SpacemanWil.WilsFamilyLife): family records, community posts, and everything the modules plug into
 #   dist\WilsEducation        SpacemanWil.WilsEducation (needs the framework)
 #   dist\WilsCommunityCare    SpacemanWil.WilsCommunityCare (needs the framework)
@@ -8,6 +8,7 @@
 #   dist\WilsIntelligence     SpacemanWil.WilsIntelligence (research, scanning, genetics, Dark Study and writing careers)
 #   dist\WilsMilitary         SpacemanWil.WilsMilitary (soldier and ranger careers with combat doctrines)
 #   dist\WilsWardens          SpacemanWil.WilsWardens (guard and warden careers: confessor, overseer, containment keeper)
+#   dist\WilsWorks           SpacemanWil.WilsWorks (builder and miner careers)
 # Usage: .\scripts\Build-Packages.ps1 [-NoBuild]
 param([switch]$NoBuild)
 $ErrorActionPreference = "Stop"
@@ -16,7 +17,7 @@ $dist = Join-Path $repo "dist"
 
 if (-not $NoBuild) {
     foreach ($v in "1.7", "1.6") {
-        foreach ($project in "FamilyLife\FamilyLife.csproj", "Education\WilsEducation.csproj", "Care\WilsCommunityCare.csproj", "Treasury\WilsTreasury.csproj", "Hospitality\WilsHospitality.csproj", "Crafting\WilsCrafting.csproj", "Intelligence\WilsIntelligence.csproj", "Military\WilsMilitary.csproj", "Wardens\WilsWardens.csproj") {
+        foreach ($project in "FamilyLife\FamilyLife.csproj", "Education\WilsEducation.csproj", "Care\WilsCommunityCare.csproj", "Treasury\WilsTreasury.csproj", "Hospitality\WilsHospitality.csproj", "Crafting\WilsCrafting.csproj", "Intelligence\WilsIntelligence.csproj", "Military\WilsMilitary.csproj", "Wardens\WilsWardens.csproj", "Works\WilsWorks.csproj") {
             dotnet build (Join-Path $repo "Source\$project") -c Release -p:GameVersion=$v -v q
             if ($LASTEXITCODE -ne 0) { throw "Build failed for $project ($v)" }
         }
@@ -38,7 +39,7 @@ foreach ($dir in "About", "Defs", "Patches", "Languages", "Textures", "1.6", "1.
 Copy-Item (Join-Path $repo "LICENSE") $fw -Force
 
 # the module packages
-foreach ($pkg in "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsIntelligence", "WilsMilitary", "WilsWardens") {
+foreach ($pkg in "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsIntelligence", "WilsMilitary", "WilsWardens", "WilsWorks") {
     $dest = Join-Path $dist $pkg; $src = Join-Path $repo "Packages\$pkg"
     foreach ($dir in "About", "Defs", "Patches", "Languages", "1.6", "1.7") { if (Test-Path (Join-Path $src $dir)) { Copy-Tree (Join-Path $src $dir) (Join-Path $dest $dir) } }
     Copy-Item (Join-Path $repo "LICENSE") $dest -Force
@@ -48,7 +49,7 @@ foreach ($pkg in "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHosp
 $problems = @()
 function Need($path, $what) { if (-not (Test-Path $path)) { $script:problems += "missing $what ($path)" } }
 
-foreach ($entry in @(@("WilsFamilyLife", "SpacemanWil.WilsFamilyLife", "FamilyLife.dll"), @("WilsEducation", "SpacemanWil.WilsEducation", "WilsEducation.dll"), @("WilsCommunityCare", "SpacemanWil.WilsCommunityCare", "WilsCommunityCare.dll"), @("WilsTreasury", "SpacemanWil.WilsTreasury", "WilsTreasury.dll"), @("WilsHospitality", "SpacemanWil.WilsHospitality", "WilsHospitality.dll"), @("WilsCrafting", "SpacemanWil.WilsCrafting", "WilsCrafting.dll"), @("WilsIntelligence", "SpacemanWil.WilsIntelligence", "WilsIntelligence.dll"), @("WilsMilitary", "SpacemanWil.WilsMilitary", "WilsMilitary.dll"), @("WilsWardens", "SpacemanWil.WilsWardens", "WilsWardens.dll"))) {
+foreach ($entry in @(@("WilsFamilyLife", "SpacemanWil.WilsFamilyLife", "FamilyLife.dll"), @("WilsEducation", "SpacemanWil.WilsEducation", "WilsEducation.dll"), @("WilsCommunityCare", "SpacemanWil.WilsCommunityCare", "WilsCommunityCare.dll"), @("WilsTreasury", "SpacemanWil.WilsTreasury", "WilsTreasury.dll"), @("WilsHospitality", "SpacemanWil.WilsHospitality", "WilsHospitality.dll"), @("WilsCrafting", "SpacemanWil.WilsCrafting", "WilsCrafting.dll"), @("WilsIntelligence", "SpacemanWil.WilsIntelligence", "WilsIntelligence.dll"), @("WilsMilitary", "SpacemanWil.WilsMilitary", "WilsMilitary.dll"), @("WilsWardens", "SpacemanWil.WilsWardens", "WilsWardens.dll"), @("WilsWorks", "SpacemanWil.WilsWorks", "WilsWorks.dll"))) {
     $dir = Join-Path $dist $entry[0]
     Need (Join-Path $dir "About\About.xml") ("About.xml in " + $entry[0])
     Need (Join-Path $dir "LICENSE") ("licence in " + $entry[0])
@@ -61,12 +62,12 @@ foreach ($entry in @(@("WilsFamilyLife", "SpacemanWil.WilsFamilyLife", "FamilyLi
     }
 }
 # a module package carries no framework content, and the framework package carries no module content
-foreach ($pkg in "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsIntelligence", "WilsMilitary", "WilsWardens") {
-    $forbidden = if ($pkg -in "WilsTreasury", "WilsIntelligence", "WilsMilitary", "WilsWardens") { @("Textures") } else { @("Patches", "Textures") }          # Treasury carries its own zone patch; Intelligence and Military patch the stats their specialties change
+foreach ($pkg in "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsIntelligence", "WilsMilitary", "WilsWardens", "WilsWorks") {
+    $forbidden = if ($pkg -in "WilsTreasury", "WilsIntelligence", "WilsMilitary", "WilsWardens", "WilsWorks") { @("Textures") } else { @("Patches", "Textures") }          # Treasury carries its own zone patch; Intelligence and Military patch the stats their specialties change
     foreach ($f in $forbidden) { if (Test-Path (Join-Path (Join-Path $dist $pkg) $f)) { $problems += "$pkg ships $f, which belongs to the framework" } }
 }
 $fwDefs = (Get-ChildItem (Join-Path $dist "WilsFamilyLife\Defs") -Recurse -Filter *.xml | Get-Content -Raw) -join "`n"
 foreach ($name in "WFL_ClassTeacher", "WFL_OfficeLesson", "WFL_ClinicDoctor", "WFL_CheckedUp") { if ($fwDefs -match "<defName>$name</defName>") { $problems += "framework package defines $name, which a module owns" } }
 
 if ($problems.Count -gt 0) { $problems | ForEach-Object { Write-Host "PACKAGE PROBLEM: $_" -ForegroundColor Red }; throw "Package check failed" }
-Write-Host "Packages assembled under $dist and checked: WilsFamilyLife, WilsEducation, WilsCommunityCare, WilsTreasury, WilsHospitality, WilsCrafting, WilsIntelligence, WilsMilitary, WilsWardens (1.6 and 1.7)."
+Write-Host "Packages assembled under $dist and checked: WilsFamilyLife, WilsEducation, WilsCommunityCare, WilsTreasury, WilsHospitality, WilsCrafting, WilsIntelligence, WilsMilitary, WilsWardens, WilsWorks (1.6 and 1.7)."
