@@ -106,7 +106,7 @@ namespace FamilyLife.Tests
             string code = string.Join("\n", Directory.GetFiles(Path.Combine(RepoPaths.Root(), "Source/Wardens"), "*.cs", SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")).Select(File.ReadAllText));
             Assert.Contains("class WardenRoomGame", code); Assert.Contains("WardensPage.Draw", code); Assert.Contains("RoomRoleDefOf.PrisonCell", code);
             var help = XDocument.Load(Path.Combine(RepoPaths.Root(), "Packages/WilsWardens/Languages/English/Keyed/Wardens.xml")).Root.Element("WFL_Wardens_RoomsHelp").Value;
-            Assert.Contains("have no effect yet", help); Assert.Contains("escorts", help);          // the page never claims what the rooms cannot do
+            Assert.DoesNotContain("have no effect yet", help); Assert.Contains("once a day", help); Assert.Contains("walks home", help); Assert.Contains("hostiles", help);          // the page says what the rooms do now, and its limits
         }
 
         [Fact]
