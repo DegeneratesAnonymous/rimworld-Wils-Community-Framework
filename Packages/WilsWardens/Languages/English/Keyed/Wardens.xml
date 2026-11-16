@@ -5,4 +5,13 @@
 <WFL_Wardens_ConfessorBonus>Needs Ideology. Conversion power rises 15%. Experience comes from converting prisoners.</WFL_Wardens_ConfessorBonus>
 <WFL_Wardens_OverseerBonus>Needs Ideology (slaves). Slave suppression power rises 15%. Experience comes from overseeing slaves.</WFL_Wardens_OverseerBonus>
 <WFL_Wardens_ContainmentKeeperBonus>Needs Anomaly. Study efficiency rises 10%. Experience comes from containment work.</WFL_Wardens_ContainmentKeeperBonus>
+<WFL_Wardens_Page>Wardens</WFL_Wardens_Page>
+<WFL_Wardens_RoomsTitle>Rooms</WFL_Wardens_RoomsTitle>
+<WFL_Wardens_RoomsFound>Recognised: {0} prison cells ({1} humane), {2} Interview Rooms, {3} Visiting Rooms.</WFL_Wardens_RoomsFound>
+<WFL_Wardens_RoomsHelp>Rooms are recognised from what is in them, never painted. A prison cell is whatever the game says is one, and is humane with at least two of: a bed, six cells of room for each bed, and a clean floor. An enclosed room with no bed and a table is an Interview Room with at least two chairs and a Visiting Room with at least four. Interview and Visiting Rooms are recognised but have no effect yet: prisoners are never moved, so nobody can be interviewed or visited in them until escorts are built.</WFL_Wardens_RoomsHelp>
+<WFL_Wardens_RecordTitle>Treatment record</WFL_Wardens_RecordTitle>
+<WFL_Wardens_RecordHelp>For each warden: how often prisoners in their care were looked at in good, fair and poor condition (and how often good care was for a relative's prisoner out of all such looks), then what became of their prisoners: recruited, released, enslaved, executed, died in custody. A warden whose care for kin differs from the rest by 40 points or more is noticed by colleagues.</WFL_Wardens_RecordHelp>
+<WFL_Wardens_RecordLine>{0}: care good {1}, fair {2}, poor {3} (kin good {4} of {5}). Prisoners: recruited {6}, released {7}, enslaved {8}, executed {9}, died {10}.</WFL_Wardens_RecordLine>
+<WFL_Wardens_RecordNone>Nobody has looked after a prisoner yet.</WFL_Wardens_RecordNone>
+<WFL_Wardens_SpecialtiesTitle>Specialties</WFL_Wardens_SpecialtiesTitle>
 </LanguageData>

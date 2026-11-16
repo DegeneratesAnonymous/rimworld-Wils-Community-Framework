@@ -24,16 +24,17 @@ namespace FamilyLife
             CareerService.RegisterRole(new ProfessionRole { Id = WardenCareers.Warden, ModuleId = Id, Career = WardenCareers.Career, Level = 2 });
             foreach (var specialty in WardenCareers.Specialties)
                 CareerService.RegisterRole(new ProfessionRole { Id = WardenCareers.Role(specialty), ModuleId = Id, Career = WardenCareers.Career, Level = 3, Specialty = specialty, BonusKey = "WFL_Wardens_" + specialty + "Bonus" });
+            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Wardens_Page", Order = 165, Render = WardensPage.Draw });
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, WardenWork.Labour);
             FamilyFramework.LabourDone.Add(Id + ".responsible", Id, WardenTreatmentGame.Labour);
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".treatment", ModuleId = Id, Interval = 2500, Run = WardenTreatmentGame.Run });
             FamilyFramework.Reconcilers.Add(Id + ".reconcile", Id, WardenTreatmentGame.Reconcile);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, WardenStories.Social);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); });
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); WardenRoomGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Clear in-memory records", () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); return "careers, experience, the treatment record and memories retained; this module adds no jobs or hediffs"; });
+                report.Step("Clear in-memory records", () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); WardenRoomGame.Reset(); return "careers, experience, the treatment record and memories retained; this module adds no jobs or hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);

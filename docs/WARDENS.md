@@ -1,6 +1,6 @@
-# Wardens — agreed design (slices 1 and 2 built)
+# Wardens — agreed design (slices 1 to 3 built)
 
-A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Slices 1 and 2 are built** (the career tree, 75 events, strings, the three stat bonuses, experience hooks and packaging; then the treatment record, kin reactions and conflict of interest); **the rooms, the Community page and cell rounds are not.** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
+A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Slices 1 and 2 are built** (the career tree, 75 events, strings, the three stat bonuses, experience hooks and packaging; then the treatment record, kin reactions and conflict of interest); **the rounds and the slave-family check are not, and the Interview and Visiting rooms do nothing yet (see below).** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
 
 ## Tree
 
@@ -53,7 +53,7 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 
 1. **Built:** tree, careers, events, strings, stat bonuses, experience hooks, tests, packaging. Experience is routed by name (`WardenClassifier`): a conversion job, a slave or suppression job, a holding-platform or containment job, else any job under the Warden work type or with *Prisoner* or *Warden* in its name. Memories: routine success, outstanding result or pride after a finished job, and relationship events when two role-holders interact. **Not verified in the game:** that those names match the real jobs, that the work-type name is `Warden`, and the stat parts. The negative events have thoughts but no triggers yet.
 2. **Built:** the treatment record, kin reactions and conflict of interest (below).
-3. The recognised rooms and the Community page.
+3. **Built:** the recognised rooms and the Community page (below).
 4. Cell rounds and the slave-family check.
 
 ## Slice 2: the treatment record
@@ -66,6 +66,18 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 - **Saved** as `wils.wardens.record` (per-warden counters, who is responsible for whom, the time of the last favouritism notice), bounded: counters are halved at 400, 200 prisoners are remembered, and records of people who are gone are dropped on load.
 - **It only watches.** A test fails if the code ever starts changing a prisoner (faction, jobs, health, interaction mode, drafting, release, killing).
 - **Not verified in the game:** that the prisoner and slave properties read what is meant, that the execution mode is read in time, that the relation checks find the kin, the thought values and wording in play, and the hourly look at a large prison. Slave families (the Overseer's check on rounds) are slice 4 and not built.
+
+## Slice 3: rooms and the Community page
+
+- **Recognised, never painted** (`WardenRooms`, cached 600 ticks per room): a **prison cell** is whatever the game says is one (its room role is prison cell or prison barracks); **humane** means at least two of: a bed, six cells of room for each bed, a clean floor (cleanliness not below zero). An **Interview Room** is an enclosed room with no bed, a table and at least two chairs; a **Visiting Room** the same with at least four chairs.
+- **Deviation from the design.** I wrote that the Visiting Room would be "near but not inside the cells". Distance to a cell block is awkward to define, so I told the two apart by chair count instead. Say so if you want it changed.
+- **Community → Wardens** shows how many of each room the game has recognised, each warden's treatment record (care good, fair and poor, kin, and outcomes), and what each specialty does.
+- **The Interview and Visiting rooms have no effect, and the page says so.** In the vanilla game a warden chats with, feeds and converts a prisoner where the prisoner is, in their cell, and nothing ever takes a prisoner to another room. The design said the module would never move anyone, which would leave these two rooms recognised but unable to matter. **The owner chose to add escorts so they work.** That reverses "never moves anyone" and needs its own design and feasibility checks, so it is **not built**: it is slice 5, below.
+- **Not verified in the game:** that the room role and the chair, table and bed counts read what is meant, and that the page lists rooms.
+
+## Slice 5 (not designed yet): escorts
+
+A Warden bringing a prisoner to the Interview Room for persuasion or conversion, and a prisoner's kin to the Visiting Room. Open questions to settle with the owner before any code: how a prisoner is moved at all in the game (and whether that can be done without breaking their needs and the game's own prison logic), which prisoners may be taken (escape risk, resistance, injury, mental state), how a door left open is made safe, who may visit and how often, and what each room then does.
 
 ## What it would not do
 

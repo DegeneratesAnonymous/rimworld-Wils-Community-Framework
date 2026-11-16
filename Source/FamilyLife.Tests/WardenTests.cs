@@ -101,6 +101,15 @@ namespace FamilyLife.Tests
         }
 
         [Fact]
+        public void The_page_and_room_recognition_exist_and_say_honestly_what_the_interview_and_visiting_rooms_do()
+        {
+            string code = string.Join("\n", Directory.GetFiles(Path.Combine(RepoPaths.Root(), "Source/Wardens"), "*.cs", SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")).Select(File.ReadAllText));
+            Assert.Contains("class WardenRoomGame", code); Assert.Contains("WardensPage.Draw", code); Assert.Contains("RoomRoleDefOf.PrisonCell", code);
+            var help = XDocument.Load(Path.Combine(RepoPaths.Root(), "Packages/WilsWardens/Languages/English/Keyed/Wardens.xml")).Root.Element("WFL_Wardens_RoomsHelp").Value;
+            Assert.Contains("have no effect yet", help); Assert.Contains("escorts", help);          // the page never claims what the rooms cannot do
+        }
+
+        [Fact]
         public void The_three_modules_event_thoughts_never_collide()
         {
             var all = IntelligenceEvents.All.Select(e => e.Thought).Concat(MilitaryEvents.All.Select(e => e.Thought)).Concat(WardenEvents.All.Select(e => e.Thought)).ToList();
