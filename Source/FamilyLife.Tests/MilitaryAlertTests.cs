@@ -87,8 +87,8 @@ namespace FamilyLife.Tests
         [Fact]
         public void Posts_are_placed_changed_and_removed_by_cell()
         {
-            var b = new PostBook(); var a = b.Place(PostKind.Guard, 1, 10, 10);
-            Assert.Same(a, b.Place(PostKind.Overwatch, 1, 10, 10)); Assert.Equal(PostKind.Overwatch, a.Kind); Assert.Single(b.All);          // same cell: change its kind
+            var b = new PostBook(); var a = b.Place(PostKind.Melee, 1, 10, 10);
+            Assert.Same(a, b.Place(PostKind.Ranged, 1, 10, 10)); Assert.Equal(PostKind.Ranged, a.Kind); Assert.Single(b.All);          // same cell: change its kind
             b.Place(PostKind.Rally, 1, 11, 10); b.Place(PostKind.Rally, 2, 10, 10); Assert.Equal(3, b.All.Count);
             Assert.True(b.RemoveAt(1, 11, 10)); Assert.False(b.RemoveAt(1, 11, 10)); Assert.True(b.Remove(a.Id)); Assert.Equal(1, b.Count(PostKind.Rally));
             Assert.Equal(1, b.Clear(2)); Assert.Empty(b.All);
@@ -97,36 +97,35 @@ namespace FamilyLife.Tests
         [Fact]
         public void The_book_is_bounded_and_ids_are_never_reused()
         {
-            var b = new PostBook(); for (int i = 0; i < PostBook.MaxPosts; i++) Assert.NotNull(b.Place(PostKind.Guard, 1, i, 0));
-            Assert.Null(b.Place(PostKind.Guard, 1, 999, 0)); Assert.NotNull(b.Place(PostKind.Rally, 1, 0, 0));          // an existing cell can still change kind
-            int last = b.All.Max(p => p.Id); b.Remove(last); Assert.True(b.Place(PostKind.Guard, 1, 500, 0).Id > last);
+            var b = new PostBook(); for (int i = 0; i < PostBook.MaxPosts; i++) Assert.NotNull(b.Place(PostKind.Melee, 1, i, 0));
+            Assert.Null(b.Place(PostKind.Melee, 1, 999, 0)); Assert.NotNull(b.Place(PostKind.Rally, 1, 0, 0));          // an existing cell can still change kind
+            int last = b.All.Max(p => p.Id); b.Remove(last); Assert.True(b.Place(PostKind.Melee, 1, 500, 0).Id > last);
         }
 
         [Fact]
         public void The_book_round_trips_and_a_damaged_record_keeps_what_is_whole()
         {
-            var b = new PostBook(); b.Place(PostKind.Overwatch, 1, 4, 5); b.Place(PostKind.Rally, 1, 6, 7); b.Remove(b.All[0].Id); b.Place(PostKind.Guard, 2, 1, 2);
+            var b = new PostBook(); b.Place(PostKind.Ranged, 1, 4, 5); b.Place(PostKind.Rally, 1, 6, 7); b.Remove(b.All[0].Id); b.Place(PostKind.Melee, 2, 1, 2);
             var d = PostBook.Decode(new StateReader(b.Encode()));
             Assert.Equal(b.All.Select(p => (p.Id, p.Map, p.X, p.Z, p.Kind)), d.All.Select(p => (p.Id, p.Map, p.X, p.Z, p.Kind)));
-            Assert.True(d.Place(PostKind.Guard, 3, 0, 0).Id > b.All.Max(p => p.Id));
+            Assert.True(d.Place(PostKind.Melee, 3, 0, 0).Id > b.All.Max(p => p.Id));
             var damaged = PostBook.Decode(new StateReader("id=1,2,3\nmap=1,1\nx=1,2,3\nz=1,2,3\nkind=0,1,2")); Assert.Equal(2, damaged.All.Count);
             Assert.Empty(PostBook.Decode(new StateReader("id=1\nmap=1\nx=1\nz=1\nkind=7")).All);          // an unknown kind is dropped
             Assert.Single(PostBook.Decode(new StateReader("id=1,2\nmap=1,1\nx=5,5\nz=5,5\nkind=0,1")).All);          // two on one cell: one stays
         }
 
         [Fact]
-        public void Each_role_goes_to_the_post_that_suits_it()
+        public void A_soldier_has_a_type_and_prefers_their_own_then_mixed_then_the_rally_point()
         {
-            Assert.Equal(new[] { PostKind.Overwatch, PostKind.Rally }, PostPlanner.Preference("Sniper"));
-            Assert.Equal(new[] { PostKind.Overwatch, PostKind.Rally }, PostPlanner.Preference("Marksman"));
-            Assert.Equal(new[] { PostKind.Guard, PostKind.Rally }, PostPlanner.Preference("Guardian"));
-            foreach (var role in new[] { "Duelist", "FieldMedic", "Officer", null, "Recruit", "Soldier" }) Assert.Equal(new[] { PostKind.Rally }, PostPlanner.Preference(role));
+            foreach (var role in new[] { "Vanguard", "Guardian", "Duelist", "Soldier" }) { Assert.Equal(PostKind.Melee, PostPlanner.TypeOf(role)); Assert.Equal(new[] { PostKind.Melee, PostKind.Mixed, PostKind.Rally }, PostPlanner.Preference(role)); }
+            foreach (var role in new[] { "Marksman", "Gunner", "Sniper", "Ranger" }) { Assert.Equal(PostKind.Ranged, PostPlanner.TypeOf(role)); Assert.Equal(new[] { PostKind.Ranged, PostKind.Mixed, PostKind.Rally }, PostPlanner.Preference(role)); }
+            foreach (var role in new[] { "FieldMedic", "Officer", "Recruit", null, "Nobody" }) { Assert.Equal(PostKind.Mixed, PostPlanner.TypeOf(role)); Assert.Equal(new[] { PostKind.Mixed, PostKind.Rally, PostKind.Melee, PostKind.Ranged }, PostPlanner.Preference(role)); }
         }
 
         [Fact]
         public void Soldiers_take_the_nearest_free_post_of_their_kind_and_fall_back_to_the_rally_point()
         {
-            var posts = new[] { new MilitaryPost { Id = 1, Kind = PostKind.Overwatch, X = 0, Z = 0 }, new MilitaryPost { Id = 2, Kind = PostKind.Overwatch, X = 50, Z = 0 }, new MilitaryPost { Id = 3, Kind = PostKind.Rally, X = 25, Z = 25 }, new MilitaryPost { Id = 4, Kind = PostKind.Guard, X = 10, Z = 10 } };
+            var posts = new[] { new MilitaryPost { Id = 1, Kind = PostKind.Ranged, X = 0, Z = 0 }, new MilitaryPost { Id = 2, Kind = PostKind.Ranged, X = 50, Z = 0 }, new MilitaryPost { Id = 3, Kind = PostKind.Rally, X = 25, Z = 25 }, new MilitaryPost { Id = 4, Kind = PostKind.Melee, X = 10, Z = 10 } };
             var soldiers = new[]
             {
                 new RedSoldier { Id = 10, Specialty = "Sniper", X = 48, Z = 0 }, new RedSoldier { Id = 11, Specialty = "Sniper", X = 49, Z = 0 }, new RedSoldier { Id = 12, Specialty = "Sniper", X = 1, Z = 1 },
@@ -147,16 +146,63 @@ namespace FamilyLife.Tests
             var many = Enumerable.Range(1, 8).Select(i => new RedSoldier { Id = i, Specialty = "Sniper" }).ToList();
             Assert.Equal(8, PostPlanner.Assign(many, new[] { rally }).Count(x => x.Value.Id == 1));
             Assert.Empty(PostPlanner.Assign(many, new MilitaryPost[0]));
-            Assert.Empty(PostPlanner.Assign(many, new[] { new MilitaryPost { Id = 2, Kind = PostKind.Guard } }));          // a Guard post is no use to a Sniper, and there is no Rally
+            Assert.Empty(PostPlanner.Assign(many, new[] { new MilitaryPost { Id = 2, Kind = PostKind.Melee } }));          // a Guard post is no use to a Sniper, and there is no Rally
         }
 
         [Fact]
         public void Planning_is_deterministic_whatever_order_soldiers_arrive_in()
         {
-            var posts = new[] { new MilitaryPost { Id = 1, Kind = PostKind.Overwatch, X = 0 }, new MilitaryPost { Id = 2, Kind = PostKind.Overwatch, X = 1 } };
+            var posts = new[] { new MilitaryPost { Id = 1, Kind = PostKind.Ranged, X = 0 }, new MilitaryPost { Id = 2, Kind = PostKind.Ranged, X = 1 } };
             var s = new[] { new RedSoldier { Id = 5, Specialty = "Sniper" }, new RedSoldier { Id = 3, Specialty = "Sniper" } };
             var a = PostPlanner.Assign(s, posts); var b = PostPlanner.Assign(s.Reverse(), posts);
             Assert.Equal(a.OrderBy(x => x.Key).Select(x => x.Value.Id), b.OrderBy(x => x.Key).Select(x => x.Value.Id));
+        }
+
+        [Fact]
+        public void Typed_positions_are_chosen_by_type_then_mixed_then_rally_and_a_medic_prefers_mixed()
+        {
+            var posts = new[] { new MilitaryPost { Id = 1, Kind = PostKind.Melee, X = 0 }, new MilitaryPost { Id = 2, Kind = PostKind.Ranged, X = 1 }, new MilitaryPost { Id = 3, Kind = PostKind.Mixed, X = 2 }, new MilitaryPost { Id = 4, Kind = PostKind.Rally, X = 3 } };
+            var plan = PostPlanner.Assign(new[]
+            {
+                new RedSoldier { Id = 1, Specialty = "Vanguard" }, new RedSoldier { Id = 2, Specialty = "Guardian" }, new RedSoldier { Id = 3, Specialty = "Guardian" },          // melee: own, then Mixed, then Rally
+                new RedSoldier { Id = 4, Specialty = "Sniper" }, new RedSoldier { Id = 5, Specialty = "FieldMedic" }
+            }, posts);
+            Assert.Equal(1, plan[1].Id); Assert.Equal(3, plan[2].Id); Assert.Equal(4, plan[3].Id);          // the second Guardian takes Mixed, the third falls back to Rally
+            Assert.Equal(2, plan[4].Id);          // a Sniper takes the Ranged position
+            Assert.Equal(4, plan[5].Id);          // Mixed is taken, so the medic goes to Rally
+        }
+
+        [Fact]
+        public void A_mixed_soldier_takes_a_typed_position_only_when_there_is_nothing_else()
+        {
+            var onlyTyped = new[] { new MilitaryPost { Id = 1, Kind = PostKind.Ranged }, new MilitaryPost { Id = 2, Kind = PostKind.Melee } };
+            Assert.Equal(2, PostPlanner.Assign(new[] { new RedSoldier { Id = 1, Specialty = "Officer" } }, onlyTyped)[1].Id);          // Melee comes before Ranged in a Mixed soldier's fallback
+            var withRally = onlyTyped.Concat(new[] { new MilitaryPost { Id = 9, Kind = PostKind.Rally } });
+            Assert.Equal(9, PostPlanner.Assign(new[] { new RedSoldier { Id = 1, Specialty = "Officer" } }, withRally)[1].Id);
+        }
+
+        [Fact]
+        public void A_posted_soldier_outranks_the_automatic_ones_and_a_posting_to_something_gone_is_automatic()
+        {
+            var posts = new[] { new MilitaryPost { Id = 1, Kind = PostKind.Ranged, X = 0 }, new MilitaryPost { Id = 2, Kind = PostKind.Ranged, X = 50 }, new MilitaryPost { Id = 3, Kind = PostKind.Melee, X = 5 } };
+            var plan = PostPlanner.Assign(new[]
+            {
+                new RedSoldier { Id = 1, Specialty = "Sniper", X = 0 },          // automatic, and nearest to post 1, but a posted soldier takes it first
+                new RedSoldier { Id = 2, Specialty = "Sniper", X = 0, Posted = 1 },
+                new RedSoldier { Id = 3, Specialty = "Vanguard", Posted = 2 },          // posted to a Ranged position though a melee soldier: the player decides
+                new RedSoldier { Id = 4, Specialty = "Sniper", Posted = 99 }          // posted to something that is gone: treated as automatic
+            }, posts);
+            Assert.Equal(1, plan[2].Id); Assert.Equal(2, plan[3].Id);
+            Assert.False(plan.ContainsKey(1)); Assert.False(plan.ContainsKey(4));          // both Ranged positions are held, and there is no Mixed position or Rally point
+        }
+
+        [Fact]
+        public void Two_soldiers_posted_to_the_same_position_do_not_both_get_it()
+        {
+            var posts = new[] { new MilitaryPost { Id = 1, Kind = PostKind.Melee }, new MilitaryPost { Id = 2, Kind = PostKind.Rally } };
+            var plan = PostPlanner.Assign(new[] { new RedSoldier { Id = 5, Specialty = "Guardian", Posted = 1 }, new RedSoldier { Id = 6, Specialty = "Guardian", Posted = 1 } }, posts);
+            Assert.Equal(1, plan[5].Id); Assert.Equal(2, plan[6].Id);          // the lower id holds it; the other falls back to automatic, which is the Rally point
+            var shared = PostPlanner.Assign(new[] { new RedSoldier { Id = 5, Posted = 2 }, new RedSoldier { Id = 6, Posted = 2 } }, posts); Assert.Equal(2, shared[5].Id); Assert.Equal(2, shared[6].Id);          // Rally is shared
         }
     }
 }
@@ -174,7 +220,7 @@ namespace FamilyLife.Tests
             foreach (var file in System.IO.Directory.GetFiles(System.IO.Path.Combine(Root, "Source/Military"), "*.cs", System.IO.SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")))
                 foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(System.IO.File.ReadAllText(file), "\"(WFL_Military_[A-Za-z]+)\""))
                     Assert.True(keys.Contains(m.Groups[1].Value), System.IO.Path.GetFileName(file) + " uses a missing key " + m.Groups[1].Value);
-            foreach (var kind in new[] { "Overwatch", "Guard", "Rally" }) { Assert.Contains("WFL_Military_Post_" + kind, keys); Assert.Contains("WFL_Military_PostDesc_" + kind, keys); }
+            foreach (var kind in new[] { "Melee", "Ranged", "Mixed", "Rally" }) { Assert.Contains("WFL_Military_Post_" + kind, keys); Assert.Contains("WFL_Military_PostDesc_" + kind, keys); }
             foreach (var level in new[] { "Normal", "Yellow", "Red" }) Assert.Contains("WFL_Military_AlertExplain_" + level, keys);
         }
 
@@ -183,7 +229,7 @@ namespace FamilyLife.Tests
         {
             string text = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Patches/MilitaryZone.xml")); string source = string.Join("\n", System.IO.Directory.GetFiles(System.IO.Path.Combine(Root, "Source/Military"), "*.cs", System.IO.SearchOption.AllDirectories));
             string code = string.Join("\n", System.IO.Directory.GetFiles(System.IO.Path.Combine(Root, "Source/Military"), "*.cs", System.IO.SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")).Select(System.IO.File.ReadAllText));
-            foreach (var cls in new[] { "Designator_ZoneAdd_TrainingYard", "Designator_MilitaryPost", "Designator_RemoveMilitaryPost" })
+            foreach (var cls in new[] { "Designator_ZoneAdd_TrainingYard", "Designator_MilitaryPost", "Designator_PatrolSpot", "Designator_RemoveMilitaryPost" })
             { Assert.Contains("<li>FamilyLife." + cls + "</li>", text); Assert.Matches(@"class\s+" + cls + @"\b", code); }
             Assert.Contains("<success>Always</success>", text);
             Assert.Matches(@"class\s+Zone_TrainingYard\b", code); Assert.Matches(@"class\s+MilitaryMapComponent\s*:\s*MapComponent", code); Assert.Matches(@"class\s+Alert_MilitaryAlert\s*:\s*Alert", code);
@@ -223,6 +269,36 @@ namespace FamilyLife.Tests
             Assert.Contains("FrameworkServices.Ready(p)", code);          // volunteers: free time only, never work time
             Assert.Contains("MinTrainingAge", code); Assert.Contains("WorkTagIsDisabled(WorkTags.Violent)", code);
             Assert.Contains("MilitaryRoles.Serving(pawn)", code);          // only serving soldiers earn career experience; volunteers train their skills
+        }
+
+        [Fact]
+        public void Every_tab_position_and_spot_type_has_its_words_and_the_old_overwatch_and_guard_words_are_gone()
+        {
+            var keys = System.Xml.Linq.XDocument.Load(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Languages/English/Keyed/Military.xml")).Root.Elements().Select(x => x.Name.LocalName).ToHashSet();
+            foreach (var tab in new[] { "Alert", "Positions", "Facilities", "Soldiers" }) Assert.Contains("WFL_Military_Tab_" + tab, keys);
+            foreach (var kind in System.Enum.GetNames(typeof(PostKind))) { Assert.Contains("WFL_Military_Post_" + kind, keys); Assert.Contains("WFL_Military_PostDesc_" + kind, keys); }
+            foreach (var type in new[] { "Melee", "Ranged", "Mixed" }) Assert.Contains("WFL_Military_Spot_" + type, keys);
+            Assert.DoesNotContain("WFL_Military_Post_Overwatch", keys); Assert.DoesNotContain("WFL_Military_Post_Guard", keys);
+            string code = string.Join("\n", System.IO.Directory.GetFiles(System.IO.Path.Combine(Root, "Source/Military"), "*.cs", System.IO.SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")).Select(System.IO.File.ReadAllText));
+            Assert.DoesNotContain("PostKind.Overwatch", code); Assert.DoesNotContain("PostKind.Guard", code);
+        }
+
+        [Fact]
+        public void The_old_saved_post_numbers_still_mean_what_they_did()
+        {
+            Assert.Equal(0, (int)PostKind.Ranged); Assert.Equal(1, (int)PostKind.Melee); Assert.Equal(2, (int)PostKind.Rally); Assert.Equal(3, (int)PostKind.Mixed);          // Overwatch was 0, Guard 1, Rally 2
+            var old = PostBook.Decode(new FamilyLife.Framework.StateReader("id=1,2,3\nmap=1,1,1\nx=1,2,3\nz=1,2,3\nkind=0,1,2")); Assert.Equal(new[] { PostKind.Ranged, PostKind.Melee, PostKind.Rally }, old.All.Select(p => p.Kind).ToArray());
+        }
+
+        [Fact]
+        public void The_menu_places_posts_and_spots_changes_postings_and_a_patrol_continues_its_route()
+        {
+            string menu = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryMenu.cs")); string duty = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryDutyGame.cs")); string alert = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryAlertGame.cs"));
+            Assert.Contains("new Designator_PatrolSpot(route.Id, type)", menu); Assert.Contains("new Designator_MilitaryPost(kind)", menu); Assert.Contains("PostingMenu", menu); Assert.Contains("postings.Clear(id)", menu); Assert.Contains("CreditTarget", menu);
+            Assert.Contains("route.Cursor = (walk.Start + visited) % Math.Max(1, walk.Count)", duty); Assert.Contains("route.LastWalked = now", duty);          // the next patrol continues where this one stopped
+            Assert.Contains("posted || PatrolPlanner.Eligible(type, x.Type)", duty);          // a posted soldier walks every spot of their route, others only what suits them
+            Assert.Contains("Posted = postings.PositionOf(p.thingIDNumber)", alert);          // Red honours a posting
+            Assert.Contains("c.Registry.Postings().Reconcile(", alert);          // and a posting never outlives its soldier, route or position
         }
     }
 }

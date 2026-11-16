@@ -29,26 +29,14 @@
 <WFL_Military_AlertExplain_Red>Defensive positions. Serving soldiers are drafted and sent to their posts. Open Community, Military to change the level. Anything you order yourself stands.</WFL_Military_AlertExplain_Red>
 <WFL_Military_AutoRed>Raise Red automatically when hostiles appear</WFL_Military_AutoRed>
 <WFL_Military_AutoRedTip>When hostiles appear on the map the colony goes to Red by itself, then drops back to the level you set after an hour without any. Only pawns you have assigned a Military role are drafted, and each is handled once, so any order you give afterwards stands.</WFL_Military_AutoRedTip>
-<WFL_Military_AlertHelp>Normal is routine and training. Yellow is a heightened watch. Red sends serving soldiers to defensive positions: they are drafted and sent to the posts below (a Sniper or Marksman to an Overwatch post, a Guardian, Vanguard or Gunner to a Guard post, everyone else to the Rally point). With no posts placed, nobody is sent anywhere. At stand-down only the soldiers drafted by Red are undrafted.</WFL_Military_AlertHelp>
 <WFL_Military_RedRaised>Hostiles sighted: Red alert. Serving soldiers are going to their posts.</WFL_Military_RedRaised>
 <WFL_Military_StoodDown>The threat has passed. Military alert is now {0}.</WFL_Military_StoodDown>
-<WFL_Military_PostsTitle>Posts ({0} of {1})</WFL_Military_PostsTitle>
-<WFL_Military_PostsHelp>Posts are where soldiers stand at Red. You place them. A Guard or Overwatch post holds one soldier; the Rally point is shared. Also under Architect, Zone.</WFL_Military_PostsHelp>
-<WFL_Military_PlacePost>Place a post</WFL_Military_PlacePost>
-<WFL_Military_PlaceKind>Place: {0}</WFL_Military_PlaceKind>
-<WFL_Military_PlacePostDesc>Place an Overwatch post, a Guard post or the Rally point. Soldiers on Red alert go to them.</WFL_Military_PlacePostDesc>
-<WFL_Military_RemovePost>Remove a post</WFL_Military_RemovePost>
-<WFL_Military_RemovePostDesc>Take a Military post away.</WFL_Military_RemovePostDesc>
 <WFL_Military_PlaceYard>Paint a Training Yard</WFL_Military_PlaceYard>
 <WFL_Military_PostHomeOnly>Posts can only be placed on a home map.</WFL_Military_PostHomeOnly>
 <WFL_Military_PostsFull>There are already {0} posts.</WFL_Military_PostsFull>
 <WFL_Military_MorePosts>and {0} more</WFL_Military_MorePosts>
 <WFL_Military_Remove>Remove</WFL_Military_Remove>
-<WFL_Military_Post_Overwatch>Overwatch post</WFL_Military_Post_Overwatch>
-<WFL_Military_Post_Guard>Guard post</WFL_Military_Post_Guard>
 <WFL_Military_Post_Rally>Rally point</WFL_Military_Post_Rally>
-<WFL_Military_PostDesc_Overwatch>for Snipers and Marksmen</WFL_Military_PostDesc_Overwatch>
-<WFL_Military_PostDesc_Guard>for Guardians, Vanguards and Gunners</WFL_Military_PostDesc_Guard>
 <WFL_Military_PostDesc_Rally>where everyone else gathers</WFL_Military_PostDesc_Rally>
 <WFL_Military_TrainingYard>Training Yard</WFL_Military_TrainingYard>
 <WFL_Military_TrainingYardDesc>Paint an area where soldiers drill, spar and practise.</WFL_Military_TrainingYardDesc>
@@ -69,6 +57,60 @@
 <WFL_Military_VolunteersTip>A colonist who is not a soldier may join a drill or range practice that is already running, but only in free time (never work time), and only if they have a passion for Melee or Shooting or a soldier in the family. Combat training opens at 13.</WFL_Military_VolunteersTip>
 <WFL_Military_DutiesStatus>{0} on duty now. Training Yard: {1} cells.</WFL_Military_DutiesStatus>
 <WFL_Military_NoYard>No Training Yard is painted, so there is nowhere to drill, spar or practise. Paint one under Architect, Zone.</WFL_Military_NoYard>
-<WFL_Military_NoPostsHint>No Overwatch or Guard posts are placed, so there is no lookout or gate guard to keep.</WFL_Military_NoPostsHint>
 <WFL_Military_DutiesHelp>Duties earn experience. A specialist earns toward their own specialty. A soldier who has earned a branch practises the specialty their skills and experience put them nearest to, which is how a specialty is earned before it can be assigned. A Recruit builds toward the branch of their better skill.</WFL_Military_DutiesHelp>
+<WFL_Military_AlertHelp>Normal is routine and training. Yellow is a heightened watch: patrols, lookouts and guards. Red sends serving soldiers to defensive positions: they are drafted and sent to a position of their own type first (Melee for the Soldier branch, Ranged for the Ranger branch), then a Mixed one, then the Rally point. Field Medics, Officers and Recruits prefer Mixed. A soldier you have posted to a position goes there. With no positions placed, nobody is sent anywhere. At stand-down only the soldiers drafted by Red are undrafted.</WFL_Military_AlertHelp>
+<WFL_Military_PlacePost>Place a defensive position</WFL_Military_PlacePost>
+<WFL_Military_PlacePostDesc>Place a Melee, Ranged or Mixed defensive position, or the Rally point. Soldiers on Red alert go to them.</WFL_Military_PlacePostDesc>
+<WFL_Military_PlaceKind>Place: {0}</WFL_Military_PlaceKind>
+<WFL_Military_RemovePost>Remove a position or patrol spot</WFL_Military_RemovePost>
+<WFL_Military_RemovePostDesc>Take a Military position or patrol spot away.</WFL_Military_RemovePostDesc>
+<WFL_Military_NoPostsHint>No defensive positions or patrol spots are placed, so there is no lookout, gate guard or route to patrol.</WFL_Military_NoPostsHint>
+<WFL_Military_Post_Melee>Melee position</WFL_Military_Post_Melee>
+<WFL_Military_Post_Ranged>Ranged position</WFL_Military_Post_Ranged>
+<WFL_Military_Post_Mixed>Mixed position</WFL_Military_Post_Mixed>
+<WFL_Military_PostDesc_Melee>for the Soldier branch: Vanguards, Guardians and Duelists</WFL_Military_PostDesc_Melee>
+<WFL_Military_PostDesc_Ranged>for the Ranger branch: Marksmen, Gunners and Snipers (try high ground)</WFL_Military_PostDesc_Ranged>
+<WFL_Military_PostDesc_Mixed>anyone: Field Medics, Officers and Recruits prefer it, and others take it when their own type is full</WFL_Military_PostDesc_Mixed>
+<WFL_Military_MenuTitle>Military</WFL_Military_MenuTitle>
+<WFL_Military_Tab_Alert>Alert</WFL_Military_Tab_Alert>
+<WFL_Military_Tab_Positions>Positions</WFL_Military_Tab_Positions>
+<WFL_Military_Tab_Facilities>Facilities</WFL_Military_Tab_Facilities>
+<WFL_Military_Tab_Soldiers>Soldiers</WFL_Military_Tab_Soldiers>
+<WFL_Military_PositionsTitle>Defensive positions ({0} of {1})</WFL_Military_PositionsTitle>
+<WFL_Military_PositionsHelp>Where soldiers stand at Red. Place Melee, Ranged and Mixed positions and the Rally point. A typed position holds one soldier; the Rally point is shared. You can post a soldier to a position on the Soldiers tab.</WFL_Military_PositionsHelp>
+<WFL_Military_PostedHere>posted: {0}</WFL_Military_PostedHere>
+<WFL_Military_RoutesTitle>Patrol routes ({0} of {1}), spots ({2} of {3})</WFL_Military_RoutesTitle>
+<WFL_Military_RoutesHelp>A patrol walks the spots of one route, in an order worked out automatically, for about one duty block and the next patrol continues where it stopped, so a long route is covered over several patrols. A soldier walks the spots of their own type and Mixed spots, and the route walked least recently. A soldier posted to a route walks all of it.</WFL_Military_RoutesHelp>
+<WFL_Military_AddRoute>Add a route</WFL_Military_AddRoute>
+<WFL_Military_DeleteRoute>Delete route</WFL_Military_DeleteRoute>
+<WFL_Military_NoRoutes>No routes yet. Add one, then place patrol spots in it.</WFL_Military_NoRoutes>
+<WFL_Military_RouteLine>{0} ({1} spots)</WFL_Military_RouteLine>
+<WFL_Military_PlaceSpotKind>Place: {0}</WFL_Military_PlaceSpotKind>
+<WFL_Military_MoveSpot>Move to...</WFL_Military_MoveSpot>
+<WFL_Military_Spot_Melee>Melee spot</WFL_Military_Spot_Melee>
+<WFL_Military_Spot_Ranged>Ranged spot</WFL_Military_Spot_Ranged>
+<WFL_Military_Spot_Mixed>Mixed spot</WFL_Military_Spot_Mixed>
+<WFL_Military_PlaceSpot>Place a patrol spot</WFL_Military_PlaceSpot>
+<WFL_Military_PlaceSpotDesc>Place a patrol spot in a route (choose the route, or a new one, and the type).</WFL_Military_PlaceSpotDesc>
+<WFL_Military_NewRoute>New route</WFL_Military_NewRoute>
+<WFL_Military_SpotsFull>There are already {0} patrol spots.</WFL_Military_SpotsFull>
+<WFL_Military_YardTitle>Training Yard</WFL_Military_YardTitle>
+<WFL_Military_YardStatus>{0} Training Yard zones, {1} cells.</WFL_Military_YardStatus>
+<WFL_Military_YardHelp>Where soldiers drill, spar, practise at the range and stand by with first aid. One type of yard; paint as many as you like.</WFL_Military_YardHelp>
+<WFL_Military_SoldiersTitle>Serving soldiers ({0})</WFL_Military_SoldiersTitle>
+<WFL_Military_SoldiersHelp>Everyone you have assigned a Military role: their role, the specialty their duties are counting toward, what they are doing and where, and where they are posted. Click a name to go to them.</WFL_Military_SoldiersHelp>
+<WFL_Military_NoSoldiers>Nobody is assigned a Military role yet. Assign roles on the Professions page.</WFL_Military_NoSoldiers>
+<WFL_Military_SelectTip>Go to this soldier</WFL_Military_SelectTip>
+<WFL_Military_Assigned>assigned specialty</WFL_Military_Assigned>
+<WFL_Military_Practising>practising {0} {1}/{2}</WFL_Military_Practising>
+<WFL_Military_NothingToPractise>nothing left to practise</WFL_Military_NothingToPractise>
+<WFL_Military_Idle>idle</WFL_Military_Idle>
+<WFL_Military_PostingAuto>Automatic</WFL_Military_PostingAuto>
+<WFL_Military_PostingRoute>Route: {0}</WFL_Military_PostingRoute>
+<WFL_Military_PostingPosition>Position: {0}</WFL_Military_PostingPosition>
+<WFL_Military_PostingTip>Choose where this soldier is posted. Automatic means the nearest suitable route or position of their type.</WFL_Military_PostingTip>
+<WFL_Military_Where_Yard>Training Yard</WFL_Military_Where_Yard>
+<WFL_Military_Where_Rally>Rally point</WFL_Military_Where_Rally>
+<WFL_Military_Where_Position>{0} at {1}, {2}</WFL_Military_Where_Position>
+<WFL_Military_Where_Home>home area</WFL_Military_Where_Home>
 </LanguageData>

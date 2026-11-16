@@ -32,10 +32,16 @@ namespace FamilyLife
         private static readonly Dictionary<int, IntVec3> held = new Dictionary<int, IntVec3>();          // the cell each pawn on duty is using
         private static readonly Dictionary<int, int> heldPost = new Dictionary<int, int>();          // the post each lookout or guard is using
         private static readonly Dictionary<int, KeyValuePair<int, bool>> threat = new Dictionary<int, KeyValuePair<int, bool>>();
+        private static readonly Dictionary<int, string> where = new Dictionary<int, string>();          // what each pawn on duty would say if asked where
+        private struct Walk { public int Route, Start, Count; }
+        private static readonly Dictionary<int, Walk> walks = new Dictionary<int, Walk>();          // the stretch of a route each patrolling pawn started on
         private static readonly MilitaryCareerCache careerCache = new MilitaryCareerCache();
         private const int ThreatKeep = 60;
 
-        public static void Reset() { sessions.Clear(); lastEnd.Clear(); daily.Clear(); held.Clear(); heldPost.Clear(); threat.Clear(); }
+        public static void Reset() { sessions.Clear(); lastEnd.Clear(); daily.Clear(); held.Clear(); heldPost.Clear(); threat.Clear(); where.Clear(); walks.Clear(); }
+
+        /// <summary>Where a pawn on duty is posted (the yard, a route, a position), or null.</summary>
+        public static string WhereOf(Pawn pawn) => pawn != null && where.TryGetValue(pawn.thingIDNumber, out var w) ? w : null;
 
         private sealed class MilitaryCareerCache { public readonly CareerDefinition Def = MilitaryCareers.Definition(); }
 
@@ -110,8 +116,8 @@ namespace FamilyLife
         {
             switch (kind)
             {
-                case DutyKind.Lookout: case DutyKind.GateGuard: return GoToPost(p, kind, posts, now);
-                case DutyKind.Patrol: return Patrol(map, p, posts, now);
+                case DutyKind.Lookout: case DutyKind.GateGuard: return GoToPost(c, p, role, kind, posts, now);
+                case DutyKind.Patrol: return Patrol(c, map, p, role, posts, now);
                 case DutyKind.Muster: return Group(map, p, role, kind, MusterCell(map, p, yard, posts), yard, now);
                 case DutyKind.Spar: return Spar(map, p, serving, yard, now);
                 case DutyKind.FirstAid: return Solo(map, p, kind, FreeCell(map, p, yard, IntVec3.Invalid), now);
@@ -154,7 +160,13 @@ namespace FamilyLife
             var job = JobMaker.MakeJob(MilitaryDefOf.WFL_MilitaryDuty, cell); job.count = MilitaryDuties.Pack(kind, length); job.locomotionUrgency = LocomotionUrgency.Walk; return job;
         }
 
-        private static void Begin(Pawn p, Job job, IntVec3 cell) { if (cell.IsValid) held[p.thingIDNumber] = cell; p.jobs.StartJob(job, JobCondition.InterruptForced, null, false, tag: JobTag.Misc); }
+        private static void Begin(Pawn p, Job job, IntVec3 cell, string at = null)
+        {
+            if (cell.IsValid) held[p.thingIDNumber] = cell;
+            var kind = KindOf(job); at = at ?? (kind == DutyKind.Muster ? "WFL_Military_Where_Rally".Translate().ToString() : MilitaryDuties.UsesYard(kind) ? "WFL_Military_Where_Yard".Translate().ToString() : null);
+            if (at != null) where[p.thingIDNumber] = at;
+            p.jobs.StartJob(job, JobCondition.InterruptForced, null, false, tag: JobTag.Misc);
+        }
 
         private static bool Solo(Map map, Pawn p, DutyKind kind, IntVec3 cell, int now)
         {
@@ -192,18 +204,54 @@ namespace FamilyLife
             Begin(p, a, mine); Begin(partner, b, theirs); return true;
         }
 
-        private static bool GoToPost(Pawn p, DutyKind kind, List<MilitaryPost> posts, int now)
+        private static string PostText(MilitaryPost post) => "WFL_Military_Where_Position".Translate(("WFL_Military_Post_" + post.Kind).Translate(), post.X, post.Z).ToString();
+
+        /// <summary>
+        /// The lookout and the gate guard stand at a defensive position: the one the soldier is posted to, else the nearest free one of their own type, then Mixed. (The Rally point is for
+        /// muster, not for a watch.)
+        /// </summary>
+        private static bool GoToPost(FamilyComponent c, Pawn p, string role, DutyKind kind, List<MilitaryPost> posts, int now)
         {
-            var want = MilitaryDuties.PostFor(kind); if (want == null) return false;
-            var post = posts.Where(x => x.Kind == want.Value && !heldPost.ContainsValue(x.Id)).OrderBy(x => p.Position.DistanceToSquared(new IntVec3(x.X, 0, x.Z))).FirstOrDefault(); if (post == null) return false;
+            MilitaryPost post = null; int posted = c.Registry.Postings().PositionOf(p.thingIDNumber);
+            if (posted > 0) { var one = posts.FirstOrDefault(x => x.Id == posted); if (one != null && one.Kind != PostKind.Rally && !heldPost.ContainsValue(one.Id)) post = one; }
+            if (post == null)
+                foreach (var k in PostPlanner.Preference(role))
+                {
+                    if (k == PostKind.Rally) continue;
+                    post = posts.Where(x => x.Kind == k && !heldPost.ContainsValue(x.Id)).OrderBy(x => p.Position.DistanceToSquared(new IntVec3(x.X, 0, x.Z))).FirstOrDefault();
+                    if (post != null) break;
+                }
+            if (post == null) return false;
             var cell = new IntVec3(post.X, 0, post.Z); if (!cell.Standable(p.Map) || !p.CanReach(cell, PathEndMode.OnCell, Danger.Deadly)) return false;
-            heldPost[p.thingIDNumber] = post.Id; Begin(p, Make(kind, cell), cell); return true;
+            heldPost[p.thingIDNumber] = post.Id; Begin(p, Make(kind, cell), cell, PostText(post)); return true;
         }
 
-        private static bool Patrol(Map map, Pawn p, List<MilitaryPost> posts, int now)
+        /// <summary>
+        /// A patrol walks the next stretch of a route: the one the soldier is posted to, else the route walked least recently that has spots they may walk (their own type, and Mixed; a posted soldier walks
+        /// every spot of theirs). The stretch is as many spots as fit in a duty block, from where the last patrol stopped. With no route to walk it falls back to a chain of posts, then the home area.
+        /// </summary>
+        private static bool Patrol(FamilyComponent c, Map map, Pawn p, string role, List<MilitaryPost> posts, int now)
         {
-            var points = new List<IntVec3>();
-            var from = p.Position;
+            var book = c.Registry.Patrols(); var type = PostPlanner.TypeOf(role); int id = p.thingIDNumber;
+            var route = book.Route(c.Registry.Postings().RouteOf(id)); bool posted = route != null;
+            List<PatrolSpot> Walkable(PatrolRoute r) => book.InRoute(r.Id).Where(x => x.Map == map.uniqueID && (posted || PatrolPlanner.Eligible(type, x.Type))).ToList();
+            if (route == null) route = PatrolPlanner.Choose(book.Routes, r => Walkable(r).Count);
+            if (route != null)
+            {
+                var ordered = PatrolPlanner.Order(Walkable(route));
+                if (ordered.Count > 0)
+                {
+                    var stretch = PatrolPlanner.Plan(ordered, route.Cursor, p.Position.x, p.Position.z, MilitaryDuties.BlockTicks);
+                    var cells = stretch.Spots.Select(x => new IntVec3(x.X, 0, x.Z)).Where(x => x.Standable(map) && p.CanReach(x, PathEndMode.OnCell, Danger.Deadly)).ToList();
+                    if (cells.Count > 0)
+                    {
+                        var job = Make(DutyKind.Patrol, cells[0]); job.targetQueueA = cells.Select(x => new LocalTargetInfo(x)).ToList();
+                        walks[id] = new Walk { Route = route.Id, Start = ((route.Cursor % ordered.Count) + ordered.Count) % ordered.Count, Count = ordered.Count };
+                        Begin(p, job, IntVec3.Invalid, route.Name); return true;
+                    }
+                }
+            }
+            var points = new List<IntVec3>(); var from = p.Position;
             var pool = posts.Select(x => new IntVec3(x.X, 0, x.Z)).Where(x => x.Standable(map)).ToList();
             while (pool.Count > 0 && points.Count < 4) { var next = pool.OrderBy(x => from.DistanceToSquared(x)).First(); points.Add(next); pool.Remove(next); from = next; }
             if (points.Count < 2)
@@ -213,8 +261,8 @@ namespace FamilyLife
                 for (int i = 0; i < 3; i++) { var cell = cells.RandomElement(); if (cell.Standable(map) && p.CanReach(cell, PathEndMode.OnCell, Danger.Deadly)) points.Add(cell); }
                 if (points.Count < 2) return false;
             }
-            var job = Make(DutyKind.Patrol, points[0]); job.targetQueueA = points.Select(x => new LocalTargetInfo(x)).ToList();
-            Begin(p, job, IntVec3.Invalid); return true;
+            var walk = Make(DutyKind.Patrol, points[0]); walk.targetQueueA = points.Select(x => new LocalTargetInfo(x)).ToList();
+            Begin(p, walk, IntVec3.Invalid, "WFL_Military_Where_Home".Translate().ToString()); return true;
         }
 
         // ------------------------------------------------------------------ volunteers
@@ -258,11 +306,16 @@ namespace FamilyLife
         }
 
         /// <summary>Called when a duty ends for any reason. Releases what it held, notes the rest, and credits the block if enough of it was done.</summary>
-        public static void Finish(Pawn pawn, Job job, int ticks, bool completed)
+        public static void Finish(Pawn pawn, Job job, int ticks, bool completed, int visited = 0)
         {
             try
             {
-                int id = pawn.thingIDNumber, now = FrameworkServices.Now; held.Remove(id); heldPost.Remove(id);
+                int id = pawn.thingIDNumber, now = FrameworkServices.Now; held.Remove(id); heldPost.Remove(id); where.Remove(id);
+                if (walks.TryGetValue(id, out var walk))
+                {
+                    walks.Remove(id); var route = FamilyComponent.Current?.Registry.Patrols().Route(walk.Route);
+                    if (route != null && visited > 0) { route.Cursor = (walk.Start + visited) % Math.Max(1, walk.Count); route.LastWalked = now; }          // the next patrol continues where this one stopped
+                }
                 var kind = KindOf(job); if (!MilitaryDuties.Counts(completed, ticks)) return;
                 lastEnd[id] = now; int day = now / ActivityTuning.TicksPerDay;
                 if (daily.TryGetValue(id, out var d) && d[0] == day) d[1]++; else daily[id] = new[] { day, 1 };
@@ -281,18 +334,34 @@ namespace FamilyLife
         /// The experience for a finished block. An assigned specialist earns toward their own specialty. Someone who has earned only a branch practises the specialty their skills
         /// and experience put them nearest to (this is how a specialty is earned before it can be assigned). A Recruit builds toward the branch of their better skill.
         /// </summary>
+        /// <summary>
+        /// The specialty (or, for a Recruit, the branch) a pawn's duties are counted toward: their own specialty if they are assigned one; else the one they are practising; null when there is
+        /// nothing left to practise.
+        /// </summary>
+        public static string CreditTarget(FamilyComponent c, Pawn pawn, string role)
+        {
+            if (role == null) return null; if (MilitaryCareers.Specialties.Contains(role)) return role;
+            var ledger = c.Registry.Careers(); int id = pawn.thingIDNumber; var skill = CareerService.SkillsOf(pawn);
+            var branches = MilitaryCareers.Branches.Where(b => ledger.IsSpecialist(id, MilitaryCareers.Career, b)).ToList();
+            return branches.Count > 0
+                ? MilitaryDuties.Practising(careerCache.Def, skill, s => ledger.SpecialtyXp(id, MilitaryCareers.Career, s), s => ledger.IsSpecialist(id, MilitaryCareers.Career, s), q => ledger.Holds(id, q), branches)
+                : MilitaryDuties.BranchToward(skill("Melee"), skill("Shooting"));
+        }
+
+        /// <summary>How far a pawn is toward what their duties count for: the experience banked and what the next step needs. False when there is nothing to show.</summary>
+        public static bool Progress(FamilyComponent c, Pawn pawn, string target, out int have, out int need)
+        {
+            have = need = 0; if (target == null) return false;
+            var ledger = c.Registry.Careers(); var def = careerCache.Def;
+            if (def.Specialties.TryGetValue(target, out var rule)) { have = ledger.SpecialtyXp(pawn.thingIDNumber, MilitaryCareers.Career, target); need = rule.SpecialtyXp; return true; }
+            if (def.Level2Branches.TryGetValue(target, out var branch)) { have = ledger.SpecialtyXp(pawn.thingIDNumber, MilitaryCareers.Career, target); need = branch.SpecialtyXp; return true; }
+            return false;
+        }
+
         private static void Credit(FamilyComponent c, Pawn pawn, DutyKind kind, int jobId, int now)
         {
             string role = MilitaryRoles.ActiveRole(pawn); if (role == null) return;
-            var ledger = c.Registry.Careers(); int id = pawn.thingIDNumber; var skill = CareerService.SkillsOf(pawn); string credit;
-            if (MilitaryCareers.Specialties.Contains(role)) credit = role;
-            else
-            {
-                var branches = MilitaryCareers.Branches.Where(b => ledger.IsSpecialist(id, MilitaryCareers.Career, b)).ToList();
-                credit = branches.Count > 0
-                    ? MilitaryDuties.Practising(careerCache.Def, skill, s => ledger.SpecialtyXp(id, MilitaryCareers.Career, s), s => ledger.IsSpecialist(id, MilitaryCareers.Career, s), q => ledger.Holds(id, q), branches)
-                    : MilitaryDuties.BranchToward(skill("Melee"), skill("Shooting"));
-            }
+            string credit = CreditTarget(c, pawn, role); int id = pawn.thingIDNumber;
             int points = MilitaryDuties.Points(role, kind);
             var session = sessions.FirstOrDefault(s => s.Leader == id);
             if (session != null && session.Members == 0 && MilitaryDuties.IsGroup(kind)) points = Math.Max(1, points / 2);          // leading nobody earns half
@@ -303,12 +372,12 @@ namespace FamilyLife
     /// <summary>The daily duty as a job. It goes to a cell (or around a patrol route), does the duty for a block of time (training the pawn's skill as it goes), and credits what was done when it ends.</summary>
     public class JobDriver_MilitaryDuty : JobDriver
     {
-        private int ticks; private bool completed;
+        private int ticks, visited; private bool completed;
         private DutyKind Kind => MilitaryDutyGame.KindOf(job);
         private Pawn Partner => job.targetB.Thing as Pawn;
         public override bool TryMakePreToilReservations(bool errorOnFailed) => true;
         public override string GetReport() => ("WFL_Military_Duty_" + Kind).Translate();
-        public override void ExposeData() { base.ExposeData(); Scribe_Values.Look(ref ticks, "dutyTicks"); Scribe_Values.Look(ref completed, "dutyDone"); }
+        public override void ExposeData() { base.ExposeData(); Scribe_Values.Look(ref ticks, "dutyTicks"); Scribe_Values.Look(ref completed, "dutyDone"); Scribe_Values.Look(ref visited, "dutyVisited"); }
 
         private Toil Hold(int length, bool counts)
         {
@@ -329,13 +398,14 @@ namespace FamilyLife
         protected override IEnumerable<Toil> MakeNewToils()
         {
             this.FailOn(() => MilitaryDutyGame.ShouldStop(pawn));
-            AddFinishAction(condition => MilitaryDutyGame.Finish(pawn, job, ticks, completed));
+            AddFinishAction(condition => MilitaryDutyGame.Finish(pawn, job, ticks, completed, visited));
             if (Kind == DutyKind.Patrol && job.targetQueueA != null && job.targetQueueA.Count > 0)
             {
                 foreach (var waypoint in job.targetQueueA.ToList())
                 {
                     yield return Toils_Goto.GotoCell(waypoint.Cell, PathEndMode.OnCell);
                     yield return Hold(240, true);
+                    yield return new Toil { initAction = () => visited++, defaultCompleteMode = ToilCompleteMode.Instant };
                 }
                 yield return new Toil { initAction = () => completed = true, defaultCompleteMode = ToilCompleteMode.Instant };
                 yield break;

@@ -40,14 +40,14 @@ namespace FamilyLife
 
         private static void Muster(FamilyComponent c, AlertState state)
         {
-            var posts = c.Registry.Posts();
+            var posts = c.Registry.Posts(); var postings = c.Registry.Postings();
             foreach (var map in Find.Maps)
             {
                 if (!map.IsPlayerHome) continue;
                 var pending = new List<Pawn>();
                 foreach (var p in map.mapPawns.FreeColonistsSpawned) if (MilitaryRoles.Serving(p) && !state.Ordered.Contains(p.thingIDNumber) && CanMuster(p)) pending.Add(p);
                 if (pending.Count == 0) continue;
-                var plan = PostPlanner.Assign(pending.Select(p => new RedSoldier { Id = p.thingIDNumber, Specialty = MilitaryRoles.Specialty(p), X = p.Position.x, Z = p.Position.z }), posts.All.Where(x => x.Map == map.uniqueID));
+                var plan = PostPlanner.Assign(pending.Select(p => new RedSoldier { Id = p.thingIDNumber, Specialty = MilitaryRoles.Specialty(p), X = p.Position.x, Z = p.Position.z, Posted = postings.PositionOf(p.thingIDNumber) }), posts.All.Where(x => x.Map == map.uniqueID));
                 foreach (var p in pending)
                 {
                     int id = p.thingIDNumber; bool alreadyDrafted = p.Drafted;
@@ -87,39 +87,68 @@ namespace FamilyLife
         {
             var state = c.Registry.Alert();
             state.Drafted.RemoveAll(id => c.TryGetPawn(id) == null); state.Ordered.RemoveAll(id => c.TryGetPawn(id) == null);
+            var patrols = c.Registry.Patrols(); var posts = c.Registry.Posts(); patrols.Reconcile();
+            c.Registry.Postings().Reconcile(id => c.TryGetPawn(id) != null, id => patrols.Route(id) != null, id => posts.All.Any(x => x.Id == id));          // a posting never outlives its soldier, route or position
         }
     }
 
-    /// <summary>Shows the posts on the map while one is being placed, and while Red is in force.</summary>
+    /// <summary>Shows the defensive positions and patrol routes on the map while one is being placed, while the Military menu is open, and while Red is in force.</summary>
     public sealed class MilitaryMapComponent : MapComponent
     {
+        private static readonly Color[] Palette =
+        {
+            new Color(.35f, .75f, 1f), new Color(1f, .6f, .2f), new Color(.55f, .9f, .4f), new Color(.95f, .4f, .7f), new Color(.8f, .7f, 1f), new Color(1f, .9f, .3f),
+            new Color(.3f, .9f, .85f), new Color(.9f, .5f, .4f), new Color(.6f, .6f, .95f), new Color(.75f, .95f, .55f), new Color(1f, .7f, .8f), new Color(.7f, .8f, .8f)
+        };
+        private static readonly Dictionary<int, Material> materials = new Dictionary<int, Material>();
+        public static Color ColourOf(int route) => Palette[((route - 1) % Palette.Length + Palette.Length) % Palette.Length];
+        private static Material MaterialOf(int route)
+        {
+            if (!materials.TryGetValue(route, out var m)) { var c = ColourOf(route); m = SolidColorMaterials.SimpleSolidColorMaterial(new Color(c.r, c.g, c.b, .45f)); m.renderQueue = 3600; materials[route] = m; }
+            return m;
+        }
+
         public MilitaryMapComponent(Map map) : base(map) { }
 
         private bool Showing()
         {
             var c = FamilyComponent.Current; if (c == null || !FamilyFramework.Catalog.IsEnabled(MilitaryCareers.Module)) return false;
-            return Find.DesignatorManager.SelectedDesignator is Designator_MilitaryPost || Find.DesignatorManager.SelectedDesignator is Designator_RemoveMilitaryPost || c.Registry.Alert().Effective == AlertLevel.Red;
+            var d = Find.DesignatorManager.SelectedDesignator;
+            return d is Designator_MilitaryPost || d is Designator_PatrolSpot || d is Designator_RemoveMilitaryPost || MilitaryPage.IsOpen || c.Registry.Alert().Effective == AlertLevel.Red;
         }
+
+        private static string Letter(PostKind k) => k == PostKind.Melee ? "M" : k == PostKind.Ranged ? "R" : k == PostKind.Mixed ? "X" : "";
 
         public override void MapComponentUpdate()
         {
             if (map != Find.CurrentMap || !Showing()) return;
-            foreach (var p in FamilyComponent.Current.Registry.Posts().All) if (p.Map == map.uniqueID) GenDraw.DrawTargetHighlight(new LocalTargetInfo(new IntVec3(p.X, 0, p.Z)));
+            var reg = FamilyComponent.Current.Registry;
+            foreach (var p in reg.Posts().All) if (p.Map == map.uniqueID) GenDraw.DrawTargetHighlight(new LocalTargetInfo(new IntVec3(p.X, 0, p.Z)));
+            var book = reg.Patrols();
+            foreach (var route in book.Routes)
+            {
+                var ordered = PatrolPlanner.Order(book.InRoute(route.Id).Where(s => s.Map == map.uniqueID));
+                foreach (var spot in ordered) CellRenderer.RenderCell(new IntVec3(spot.X, 0, spot.Z), MaterialOf(route.Id));
+                for (int i = 0; i + 1 < ordered.Count; i++) GenDraw.DrawLineBetween(new IntVec3(ordered[i].X, 0, ordered[i].Z).ToVector3Shifted(), new IntVec3(ordered[i + 1].X, 0, ordered[i + 1].Z).ToVector3Shifted());
+            }
         }
 
         public override void MapComponentOnGUI()
         {
             if (map != Find.CurrentMap || !Showing()) return;
-            Text.Font = GameFont.Tiny;
-            foreach (var p in FamilyComponent.Current.Registry.Posts().All)
+            Text.Font = GameFont.Tiny; var reg = FamilyComponent.Current.Registry;
+            foreach (var p in reg.Posts().All)
                 if (p.Map == map.uniqueID) GenMapUI.DrawThingLabel(GenMapUI.LabelDrawPosFor(new IntVec3(p.X, 0, p.Z)), ("WFL_Military_Post_" + p.Kind).Translate(), Color.white);
+            var book = reg.Patrols();
+            foreach (var spot in book.Spots)
+                if (spot.Map == map.uniqueID) GenMapUI.DrawThingLabel(GenMapUI.LabelDrawPosFor(new IntVec3(spot.X, 0, spot.Z)), (book.Route(spot.Route)?.Name ?? "?") + " " + Letter(spot.Type), ColourOf(spot.Route));
         }
     }
 
-    /// <summary>Architect: place a Military post. Choosing it asks which kind, then each click places one.</summary>
+    /// <summary>Architect: place a defensive position (Melee, Ranged or Mixed) or the Rally point. Choosing it asks which kind, then each click places one.</summary>
     public class Designator_MilitaryPost : Designator
     {
-        private PostKind kind = PostKind.Overwatch;
+        private PostKind kind = PostKind.Mixed;
         public Designator_MilitaryPost(PostKind kind) : this() { this.kind = kind; }
 
         public Designator_MilitaryPost()
@@ -132,7 +161,7 @@ namespace FamilyLife
         public override void ProcessInput(Event ev)
         {
             var options = new List<FloatMenuOption>();
-            foreach (PostKind k in Enum.GetValues(typeof(PostKind)))
+            foreach (var k in new[] { PostKind.Melee, PostKind.Ranged, PostKind.Mixed, PostKind.Rally })
             {
                 var chosen = k;
                 options.Add(new FloatMenuOption(("WFL_Military_Post_" + k).Translate() + " - " + ("WFL_Military_PostDesc_" + k).Translate(), () => { kind = chosen; base.ProcessInput(ev); }));
@@ -156,10 +185,59 @@ namespace FamilyLife
         public override void SelectedUpdate() { base.SelectedUpdate(); GenUI.RenderMouseoverBracket(); }
     }
 
-    /// <summary>Architect: take a Military post away.</summary>
+    /// <summary>Architect: place a patrol spot. Choosing it asks which route (or a new one) and which type, then each click places one in that route.</summary>
+    public class Designator_PatrolSpot : Designator
+    {
+        private int route; private PostKind type = PostKind.Mixed;
+        public Designator_PatrolSpot(int route, PostKind type) : this() { this.route = route; this.type = type; }
+
+        public Designator_PatrolSpot()
+        {
+            defaultLabel = "WFL_Military_PlaceSpot".Translate(); defaultDesc = "WFL_Military_PlaceSpotDesc".Translate();
+            icon = ContentFinder<Texture2D>.Get("UI/Commands/Attack", false) ?? BaseContent.BadTex; hotKey = null; useMouseIcon = true;
+            soundSucceeded = SoundDefOf.Designate_PlanAdd;
+        }
+
+        public override void ProcessInput(Event ev)
+        {
+            var book = FamilyComponent.Current?.Registry.Patrols(); if (book == null) return;
+            var routes = new List<FloatMenuOption>();
+            foreach (var r in book.Routes) { var chosen = r.Id; routes.Add(new FloatMenuOption(r.Name, () => ChooseType(chosen, ev))); }
+            if (book.Routes.Count < PatrolBook.MaxRoutes) routes.Add(new FloatMenuOption("WFL_Military_NewRoute".Translate(), () => { var made = book.AddRoute(); if (made != null) ChooseType(made.Id, ev); }));
+            if (routes.Count == 0) return;
+            Find.WindowStack.Add(new FloatMenu(routes));
+        }
+
+        private void ChooseType(int routeId, Event ev)
+        {
+            var options = new List<FloatMenuOption>();
+            foreach (var t in new[] { PostKind.Melee, PostKind.Ranged, PostKind.Mixed })
+            {
+                var chosen = t;
+                options.Add(new FloatMenuOption(("WFL_Military_Spot_" + t).Translate(), () => { route = routeId; type = chosen; base.ProcessInput(ev); }));
+            }
+            Find.WindowStack.Add(new FloatMenu(options));
+        }
+
+        public override AcceptanceReport CanDesignateCell(IntVec3 c)
+        {
+            var map = Map; if (map == null || !c.InBounds(map) || c.Fogged(map) || !c.Standable(map)) return false;
+            if (!map.IsPlayerHome) return "WFL_Military_PostHomeOnly".Translate();
+            return route > 0;
+        }
+
+        public override void DesignateSingleCell(IntVec3 c)
+        {
+            var book = FamilyComponent.Current?.Registry.Patrols(); if (book == null) return;
+            if (book.Place(route, type, Map.uniqueID, c.x, c.z) == null) Messages.Message("WFL_Military_SpotsFull".Translate(PatrolBook.MaxSpots), MessageTypeDefOf.RejectInput, false);
+        }
+
+        public override void SelectedUpdate() { base.SelectedUpdate(); GenUI.RenderMouseoverBracket(); }
+    }
+
+    /// <summary>Architect: take a defensive position or a patrol spot away.</summary>
     public class Designator_RemoveMilitaryPost : Designator
     {
-
         public Designator_RemoveMilitaryPost()
         {
             defaultLabel = "WFL_Military_RemovePost".Translate(); defaultDesc = "WFL_Military_RemovePostDesc".Translate();
@@ -169,10 +247,15 @@ namespace FamilyLife
 
         public override AcceptanceReport CanDesignateCell(IntVec3 c)
         {
-            var book = FamilyComponent.Current?.Registry.Posts(); return book != null && Map != null && c.InBounds(Map) && book.At(Map.uniqueID, c.x, c.z) != null;
+            var reg = FamilyComponent.Current?.Registry; if (reg == null || Map == null || !c.InBounds(Map)) return false;
+            return reg.Posts().At(Map.uniqueID, c.x, c.z) != null || reg.Patrols().At(Map.uniqueID, c.x, c.z) != null;
         }
 
-        public override void DesignateSingleCell(IntVec3 c) { FamilyComponent.Current?.Registry.Posts().RemoveAt(Map.uniqueID, c.x, c.z); }
+        public override void DesignateSingleCell(IntVec3 c)
+        {
+            var reg = FamilyComponent.Current?.Registry; if (reg == null) return;
+            reg.Posts().RemoveAt(Map.uniqueID, c.x, c.z); reg.Patrols().RemoveAt(Map.uniqueID, c.x, c.z);
+        }
     }
 
     /// <summary>The Training Yard: a painted zone where soldiers drill, spar and practise. It stores nothing; it only says where.</summary>
@@ -224,92 +307,5 @@ namespace FamilyLife
         public override AlertReport GetReport() => Level() != AlertLevel.Normal ? AlertReport.Active : AlertReport.Inactive;
         public override string GetLabel() => ("WFL_Military_AlertLabel").Translate(AlertRules.Label(Level()));
         public override TaggedString GetExplanation() => ("WFL_Military_AlertExplain_" + Level()).Translate();
-    }
-
-    public static class MilitaryPage
-    {
-        public static readonly Color Gold = new Color(0.95f, 0.8f, 0.3f);
-        public static int Attention() { var c = FamilyComponent.Current; return c != null && c.Registry.Alert().Effective == AlertLevel.Red ? 1 : 0; }
-
-        private static void Choose(FamilyComponent c, AlertLevel level)
-        {
-            var state = c.Registry.Alert(); AlertRules.Choose(state, level, FrameworkServices.Now); MilitaryAlertDriver.Apply(c, state);
-        }
-
-        private static void Place(Designator d) { Find.MainTabsRoot.EscapeCurrentTab(); Find.DesignatorManager.Select(d); }
-
-        public static float Draw(Rect r, FamilyComponent c)
-        {
-            float y = 0f; float width = r.width;
-            var state = c.Registry.Alert(); var posts = c.Registry.Posts();
-            y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_AlertTitle".Translate(), s =>
-            {
-                float h = 0f; var eff = state.Effective;
-                h = CommunityPageLayout.Line(s, h, "WFL_Military_AlertNow".Translate(AlertRules.Label(eff), state.RaisedByThreat ? "WFL_Military_ByThreat".Translate().ToString() : ""));
-                float bw = (s.width - 12f) / 3f;
-                foreach (AlertLevel lvl in Enum.GetValues(typeof(AlertLevel)))
-                {
-                    var rect = new Rect((int)lvl * (bw + 6f), h, bw, 30f);
-                    GUI.color = lvl == state.Set ? MilitaryPage.Gold : Color.white;
-                    if (Widgets.ButtonText(rect, AlertRules.Label(lvl))) Choose(c, lvl);
-                    GUI.color = Color.white; TooltipHandler.TipRegion(rect, ("WFL_Military_AlertExplain_" + lvl).Translate());
-                }
-                h += 38f;
-                bool auto = state.AutoRed; Widgets.CheckboxLabeled(new Rect(0f, h, s.width, 24f), "WFL_Military_AutoRed".Translate(), ref auto); state.AutoRed = auto;
-                TooltipHandler.TipRegion(new Rect(0f, h, s.width, 24f), "WFL_Military_AutoRedTip".Translate()); h += 30f;
-                return CommunityPageLayout.Line(s, h, "WFL_Military_AlertHelp".Translate(), true);
-            });
-            y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_DutiesTitle".Translate(), s =>
-            {
-                float h = 0f;
-                bool on = state.DutiesOn; Widgets.CheckboxLabeled(new Rect(0f, h, s.width, 24f), "WFL_Military_DutiesOn".Translate(), ref on); state.DutiesOn = on;
-                TooltipHandler.TipRegion(new Rect(0f, h, s.width, 24f), "WFL_Military_DutiesOnTip".Translate()); h += 28f;
-                bool vol = state.Volunteers; Widgets.CheckboxLabeled(new Rect(0f, h, s.width, 24f), "WFL_Military_Volunteers".Translate(), ref vol); state.Volunteers = vol;
-                TooltipHandler.TipRegion(new Rect(0f, h, s.width, 24f), "WFL_Military_VolunteersTip".Translate()); h += 30f;
-                int yard = 0, onDuty = 0, watch = 0;
-                foreach (var map in Find.Maps)
-                {
-                    if (!map.IsPlayerHome) continue;
-                    yard += map.zoneManager.AllZones.OfType<Zone_TrainingYard>().Sum(z => z.Cells.Count);
-                    foreach (var p in map.mapPawns.FreeColonistsSpawned) if (p.CurJobDef == MilitaryDefOf.WFL_MilitaryDuty) onDuty++;
-                }
-                watch = posts.Count(PostKind.Overwatch) + posts.Count(PostKind.Guard);
-                h = CommunityPageLayout.Line(s, h, "WFL_Military_DutiesStatus".Translate(onDuty, yard));
-                if (yard == 0) h = CommunityPageLayout.Line(s, h, "WFL_Military_NoYard".Translate(), true);
-                if (watch == 0) h = CommunityPageLayout.Line(s, h, "WFL_Military_NoPostsHint".Translate(), true);
-                return CommunityPageLayout.Line(s, h, "WFL_Military_DutiesHelp".Translate(), true);
-            });
-            y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_PostsTitle".Translate(posts.All.Count, PostBook.MaxPosts), s =>
-            {
-                float h = 0f;
-                h = CommunityPageLayout.Line(s, h, "WFL_Military_PostsHelp".Translate(), true);
-                foreach (PostKind k in Enum.GetValues(typeof(PostKind)))
-                {
-                    var kind = k;
-                    h = CommunityPageLayout.Button(s, h, "WFL_Military_PlaceKind".Translate(("WFL_Military_Post_" + k).Translate()), () => Place(new Designator_MilitaryPost(kind)));
-                }
-                h = CommunityPageLayout.Button(s, h, "WFL_Military_PlaceYard".Translate(), () => Place(new Designator_ZoneAdd_TrainingYard()));
-                int shown = 0;
-                foreach (var p in posts.All.ToList())
-                {
-                    if (++shown > 12) { h = CommunityPageLayout.Line(s, h, "WFL_Military_MorePosts".Translate(posts.All.Count - 12), true); break; }
-                    Widgets.Label(new Rect(0f, h, s.width - 90f, 24f), ("WFL_Military_Post_" + p.Kind).Translate() + " (" + p.X + ", " + p.Z + ")");
-                    if (Widgets.ButtonText(new Rect(s.width - 84f, h, 84f, 24f), "WFL_Military_Remove".Translate())) posts.Remove(p.Id);
-                    h += 28f;
-                }
-                return h;
-            });
-            y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_RolesTitle".Translate(), s =>
-            {
-                float h = 0f;
-                foreach (var prof in MilitaryDoctrine.Profiles)
-                {
-                    GUI.color = MilitaryPage.Gold; h = CommunityPageLayout.Line(s, h, ("wils.military." + prof.Role.ToLowerInvariant() + "_label").Translate(), false); GUI.color = Color.white;
-                    h = CommunityPageLayout.Line(s, h - 4f, prof.Job + "  +: " + prof.Strength + "  -: " + prof.Weakness, true);
-                }
-                return h;
-            });
-            return y;
-        }
     }
 }

@@ -40,8 +40,9 @@ namespace FamilyLife.Tests
         [Fact]
         public void Duties_know_where_they_happen_and_what_they_exercise()
         {
-            Assert.Equal(PostKind.Overwatch, MilitaryDuties.PostFor(DutyKind.Lookout)); Assert.Equal(PostKind.Guard, MilitaryDuties.PostFor(DutyKind.GateGuard)); Assert.Equal(PostKind.Rally, MilitaryDuties.PostFor(DutyKind.Muster));
-            Assert.Null(MilitaryDuties.PostFor(DutyKind.Drill)); Assert.Null(MilitaryDuties.PostFor(DutyKind.Patrol));
+            Assert.Equal(PostKind.Rally, MilitaryDuties.PostFor(DutyKind.Muster));
+            foreach (var k in new[] { DutyKind.Drill, DutyKind.Patrol, DutyKind.Lookout, DutyKind.GateGuard, DutyKind.Spar, DutyKind.None }) Assert.Null(MilitaryDuties.PostFor(k));
+            Assert.True(MilitaryDuties.UsesPosition(DutyKind.Lookout)); Assert.True(MilitaryDuties.UsesPosition(DutyKind.GateGuard)); Assert.False(MilitaryDuties.UsesPosition(DutyKind.Patrol)); Assert.False(MilitaryDuties.UsesPosition(DutyKind.Muster));
             foreach (DutyKind k in System.Enum.GetValues(typeof(DutyKind)).Cast<DutyKind>().Where(k => k != DutyKind.None)) Assert.NotNull(MilitaryDuties.Skill(k));
             Assert.Null(MilitaryDuties.Skill(DutyKind.None));
             Assert.Equal("Medicine", MilitaryDuties.Skill(DutyKind.FirstAid)); Assert.Equal("Social", MilitaryDuties.Skill(DutyKind.Muster)); Assert.Equal("Shooting", MilitaryDuties.Skill(DutyKind.RangePractice)); Assert.Equal("Melee", MilitaryDuties.Skill(DutyKind.Spar));

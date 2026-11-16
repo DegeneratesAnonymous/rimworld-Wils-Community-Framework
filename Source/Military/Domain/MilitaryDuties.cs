@@ -58,8 +58,10 @@ namespace FamilyLife.Domain
         /// <summary>The duties that happen in the Training Yard.</summary>
         public static bool UsesYard(DutyKind kind) => kind == DutyKind.Drill || kind == DutyKind.Spar || kind == DutyKind.RangePractice || kind == DutyKind.FirstAid;
 
-        /// <summary>The post a duty needs, if any (Muster falls back to the yard when there is no Rally point).</summary>
-        public static PostKind? PostFor(DutyKind kind) => kind == DutyKind.Lookout ? PostKind.Overwatch : kind == DutyKind.GateGuard ? PostKind.Guard : kind == DutyKind.Muster ? (PostKind?)PostKind.Rally : null;
+        /// <summary>The Rally point is the one post a duty always names (Muster, which falls back to the yard when there is none).</summary>
+        public static PostKind? PostFor(DutyKind kind) => kind == DutyKind.Muster ? (PostKind?)PostKind.Rally : null;
+        /// <summary>The duties that stand at a defensive position of the soldier's own type: the lookout and the gate guard.</summary>
+        public static bool UsesPosition(DutyKind kind) => kind == DutyKind.Lookout || kind == DutyKind.GateGuard;
 
         /// <summary>The vanilla skill the duty exercises.</summary>
         public static string Skill(DutyKind kind)
