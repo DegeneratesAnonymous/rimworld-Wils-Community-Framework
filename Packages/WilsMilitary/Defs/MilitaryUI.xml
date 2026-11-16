@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?><Defs>
+  <!-- The Military alert button in the bottom bar, next to the Community button. Left-click steps the level; right-click gives a menu. -->
+  <MainButtonDef>
+    <defName>WFL_MilitaryAlert</defName>
+    <label>military</label>
+    <description>The military alert. Left-click steps Normal, Yellow, Red; right-click for a menu.</description>
+    <workerClass>FamilyLife.MainButtonWorker_MilitaryAlert</workerClass>
+    <order>97</order>
+    <validWithoutMap>false</validWithoutMap>
+    <minimized>false</minimized>
+  </MainButtonDef>
+</Defs>

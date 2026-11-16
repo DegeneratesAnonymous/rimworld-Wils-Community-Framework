@@ -25,7 +25,7 @@ namespace FamilyLife
 
         public static int Attention() { var c = FamilyComponent.Current; return c != null && c.Registry.Alert().Effective == AlertLevel.Red ? 1 : 0; }
 
-        private static void Choose(FamilyComponent c, AlertLevel level)
+        internal static void Choose(FamilyComponent c, AlertLevel level)
         {
             var state = c.Registry.Alert(); AlertRules.Choose(state, level, FrameworkServices.Now); MilitaryAlertDriver.Apply(c, state);
         }

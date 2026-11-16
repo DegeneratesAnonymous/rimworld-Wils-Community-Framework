@@ -86,6 +86,9 @@ namespace FamilyLife.Domain
             return after == AlertLevel.Red ? AlertChange.Raised : AlertChange.Lowered;
         }
 
+        /// <summary>The level a click on the alert button sets next: Normal, Yellow, Red, and back to Normal.</summary>
+        public static AlertLevel Next(AlertLevel set) => set == AlertLevel.Normal ? AlertLevel.Yellow : set == AlertLevel.Yellow ? AlertLevel.Red : AlertLevel.Normal;
+
         public static string Label(AlertLevel level) => level == AlertLevel.Red ? "Red" : level == AlertLevel.Yellow ? "Yellow" : "Normal";
     }
 

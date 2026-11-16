@@ -77,6 +77,22 @@ namespace FamilyLife.Tests
         }
 
         [Fact]
+        public void A_click_steps_the_level_round_and_round()
+        {
+            Assert.Equal(AlertLevel.Yellow, AlertRules.Next(AlertLevel.Normal)); Assert.Equal(AlertLevel.Red, AlertRules.Next(AlertLevel.Yellow)); Assert.Equal(AlertLevel.Normal, AlertRules.Next(AlertLevel.Red));
+            var level = AlertLevel.Normal; for (int i = 0; i < 3; i++) level = AlertRules.Next(level); Assert.Equal(AlertLevel.Normal, level);          // three clicks come back to where they began
+            var s = new AlertState(); AlertRules.Choose(s, AlertRules.Next(s.Set), 1); Assert.Equal(AlertLevel.Yellow, s.Effective);
+        }
+
+        [Fact]
+        public void A_click_on_the_icon_during_a_threat_changes_the_set_level_but_red_stays_until_calm()
+        {
+            var s = new AlertState(); AlertRules.Step(s, true, 100); Assert.Equal(AlertLevel.Red, s.Effective);
+            AlertRules.Choose(s, AlertRules.Next(s.Set), 200); Assert.Equal(AlertLevel.Yellow, s.Set); Assert.Equal(AlertLevel.Red, s.Effective);
+            AlertRules.Step(s, false, 100 + AlertRules.CalmTicks); Assert.Equal(AlertLevel.Yellow, s.Effective);          // and when it is calm the level that was clicked is what remains
+        }
+
+        [Fact]
         public void The_framework_can_hold_and_recreate_the_state()
         {
             var f = AlertStateFactory.Instance; Assert.Equal(1, f.Version); Assert.Equal(AlertLevel.Normal, f.Create().Set); Assert.Equal(AlertLevel.Normal, f.FromLegacy(new StateReader("")).Set);
@@ -315,6 +331,20 @@ namespace FamilyLife.Tests
             Assert.Contains("weapons.Remove((ThingWithComps)arm.targetA.Thing)", alert); Assert.Contains("Send(p, map, post, arm != null)", alert);          // each weapon goes to one soldier, then they go to their position
             Assert.Contains("OfType<Zone_Armory>().ToList()", module);          // a saved zone of an absent module cannot load, so it is removed with the module
             Assert.Contains("Id + \".armory\"", module);
+        }
+
+        [Fact]
+        public void The_bottom_bar_button_is_defined_and_its_click_and_menu_are_wired()
+        {
+            var def = System.Xml.Linq.XDocument.Load(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Defs/MilitaryUI.xml")).Descendants("MainButtonDef").Single();
+            Assert.Equal("WFL_MilitaryAlert", def.Element("defName").Value); Assert.Equal("FamilyLife.MainButtonWorker_MilitaryAlert", def.Element("workerClass").Value);
+            Assert.Null(def.Element("tabWindowClass"));          // it opens no window of its own: a click changes the alert
+            string code = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryButton.cs"));
+            Assert.Matches(@"class\s+MainButtonWorker_MilitaryAlert\s*:\s*MainButtonWorker", code);
+            Assert.Contains("AlertRules.Next(", code); Assert.Contains("Event.current.button == 1", code); Assert.Contains("Open(MilitaryCareers.Module + \".alert\")", code);          // left-click cycles, right-click menu, which can open the Military page
+            Assert.Contains("FamilyFramework.Catalog.IsEnabled(MilitaryCareers.Module)", code);          // nothing is shown when the module is stopped
+            var keys = System.Xml.Linq.XDocument.Load(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Languages/English/Keyed/Military.xml")).Root.Elements().Select(x => x.Name.LocalName).ToHashSet();
+            foreach (var key in new[] { "WFL_Military_AlertSet", "WFL_Military_OpenMenu", "WFL_Military_ButtonTip" }) Assert.Contains(key, keys);
         }
     }
 }

@@ -120,4 +120,7 @@
 <WFL_Military_ArmoryNeeding>{0} serving soldiers have no suitable weapon right now.</WFL_Military_ArmoryNeeding>
 <WFL_Military_ArmoryHelp>An Armory is an ordinary stockpile with its filter set to weapons and armour (change it like any stockpile) that haulers will fill. At Yellow, and when Red is raised, a serving soldier with no suitable weapon (none, or the wrong kind: a melee weapon for a Ranger, a ranged one for a Soldier) goes and takes the best one: the highest quality of the right kind, ties by value. Support and Recruits take the best of any kind. They keep it. Nobody who already holds a suitable weapon is touched, and a soldier you had already drafted is never sent.</WFL_Military_ArmoryHelp>
 <WFL_Military_PlaceArmory>Paint an Armory</WFL_Military_PlaceArmory>
+<WFL_Military_AlertSet>Military alert set to {0}.</WFL_Military_AlertSet>
+<WFL_Military_OpenMenu>Open the Military menu</WFL_Military_OpenMenu>
+<WFL_Military_ButtonTip>Military alert: {0}{1}. Click to set {2}. Right-click for a menu.</WFL_Military_ButtonTip>
 </LanguageData>

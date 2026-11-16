@@ -2,7 +2,7 @@
 
 Two optional role modules, built the way Crafting and Agriculture are: a career tree in the shared career ledger, experience from real game activity, specialty bonuses that apply only to a pawn who is **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events for every role. Each references only the framework.
 
-**Status: compiles for 1.6 and 1.7, 1,616 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
+**Status: compiles for 1.6 and 1.7, 1,619 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
 
 ## 1. Intelligence — `SpacemanWil.WilsIntelligence`
 
@@ -113,7 +113,7 @@ All preliminary: skill and experience thresholds, the 3 and 10 combat points, th
 
 ## 8. Agreed with the owner
 
-Settled by question and answer. **The Military items are now built (section 9); the Intelligence items are not yet.**
+Settled by question and answer. **The Military items are built (section 9) and so are the Intelligence items (section 10).** The management menu is section 11.
 
 **Military**
 - **Alert levels:** *Normal* (drills, sparring, range practice, muster, first-aid rounds), *Yellow* (patrols, lookout, gate and home guard), *Red* (hold defensive positions). The player sets Normal or Yellow, with an easily reachable toggle; a threat on the map **raises Red automatically** and it drops back to the set level when clear.
@@ -164,7 +164,7 @@ Settled by question and answer. **The Military items are now built (section 9); 
 
 ## 11. Military management menu
 
-Settled with the owner by question and answer. **Slices 1 and 2 are built** (the tabbed menu, typed positions, patrol routes, posting, the Armory); **the bottom-bar icon is not yet.** Until the icon exists the on-screen alert only *displays* the level and there is **no quick control**: the Alert tab is the only place to set it.
+Settled with the owner by question and answer. **All three slices are built** (the tabbed menu, typed positions, patrol routes, posting, the Armory, and the bottom-bar icon). Nothing here has run in the game.
 
 - **Home:** the Military page becomes a tabbed menu in the Community window: **Alert**, **Positions**, **Facilities**, **Soldiers**. Placing things still happens on the map.
 - **Defensive positions** are typed **Melee, Ranged or Mixed**, plus the **Rally** point, and replace Overwatch and Guard (an existing Overwatch post becomes Ranged, Guard becomes Melee, Rally is unchanged). A soldier takes a position of their own type first (Soldier branch: Melee, Ranger branch: Ranged), then a Mixed one, then Rally; Field Medics and Officers prefer Mixed. One soldier per position; Rally is shared.
@@ -175,7 +175,14 @@ Settled with the owner by question and answer. **Slices 1 and 2 are built** (the
 - **Soldiers tab:** each serving soldier's role, the specialty they are practising and their progress; what they are doing now and where (route or position), click to select; and the posting control. (No off-duty toggle.)
 - **Quick alert control:** an **icon in the bottom bar's button cluster**, coloured by level. **Left-click cycles** Normal, Yellow, Red and back; **right-click** opens a menu to pick a level or open the Military menu. The Military menu's Alert tab is the secondary place to set it.
 
-**Build slices:** (1) **built:** typed positions, patrol routes, posting and the tabbed menu; (2) **built:** the Armory and arming the unarmed; (3) the bottom-bar icon.
+**Build slices:** (1) **built:** typed positions, patrol routes, posting and the tabbed menu; (2) **built:** the Armory and arming the unarmed; (3) **built:** the bottom-bar icon.
+
+### Slice 3: the bottom-bar icon
+
+- A **Military** button in the bottom bar, beside the Community button (`MainButtonDef WFL_MilitaryAlert`, order 97, no tab window of its own). It is shown while the Military module is running and a map is open. It is **tinted by the current level**: untinted at Normal, yellow at Yellow, red at Red (including a Red raised by a threat).
+- **Left-click** steps the level you set: Normal, Yellow, Red, back to Normal (`AlertRules.Next`), with a small message. **Right-click** opens a menu: Normal, Yellow, Red (each with what it means), and **Open the Military menu**. If a threat raised Red, a click changes the level you have set but Red stands down only when it has been calm for an hour, then the level you clicked is what remains. The tooltip says what the level is, whether a threat raised it, and what a click will set.
+- The Alert tab of the Military menu remains the secondary place to set the level, as asked.
+- **Not verified in the game:** that a bottom-bar button with no tab window is accepted by the game's button bar in 1.6 and 1.7 (the existing Community button has one), the button's width and tint against the neighbouring buttons and with many mods, and that right-click opens the menu without the bar also treating it as a click.
 
 ### Slice 2: the Armory
 
