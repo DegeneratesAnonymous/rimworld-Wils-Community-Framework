@@ -16,10 +16,14 @@ namespace FamilyLife.Domain
         public static readonly string[] Branches = { "Soldier", "Ranger" };
         public static readonly string[] SoldierSpecialties = { "Vanguard", "Guardian", "Duelist" };
         public static readonly string[] RangerSpecialties = { "Marksman", "Gunner", "Sniper" };
-        public static readonly string[] Specialties = { "Vanguard", "Guardian", "Duelist", "Marksman", "Gunner", "Sniper" };
+        /// <summary>Support is not a branch of its own to be earned: its specialties grow out of either combat branch, and the Field Medic also needs a real Doctor (another module's qualification, asked for by id).</summary>
+        public static readonly string[] SupportSpecialties = { "FieldMedic", "Officer" };
+        public static readonly string[] Specialties = { "Vanguard", "Guardian", "Duelist", "Marksman", "Gunner", "Sniper", "FieldMedic", "Officer" };
+        /// <summary>Community Care's Doctor qualification as it is written in the shared career ledger (its career id). Only a string: Military never references Community Care.</summary>
+        public const string DoctorQualification = "wils.care.practice";
 
-        /// <summary>The branch a specialty grows out of.</summary>
-        public static string BranchOf(string specialty) => Array.IndexOf(SoldierSpecialties, specialty) >= 0 ? "Soldier" : Array.IndexOf(RangerSpecialties, specialty) >= 0 ? "Ranger" : null;
+        /// <summary>The branch a specialty grows out of ("Support" for the two that grow out of either).</summary>
+        public static string BranchOf(string specialty) => Array.IndexOf(SoldierSpecialties, specialty) >= 0 ? "Soldier" : Array.IndexOf(RangerSpecialties, specialty) >= 0 ? "Ranger" : Array.IndexOf(SupportSpecialties, specialty) >= 0 ? "Support" : null;
 
         public static CareerDefinition Definition() => new CareerDefinition
         {
@@ -36,12 +40,19 @@ namespace FamilyLife.Domain
                 { "Duelist", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Melee", 12).After("Soldier") },
                 { "Marksman", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Shooting", 10).After("Ranger") },
                 { "Gunner", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Shooting", 8).After("Ranger") },
-                { "Sniper", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Shooting", 12).After("Ranger") }
+                { "Sniper", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Shooting", 12).After("Ranger") },
+                { "FieldMedic", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Medicine", 8).After("Soldier", "Ranger").Needs(DoctorQualification) },
+                { "Officer", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Social", 8).After("Soldier", "Ranger") }
             }
         };
 
         /// <summary>Experience for one hostile engagement: a first blow on an enemy, and a kill. A repeat of the same fight earns nothing (the ledger keys it by enemy).</summary>
         public const int EngagePoints = 3, KillPoints = 10;
+        /// <summary>A fight still credits the specialty it resembled, but only this share of the points: specialties are earned mainly through daily duties.</summary>
+        public const float CombatSpecialtyShare = .4f;
+        /// <summary>Tending a wounded comrade while hostiles are about is the Field Medic's experience from the field.</summary>
+        public const int FieldTendPoints = 6;
+        public static int SpecialtyPoints(int points) => Math.Max(1, (int)Math.Round(points * CombatSpecialtyShare));
     }
 
     // ------------------------------------------------------------------ what happened in a fight
@@ -104,6 +115,10 @@ namespace FamilyLife.Domain
         public bool CoveringAlly;
         /// <summary>The soldier has not moved for a moment (set up and waiting).</summary>
         public bool Stationary;
+        /// <summary>A friend within six cells is downed (whether or not there is a fight).</summary>
+        public bool AllyDownedNear;
+        /// <summary>An Officer who is standing within ten cells of the soldier, in a fight.</summary>
+        public bool OfficerNear;
     }
 
     /// <summary>What a target looks like to a shooter choosing between enemies.</summary>
@@ -136,8 +151,8 @@ namespace FamilyLife.Domain
     {
         // Stat names the game side extends. Kept as strings so this file knows no game types.
         public const string MoveSpeed = "MoveSpeed", MeleeDamage = "MeleeDamageFactor", MeleeHit = "MeleeHitChance", MeleeDodge = "MeleeDodgeChance", Incoming = "IncomingDamageFactor",
-            Accuracy = "ShootingAccuracyPawn", AimDelay = "AimingDelayFactor", Cooldown = "RangedCooldownFactor";
-        public static readonly string[] Stats = { MoveSpeed, MeleeDamage, MeleeHit, MeleeDodge, Incoming, Accuracy, AimDelay, Cooldown };
+            Accuracy = "ShootingAccuracyPawn", AimDelay = "AimingDelayFactor", Cooldown = "RangedCooldownFactor", TendSpeed = "MedicalTendSpeed";
+        public static readonly string[] Stats = { MoveSpeed, MeleeDamage, MeleeHit, MeleeDodge, Incoming, Accuracy, AimDelay, Cooldown, TendSpeed };
 
         /// <summary>The bound on how far any single doctrine factor moves a stat, in either direction.</summary>
         public const float MaxUp = 1.25f, MaxDown = .80f;
@@ -149,7 +164,9 @@ namespace FamilyLife.Domain
             new DoctrineProfile { Role = "Duelist", Job = "Skirmisher: wins a one-on-one and picks off an enemy who has strayed from the pack.", Strength = "Hits and dodges better against a single opponent.", Weakness = "Dodges worse once outnumbered.", MinRange = 0, PreferredRange = 1.5f, MaxRange = 5 },
             new DoctrineProfile { Role = "Marksman", Job = "Precision: steady, accurate fire at the middle distance on whoever is exposed.", Strength = "More accurate between 12 and 30 cells.", Weakness = "Less accurate point-blank.", MinRange = 8, PreferredRange = 20, MaxRange = 35 },
             new DoctrineProfile { Role = "Gunner", Job = "Suppression: volume of fire that keeps the enemy's heads down at short range.", Strength = "Fires more often; more accurate up close.", Weakness = "Less accurate at long range.", MinRange = 0, PreferredRange = 10, MaxRange = 18 },
-            new DoctrineProfile { Role = "Sniper", Job = "Overwatch: patient long-range kills on the enemy's most dangerous.", Strength = "Much more accurate from far away once set up.", Weakness = "Slower to aim, and poor close in.", MinRange = 15, PreferredRange = 32, MaxRange = 45 }
+            new DoctrineProfile { Role = "Sniper", Job = "Overwatch: patient long-range kills on the enemy's most dangerous.", Strength = "Much more accurate from far away once set up.", Weakness = "Slower to aim, and poor close in.", MinRange = 15, PreferredRange = 32, MaxRange = 45 },
+            new DoctrineProfile { Role = "FieldMedic", Job = "Medic: keeps the line standing, tending the fallen where they lie.", Strength = "Tends 15% faster with a friend down within 6 cells.", Weakness = "Fights worse: 10% less accurate and 10% worse at landing a melee blow.", MinRange = 0, PreferredRange = 4, MaxRange = 10 },
+            new DoctrineProfile { Role = "Officer", Job = "Commander: coordinates the line and steadies those near.", Strength = "Soldiers within 10 cells of them shoot and strike 5% better in a fight.", Weakness = "Directs rather than fights: 8% less accurate and 8% worse at dodging.", MinRange = 4, PreferredRange = 8, MaxRange = 15 }
         };
 
         public static DoctrineProfile Profile(string role) { foreach (var p in Profiles) if (p.Role == role) return p; return null; }
@@ -162,7 +179,9 @@ namespace FamilyLife.Domain
         /// </summary>
         public static float Factor(string role, string stat, CombatContext c)
         {
-            if (role == null || stat == null || c == null || !c.InCombat) return 1f;
+            if (role == null || stat == null || c == null) return 1f;
+            if (role == "FieldMedic" && stat == TendSpeed) return c.AllyDownedNear ? Clamp(1.15f) : 1f;          // needs a friend down, not a fight
+            if (!c.InCombat) return 1f;
             float d = c.TargetDistance;
             switch (role)
             {
@@ -190,6 +209,13 @@ namespace FamilyLife.Domain
                     if (stat == Cooldown) return Clamp(.85f);          // a smaller cooldown fires more often
                     if (stat == Accuracy) return d > 0f && d <= 12f ? Clamp(1.05f) : d > 20f ? Clamp(.92f) : 1f;
                     break;
+                case "FieldMedic":
+                    if (stat == Accuracy || stat == MeleeHit) return Clamp(.90f);
+                    break;
+                case "Officer":
+                    if (stat == Accuracy) return Clamp(.92f);
+                    if (stat == MeleeDodge) return Clamp(.92f);
+                    break;
                 case "Sniper":
                     if (stat == Accuracy) return d >= 25f && c.Stationary ? Clamp(1.15f) : d > 0f && d < 10f ? Clamp(.85f) : 1f;
                     if (stat == AimDelay) return Clamp(1.25f);          // patient: slower to settle, so the delay factor is larger
@@ -198,7 +224,14 @@ namespace FamilyLife.Domain
             return 1f;
         }
 
-        /// <summary>The effect of a role on a stat, described for the tooltip: null when it has none.</summary>
+        /// <summary>
+        /// The Officer's aura, applied to <b>other</b> soldiers: while an Officer stands within ten cells in a fight, anyone serving in Military shoots and strikes 5% better. Does not stack: one
+        /// Officer or three give the same, and an Officer does not steady themselves with it.
+        /// </summary>
+        public const float AuraBonus = 1.05f;
+        public static float AuraFactor(string stat, CombatContext c) => c != null && c.InCombat && c.OfficerNear && (stat == Accuracy || stat == MeleeHit) ? Clamp(AuraBonus) : 1f;
+
+        /// <summary>Whether a role changes the stat in some situation.</summary>
         public static bool Touches(string role, string stat)
         {
             var c = new CombatContext { InCombat = true };
@@ -207,7 +240,7 @@ namespace FamilyLife.Domain
             foreach (int near in new[] { 0, 1, 3 })
             foreach (bool still in new[] { false, true })
             {
-                c.TargetDistance = d; c.CoveringAlly = cover; c.HostilesNear = near; c.Stationary = still;
+                c.TargetDistance = d; c.CoveringAlly = cover; c.AllyDownedNear = cover; c.HostilesNear = near; c.Stationary = still;
                 if (Math.Abs(Factor(role, stat, c) - 1f) > .0001f) return true;
             }
             return false;

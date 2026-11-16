@@ -9,7 +9,7 @@ namespace FamilyLife.Tests
 {
     public class MilitaryTests
     {
-        private static CombatContext Ctx(float d = 15f, int near = 1, bool cover = false, bool still = false) => new CombatContext { InCombat = true, TargetDistance = d, HostilesNear = near, CoveringAlly = cover, Stationary = still };
+        private static CombatContext Ctx(float d = 15f, int near = 1, bool cover = false, bool still = false, bool officer = false) => new CombatContext { InCombat = true, TargetDistance = d, HostilesNear = near, CoveringAlly = cover, AllyDownedNear = cover, Stationary = still, OfficerNear = officer };
         private static readonly float[] Distances = { 1f, 4f, 8f, 15f, 22f, 28f, 35f };
 
         /// <summary>A factor improves its stat when it moves it the way that helps the soldier. For three stats a smaller number is the better one.</summary>
@@ -30,8 +30,11 @@ namespace FamilyLife.Tests
             Assert.Equal(new[] { "Ranger", "Soldier" }, d.Level2Branches.Keys.OrderBy(x => x).ToArray());
             foreach (var s in MilitaryCareers.SoldierSpecialties) Assert.Equal(new[] { "Soldier" }, d.Specialties[s].RequiresAny.ToArray());
             foreach (var s in MilitaryCareers.RangerSpecialties) Assert.Equal(new[] { "Ranger" }, d.Specialties[s].RequiresAny.ToArray());
-            Assert.Equal(6, d.Specialties.Count);
-            foreach (var s in MilitaryCareers.Specialties) Assert.Equal(MilitaryCareers.SoldierSpecialties.Contains(s) ? "Soldier" : "Ranger", MilitaryCareers.BranchOf(s));
+            Assert.Equal(8, d.Specialties.Count);
+            foreach (var s in MilitaryCareers.SoldierSpecialties) Assert.Equal("Soldier", MilitaryCareers.BranchOf(s));
+            foreach (var s in MilitaryCareers.RangerSpecialties) Assert.Equal("Ranger", MilitaryCareers.BranchOf(s));
+            foreach (var s in MilitaryCareers.SupportSpecialties) Assert.Equal("Support", MilitaryCareers.BranchOf(s));
+            Assert.Null(MilitaryCareers.BranchOf("Nobody"));
         }
 
         [Fact]
@@ -76,12 +79,12 @@ namespace FamilyLife.Tests
         [Fact] public void No_facts_no_credit() => Assert.Null(CombatClassifier.Classify(null));
 
         [Fact]
-        public void Every_specialty_can_be_earned_by_some_kind_of_fight()
+        public void Every_combat_specialty_can_be_earned_by_some_kind_of_fight_and_support_is_not_credited_by_fights()
         {
             var seen = new System.Collections.Generic.HashSet<string>();
             foreach (bool ranged in new[] { false, true }) foreach (float d in new[] { 1f, 8f, 20f, 40f }) foreach (int burst in new[] { 1, 5 }) foreach (int others in new[] { 0, 1, 3 }) foreach (bool def in new[] { false, true }) foreach (float armor in new[] { 0f, .8f })
                 seen.Add(CombatClassifier.Classify(new CombatFacts { Ranged = ranged, Distance = d, Burst = burst, OtherEnemiesNear = others, DefendedAlly = def, Armor = armor }).Specialty);
-            Assert.Equal(MilitaryCareers.Specialties.OrderBy(x => x), seen.OrderBy(x => x));
+            Assert.Equal(MilitaryCareers.SoldierSpecialties.Concat(MilitaryCareers.RangerSpecialties).OrderBy(x => x), seen.OrderBy(x => x));          // the Field Medic earns by tending, the Officer through duties
         }
 
         // ------------------------------------------------------------------ doctrine: distinct jobs, each paid for
@@ -90,7 +93,7 @@ namespace FamilyLife.Tests
         public void Every_specialty_has_its_own_job_and_a_stated_weakness()
         {
             Assert.Equal(MilitaryCareers.Specialties.OrderBy(x => x), MilitaryDoctrine.Profiles.Select(p => p.Role).OrderBy(x => x));
-            Assert.Equal(6, MilitaryDoctrine.Profiles.Select(p => p.Job).Distinct().Count());
+            Assert.Equal(8, MilitaryDoctrine.Profiles.Select(p => p.Job).Distinct().Count());
             foreach (var p in MilitaryDoctrine.Profiles) { Assert.False(string.IsNullOrWhiteSpace(p.Job)); Assert.False(string.IsNullOrWhiteSpace(p.Strength)); Assert.False(string.IsNullOrWhiteSpace(p.Weakness)); Assert.True(p.MinRange <= p.PreferredRange && p.PreferredRange <= p.MaxRange, p.Role); }
         }
 
@@ -100,7 +103,8 @@ namespace FamilyLife.Tests
             foreach (var role in MilitaryCareers.Specialties)
             {
                 var factors = (from stat in MilitaryDoctrine.Stats from c in Grid() select new { stat, f = MilitaryDoctrine.Factor(role, stat, c) }).ToList();
-                Assert.True(factors.Any(x => Improves(x.stat, x.f)), role + " has no strength");
+                bool aura = role == "Officer" && MilitaryDoctrine.Stats.Any(st => Improves(st, MilitaryDoctrine.AuraFactor(st, Ctx(officer: true))));          // the Officer's strength is lent to others
+                Assert.True(aura || factors.Any(x => Improves(x.stat, x.f)), role + " has no strength");
                 Assert.True(factors.Any(x => Worsens(x.stat, x.f)), role + " has no weakness");
             }
         }
@@ -109,7 +113,7 @@ namespace FamilyLife.Tests
         public void No_two_specialties_behave_the_same()
         {
             string Signature(string role) => string.Join("|", from stat in MilitaryDoctrine.Stats from c in Grid() select MilitaryDoctrine.Factor(role, stat, c).ToString("0.###"));
-            Assert.Equal(6, MilitaryCareers.Specialties.Select(Signature).Distinct().Count());
+            Assert.Equal(8, MilitaryCareers.Specialties.Select(Signature).Distinct().Count());
             // and each touches stats the others leave alone, or reads the situation differently: nobody is a copy with a different label
             foreach (var role in MilitaryCareers.Specialties) Assert.True(MilitaryDoctrine.Stats.Any(s => MilitaryDoctrine.Touches(role, s)), role);
         }
@@ -127,7 +131,7 @@ namespace FamilyLife.Tests
             foreach (var role in MilitaryCareers.Specialties.Concat(new[] { "Soldier", "Ranger", "Recruit", null, "Nobody" })) foreach (var stat in MilitaryDoctrine.Stats.Concat(new[] { "Other", null }))
             {
                 foreach (var c in Grid()) { float f = MilitaryDoctrine.Factor(role, stat, c); Assert.InRange(f, MilitaryDoctrine.MaxDown, MilitaryDoctrine.MaxUp); }
-                Assert.Equal(1f, MilitaryDoctrine.Factor(role, stat, new CombatContext { InCombat = false, TargetDistance = 5f, HostilesNear = 1, CoveringAlly = true, Stationary = true }));
+                Assert.Equal(1f, MilitaryDoctrine.Factor(role, stat, new CombatContext { InCombat = false, TargetDistance = 5f, HostilesNear = 1, CoveringAlly = true, Stationary = true, OfficerNear = true }));          // (a downed friend alone is not a fight; see the medic test)
                 Assert.Equal(1f, MilitaryDoctrine.Factor(role, stat, null));
             }
         }
@@ -168,7 +172,7 @@ namespace FamilyLife.Tests
         public void Only_the_three_shooting_roles_have_a_target_preference_and_it_is_bounded()
         {
             var open = new TargetFacts { Distance = 15f, Armed = true, Ranged = true, Exposed = true, AttackingAlly = true, Threat = 1f };
-            foreach (var role in MilitaryCareers.SoldierSpecialties.Concat(new[] { "Soldier", "Recruit", null })) Assert.Equal(0f, MilitaryDoctrine.TargetBias(role, open));
+            foreach (var role in MilitaryCareers.SoldierSpecialties.Concat(MilitaryCareers.SupportSpecialties).Concat(new[] { "Soldier", "Recruit", null })) Assert.Equal(0f, MilitaryDoctrine.TargetBias(role, open));
             foreach (var role in MilitaryCareers.RangerSpecialties)
                 foreach (float d in new[] { 1f, 5f, 15f, 40f }) foreach (bool b in new[] { false, true }) foreach (float threat in new[] { 0f, .5f, 1f })
                     Assert.InRange(MilitaryDoctrine.TargetBias(role, new TargetFacts { Distance = d, Armed = b, Ranged = b, Exposed = b, AttackingAlly = b, Threat = threat }), -MilitaryDoctrine.MaxBias, MilitaryDoctrine.MaxBias);
@@ -194,7 +198,7 @@ namespace FamilyLife.Tests
         [Fact]
         public void Every_military_role_has_five_positive_negative_and_relationship_events()
         {
-            Assert.Equal(new[] { "Recruit", "Soldier", "Ranger", "Vanguard", "Guardian", "Duelist", "Marksman", "Gunner", "Sniper" }, MilitaryEvents.Roles);
+            Assert.Equal(new[] { "Recruit", "Soldier", "Ranger", "Vanguard", "Guardian", "Duelist", "Marksman", "Gunner", "Sniper", "FieldMedic", "Officer" }, MilitaryEvents.Roles);
             foreach (var role in MilitaryEvents.Roles) { var e = MilitaryEvents.All.Where(x => x.Role == role).ToList(); Assert.Equal(5, e.Count(x => x.Mood > 0)); Assert.Equal(5, e.Count(x => x.Mood < 0)); Assert.Equal(5, e.Count(x => x.Opinion != 0)); Assert.Equal(15, e.Select(x => x.Fact).Distinct().Count()); }
             Assert.Equal(MilitaryEvents.All.Length, MilitaryEvents.All.Select(x => x.Id).Distinct().Count());
             Assert.Equal(MilitaryEvents.All.Length, MilitaryEvents.All.Select(x => x.Thought).Distinct().Count());
@@ -217,7 +221,7 @@ namespace FamilyLife.Tests
         [Fact]
         public void The_stories_the_game_code_names_exist_in_the_event_table()
         {
-            foreach (var pair in new[] { ("Guardian", "FriendFell"), ("Soldier", "SquanderedLife"), ("Vanguard", "LostMyFlank"), ("Recruit", "FirstBlood"), ("Soldier", "WoundedInAction"), ("Vanguard", "CutDownLeading"), ("Duelist", "StruckDown"), ("Sniper", "ExposedAlone"), ("Ranger", "SpottedPosition") })
+            foreach (var pair in new[] { ("Guardian", "FriendFell"), ("Soldier", "SquanderedLife"), ("Vanguard", "LostMyFlank"), ("Recruit", "FirstBlood"), ("Soldier", "WoundedInAction"), ("Vanguard", "CutDownLeading"), ("Duelist", "StruckDown"), ("Sniper", "ExposedAlone"), ("Ranger", "SpottedPosition"), ("FieldMedic", "TooLateToSave"), ("FieldMedic", "HitWhileTending"), ("Officer", "WeightOfCommand") })
                 Assert.Contains(MilitaryEvents.All, e => e.Role == pair.Item1 && e.Fact == pair.Item2);
             foreach (var role in MilitaryEvents.Roles) foreach (int cat in new[] { 0, 1, 2 }) for (int i = 0; i < 5; i++) Assert.NotNull(MilitaryEvents.Fact(role, cat, i));
             Assert.Null(MilitaryEvents.Fact("Nobody", 0, 0)); Assert.Null(MilitaryEvents.Fact("Sniper", 3, 0)); Assert.Null(MilitaryEvents.Fact("Sniper", 0, 5));
@@ -232,6 +236,85 @@ namespace FamilyLife.Tests
             Assert.Contains("FamilyLife.StatPart_MilitaryDoctrine", text);
             foreach (var op in doc.Root.Elements("Operation")) Assert.Equal("Always", op.Element("success")?.Value);          // a stat another game version lacks is skipped quietly
             foreach (var file in Directory.GetFiles(Path.Combine(root, "Source/Military"), "*.cs", SearchOption.AllDirectories).Where(f => !f.Contains("/obj/"))) Assert.DoesNotContain("HarmonyPatch", File.ReadAllText(file));
+        }
+
+        // ------------------------------------------------------------------ Support: Field Medic and Officer
+
+        private static CareerLedger Seasoned(string branch, int person = 1)
+        {
+            var d = MilitaryCareers.Definition(); var l = new CareerLedger();
+            l.Award(person, d.Id, branch, "mil", "branch", 150, 0); l.Evaluate(person, d, k => 20);
+            Assert.True(l.IsSpecialist(person, d.Id, branch)); return l;
+        }
+
+        [Fact]
+        public void The_field_medic_needs_a_real_doctor_as_well_as_a_combat_branch()
+        {
+            var d = MilitaryCareers.Definition();
+            Assert.Equal(new[] { MilitaryCareers.DoctorQualification }, d.Specialties["FieldMedic"].RequiresAll.ToArray());
+            Assert.Equal(new[] { "Ranger", "Soldier" }, d.Specialties["FieldMedic"].RequiresAny.OrderBy(x => x).ToArray());
+            Assert.Empty(d.Specialties["Officer"].RequiresAll);
+            // a soldier with every skill and plenty of tending, but no Doctor: not a field medic
+            var l = Seasoned("Soldier"); l.Award(1, d.Id, "FieldMedic", "mil.tend", "t", 300, 1); l.Evaluate(1, d, k => 20);
+            Assert.False(l.IsSpecialist(1, d.Id, "FieldMedic"));
+            // the same person once Community Care has made them a Doctor (as the shared ledger writes it)
+            l.Grandfather(1, MilitaryCareers.DoctorQualification); l.Evaluate(1, d, k => 20);
+            Assert.True(l.IsSpecialist(1, d.Id, "FieldMedic"));
+        }
+
+        [Fact]
+        public void A_doctor_who_never_fought_is_not_a_field_medic_either()
+        {
+            var d = MilitaryCareers.Definition(); var l = new CareerLedger(); l.Grandfather(1, MilitaryCareers.DoctorQualification);
+            l.Award(1, d.Id, "FieldMedic", "mil.tend", "t", 300, 1); l.Evaluate(1, d, k => 20);
+            Assert.False(l.IsSpecialist(1, d.Id, "FieldMedic"));          // no Soldier or Ranger step
+        }
+
+        [Fact]
+        public void Either_combat_branch_leads_to_the_support_specialties_and_medicine_is_a_skill_gate()
+        {
+            var d = MilitaryCareers.Definition();
+            foreach (var branch in new[] { "Soldier", "Ranger" })
+            {
+                var l = Seasoned(branch, 7); l.Award(7, d.Id, "Officer", "mil.duty", "o", 300, 2); l.Evaluate(7, d, k => 20); Assert.True(l.IsSpecialist(7, d.Id, "Officer"), branch);
+            }
+            var m = Seasoned("Ranger", 8); m.Grandfather(8, MilitaryCareers.DoctorQualification); m.Award(8, d.Id, "FieldMedic", "mil.tend", "t", 300, 2);
+            m.Evaluate(8, d, k => k == "Medicine" ? 7 : 20); Assert.False(m.IsSpecialist(8, d.Id, "FieldMedic"));          // Medicine 8
+            m.Evaluate(8, d, k => 20); Assert.True(m.IsSpecialist(8, d.Id, "FieldMedic"));
+            var o = Seasoned("Soldier", 9); o.Award(9, d.Id, "Officer", "mil.duty", "o", 300, 2); o.Evaluate(9, d, k => k == "Social" ? 7 : 20); Assert.False(o.IsSpecialist(9, d.Id, "Officer"));          // Social 8
+        }
+
+        [Fact]
+        public void The_field_medic_tends_faster_beside_a_downed_friend_and_fights_worse()
+        {
+            Assert.Equal(1.15f, MilitaryDoctrine.Factor("FieldMedic", MilitaryDoctrine.TendSpeed, new CombatContext { AllyDownedNear = true }));          // no fight needed
+            Assert.Equal(1f, MilitaryDoctrine.Factor("FieldMedic", MilitaryDoctrine.TendSpeed, new CombatContext()));
+            Assert.Equal(1f, MilitaryDoctrine.Factor("Officer", MilitaryDoctrine.TendSpeed, new CombatContext { AllyDownedNear = true }));
+            Assert.Equal(.9f, MilitaryDoctrine.Factor("FieldMedic", MilitaryDoctrine.Accuracy, Ctx()));
+            Assert.Equal(.9f, MilitaryDoctrine.Factor("FieldMedic", MilitaryDoctrine.MeleeHit, Ctx()));
+            Assert.Equal(1f, MilitaryDoctrine.Factor("FieldMedic", MilitaryDoctrine.Accuracy, new CombatContext()));
+        }
+
+        [Fact]
+        public void The_officers_aura_helps_others_in_a_fight_does_not_stack_and_is_bounded()
+        {
+            Assert.Equal(1.05f, MilitaryDoctrine.AuraFactor(MilitaryDoctrine.Accuracy, Ctx(officer: true)));
+            Assert.Equal(1.05f, MilitaryDoctrine.AuraFactor(MilitaryDoctrine.MeleeHit, Ctx(officer: true)));
+            Assert.Equal(1f, MilitaryDoctrine.AuraFactor(MilitaryDoctrine.Accuracy, Ctx(officer: false)));          // no Officer near
+            Assert.Equal(1f, MilitaryDoctrine.AuraFactor(MilitaryDoctrine.Accuracy, new CombatContext { InCombat = false, OfficerNear = true }));          // not in a fight
+            Assert.Equal(1f, MilitaryDoctrine.AuraFactor(MilitaryDoctrine.MoveSpeed, Ctx(officer: true)));          // only shooting and striking
+            Assert.Equal(1f, MilitaryDoctrine.AuraFactor(MilitaryDoctrine.Accuracy, null));
+            foreach (var stat in MilitaryDoctrine.Stats) foreach (var c in Grid()) { c.OfficerNear = true; Assert.InRange(MilitaryDoctrine.AuraFactor(stat, c), MilitaryDoctrine.MaxDown, MilitaryDoctrine.MaxUp); }
+            Assert.Equal(.92f, MilitaryDoctrine.Factor("Officer", MilitaryDoctrine.Accuracy, Ctx()));          // and the Officer pays for it themselves
+        }
+
+        [Fact]
+        public void A_fight_only_adds_a_share_to_a_specialty()
+        {
+            Assert.Equal(4, MilitaryCareers.SpecialtyPoints(MilitaryCareers.KillPoints));
+            Assert.Equal(1, MilitaryCareers.SpecialtyPoints(MilitaryCareers.EngagePoints));
+            Assert.Equal(1, MilitaryCareers.SpecialtyPoints(0));          // never rounds away to nothing
+            Assert.True(MilitaryCareers.CombatSpecialtyShare > 0f && MilitaryCareers.CombatSpecialtyShare < 1f);
         }
     }
 }

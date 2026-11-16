@@ -2,7 +2,7 @@
 
 Two optional role modules, built the way Crafting and Agriculture are: a career tree in the shared career ledger, experience from real game activity, specialty bonuses that apply only to a pawn who is **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events for every role. Each references only the framework.
 
-**Status: compiles for 1.6 and 1.7, 1,531 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
+**Status: compiles for 1.6 and 1.7, 1,542 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
 
 ## 1. Intelligence — `SpacemanWil.WilsIntelligence`
 
@@ -36,12 +36,14 @@ Recruit (anyone) → **Soldier** (Melee 6) or **Ranger** (Shooting 6), parallel,
 | Ranger | Marksman | Shooting 10 |
 | Ranger | Gunner | Shooting 8 |
 | Ranger | Sniper | Shooting 12 |
+| Support (either branch) | **Field Medic** | Medicine 8, **and a Community Care Doctor qualification** |
+| Support (either branch) | **Officer** | Social 8 |
 
-**Experience is from hostile combat only.** A first blow on an enemy is worth 3, a kill 10, once per enemy. The fight is credited to the specialty it resembled (`CombatClassifier`): melee for a friend, or beside a downed one → Guardian; one-on-one → Duelist; pressing into two or more, or in heavy armour → Vanguard; ranged from 25+ cells → Sniper; a burst weapon within 12 cells → Gunner; any other shot → Marksman. Friendly scuffles, mental breaks, wild animals and training dummies never count (the hook requires the two sides to be hostile and one to be the player's).
+**Combat earns the general and branch experience.** A first blow on an enemy is worth 3, a kill 10, once per enemy. Once the branch is earned a fight credits the specialty it resembled at **40%** of those points: specialties are earned mainly through daily duties (section 9), not by how a fight happened to go. The Field Medic also banks 6 for tending a comrade while hostiles are about (once per patient per day); the Officer earns only through duties. The fight is credited to the specialty it resembled (`CombatClassifier`): melee for a friend, or beside a downed one → Guardian; one-on-one → Duelist; pressing into two or more, or in heavy armour → Vanguard; ranged from 25+ cells → Sniper; a burst weapon within 12 cells → Gunner; any other shot → Marksman. Friendly scuffles, mental breaks, wild animals and training dummies never count (the hook requires the two sides to be hostile and one to be the player's).
 
 ## 3. Combat doctrine: a distinct job for each specialty
 
-Every specialty has **one job and one weakness**, so none is simply better than another. All values are bounded multipliers (never outside 0.8 to 1.25) and apply only when the pawn is assigned that exact specialty **and** is in the situation the specialty is for; out of a fight they do nothing. Source: `MilitaryDoctrine`.
+Every specialty (the Officer's strength is lent to others) has **one job and one weakness**, so none is simply better than another. All values are bounded multipliers (never outside 0.8 to 1.25) and apply only when the pawn is assigned that exact specialty **and** is in the situation the specialty is for; out of a fight they do nothing. Source: `MilitaryDoctrine`.
 
 | Specialty | Job on the battlefield | Strength | Weakness |
 |---|---|---|---|
@@ -50,6 +52,8 @@ Every specialty has **one job and one weakness**, so none is simply better than 
 | **Duelist** | *Skirmisher.* Wins one-on-ones, picks off a straggler. | +15% melee hit and +20% melee dodge with one enemy near | −15% dodge once three or more are close |
 | **Marksman** | *Precision.* Steady mid-range fire on whoever is exposed. | +10% accuracy at 12–30 cells; prefers exposed and armed targets | −10% accuracy inside 6 cells |
 | **Gunner** | *Suppression.* Volume of fire that keeps heads down. | −15% weapon cooldown; +5% accuracy within 12 cells; prefers the nearest enemy and one attacking a friend | −8% accuracy beyond 20 cells |
+| **Field Medic** | *Medic.* Keeps the line standing, tending the fallen where they lie. | +15% tend speed with a friend down within 6 cells (no fight needed) | −10% accuracy and −10% melee hit |
+| **Officer** | *Commander.* Coordinates the line. | Other serving soldiers within 10 cells of them get +5% accuracy and melee hit in a fight (does not stack) | −8% accuracy and −8% melee dodge themselves |
 | **Sniper** | *Overwatch.* Patient long-range kills on the most dangerous. | +15% accuracy beyond 25 cells **once set up** (not moving); prefers the most dangerous and armed targets, and leaves the close ones to others | +25% aiming delay; −15% accuracy inside 10 cells |
 
 **Behaviour** is changed in two ways, both without ordering anyone around:
@@ -72,11 +76,15 @@ Everything else (the other negative and milestone events) has its thoughts and c
 
 ## 5. Framework changes
 
+**Cross-career requirements.** A role can now require another career's qualification by its ledger id (`CareerRule.Needs("wils.care.practice")`, checked with `CareerLedger.Holds`). The Field Medic uses it to need a real Community Care Doctor without Military referencing Community Care: the ledger is shared and the id is a string. If Community Care is absent nobody holds that qualification and the role is simply unavailable. Unmet requirements appear in the pawn tab's "needs" text. It would also let Geneticist ask for "Doctor first" again.
+
+
 Modules cannot ship Harmony patches (a test enforces it), so the combat behaviour needed three small framework additions, in `Source/FamilyLife/Game/CombatHooks.cs`:
 
 | Hook | What it gives modules |
 |---|---|
 | `FamilyFramework.CombatEvents` (patches `Pawn.PostApplyDamage` and `Pawn.Kill`) | a read-only `CombatReport` for a hostile blow or kill that involves the player's faction |
+| `FamilyFramework.Tended` (existing) | a comrade tended: the Field Medic's field experience |
 | `FamilyFramework.TargetBias` (patches the private `AttackTargetFinder.GetShootingTargetScore`) | a bounded nudge added to a player shooter's target score |
 
 Both skip all work when no module is listening. Each patch class is applied on its own, so a game update that moves one is logged and skipped without taking the others down. `ResearchDone` and `LabourDone` already existed and are reused.
@@ -99,7 +107,30 @@ All preliminary: skill and experience thresholds, the 3 and 10 combat points, th
 - Performance in a large fight: the situation and target code runs per stat read and per target scored, and is cached or cheap by design but unmeasured.
 - Balance, and whether the doctrine feels distinct rather than merely numerically distinct.
 
-## 8. Open items
+## 8. Agreed with the owner, not yet built
+
+Settled by question and answer; none of it is in the code yet.
+
+**Military**
+- **Alert levels:** *Normal* (drills, sparring, range practice, muster, first-aid rounds), *Yellow* (patrols, lookout, gate and home guard), *Red* (hold defensive positions). The player sets Normal or Yellow, with an easily reachable toggle; a threat on the map **raises Red automatically** and it drops back to the set level when clear.
+- **Positions:** player-placed posts (Overwatch, Guard, Rally) and a painted Training Yard. With no posts placed, Red rallies everyone at the Rally point.
+- **Daily duties** (automatic, only for free assigned soldiers in Work hours, any hostile or player order ends them, bounded experience): Vanguard leads drills, Duelist spars, Marksman runs range practice, Gunner patrols, Sniper keeps lookout, Guardian guards the gate and home, Field Medic runs first-aid rounds, Officer holds the morning muster.
+- **Training is open to willing volunteers:** soldiers plus any free colonist with a Melee or Shooting passion or a soldier relative; combat training from 13.
+- **Experience:** specialties mainly from duties, combat adds the 40% share (built).
+
+**Intelligence**
+- Remove **Inventor**. Add **Mech Commander** (Biotech), **Diplomat or Informant**, and **Chemist** (its skill and recipes must be checked before any bonus is promised). Keep **Analyst** as the research generalist.
+- Rooms, recognised not painted: **Library**, **Research Lab**, **Gene Lab**. No Dark Study room.
+
+**Other modules under discussion:** Wardens and Casters.
+
+## 9. Build slices for Military v2
+
+1. **Built:** the cross-career rule, the Support branch (Field Medic, Officer) with doctrine, events and strings, the 40% combat share, field tending experience.
+2. Alert levels, the toggle, posts and the Training Yard.
+3. The daily duties and their experience.
+
+## 10. Open items
 
 - A Community page for each module (the doctrine table, who holds which role, recent combat credit), like Agriculture's.
 - Positioning (section 3).

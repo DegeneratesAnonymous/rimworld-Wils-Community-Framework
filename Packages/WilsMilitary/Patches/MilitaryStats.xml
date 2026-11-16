@@ -50,4 +50,10 @@
     <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="RangedCooldownFactor"]/parts</xpath><value><li Class="FamilyLife.StatPart_MilitaryDoctrine" /></value></match>
     <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="RangedCooldownFactor"]</xpath><value><parts><li Class="FamilyLife.StatPart_MilitaryDoctrine" /></parts></value></nomatch>
   </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="MedicalTendSpeed"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="MedicalTendSpeed"]/parts</xpath><value><li Class="FamilyLife.StatPart_MilitaryDoctrine" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="MedicalTendSpeed"]</xpath><value><parts><li Class="FamilyLife.StatPart_MilitaryDoctrine" /></parts></value></nomatch>
+  </Operation>
 </Patch>

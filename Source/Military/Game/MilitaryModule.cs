@@ -27,6 +27,7 @@ namespace FamilyLife
             foreach (var specialty in MilitaryCareers.Specialties)
                 CareerService.RegisterRole(new ProfessionRole { Id = MilitaryCareers.Role(specialty), ModuleId = Id, Career = MilitaryCareers.Career, Level = 3, Specialty = specialty, BonusKey = "WFL_Military_" + specialty + "Bonus" });
             FamilyFramework.CombatEvents.Add(Id + ".combat", Id, MilitaryCombat.Handle);
+            FamilyFramework.Tended.Add(Id + ".tends", Id, MilitaryCombat.Tended);
             FamilyFramework.TargetBias.Add(Id + ".targets", Id, MilitaryDoctrineGame.Bias);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, MilitaryStories.Social);
             FamilyFramework.Resets.Add(Id + ".reset", Id, MilitaryDoctrineGame.Reset);
@@ -43,7 +44,7 @@ namespace FamilyLife
     /// <summary>Who is assigned to which Military role. Looked up by the shooting score and the stat parts many times a second, so the answer is kept for a short while.</summary>
     public static class MilitaryRoles
     {
-        private struct Entry { public int Tick; public string Specialty; }
+        private struct Entry { public int Tick; public string Specialty; public bool Serving; }
         private static readonly Dictionary<int, Entry> cache = new Dictionary<int, Entry>();
         public const int KeepTicks = 250;
         public static void Reset() => cache.Clear();
@@ -52,17 +53,25 @@ namespace FamilyLife
         public static string Specialty(Pawn pawn)
         {
             if (pawn == null || pawn.Dead) return null;
+            return Look(pawn).Specialty;
+        }
+
+        /// <summary>Whether the pawn holds any Military role at all (Recruit, Soldier, Ranger or a specialty). The Officer's aura reaches everyone who does.</summary>
+        public static bool Serving(Pawn pawn) => pawn != null && !pawn.Dead && Look(pawn).Serving;
+
+        private static Entry Look(Pawn pawn)
+        {
             int now = Find.TickManager?.TicksGame ?? 0;
-            if (cache.TryGetValue(pawn.thingIDNumber, out var e) && now >= e.Tick && now - e.Tick < KeepTicks) return e.Specialty;
-            string found = null; var c = FamilyComponent.Current;
+            if (cache.TryGetValue(pawn.thingIDNumber, out var e) && now >= e.Tick && now - e.Tick < KeepTicks) return e;
+            string found = null; bool serving = false; var c = FamilyComponent.Current;
             if (c != null)
             {
                 var book = c.Registry.Assignments(); var ledger = c.Registry.Careers();
                 foreach (var s in MilitaryCareers.Specialties)
                     if (book.IsAssigned(pawn.thingIDNumber, MilitaryCareers.Role(s)) && ledger.IsSpecialist(pawn.thingIDNumber, MilitaryCareers.Career, s)) { found = s; break; }
+                serving = found != null || book.IsAssigned(pawn.thingIDNumber, MilitaryCareers.Recruit) || MilitaryCareers.Branches.Any(b => book.IsAssigned(pawn.thingIDNumber, MilitaryCareers.Role(b)));
             }
-            cache[pawn.thingIDNumber] = new Entry { Tick = now, Specialty = found };
-            return found;
+            return cache[pawn.thingIDNumber] = new Entry { Tick = now, Specialty = found, Serving = serving };
         }
 
         /// <summary>The role whose events the pawn lives: specialty, else branch, else Recruit. Null if they hold no Military role at all.</summary>
@@ -86,7 +95,13 @@ namespace FamilyLife
 
         private static bool Hostile(Pawn pawn, Thing other) => other != null && other.Spawned && other.HostileTo(pawn);
 
-        public static CombatContext Context(Pawn pawn)
+        public const int OfficerCells = 10;
+
+        /// <summary>
+        /// The situation around a serving pawn. In a fight it counts hostiles, a friend to cover and an Officer nearby; out of one it only looks for a downed friend, and only for a Field Medic, so an
+        /// idle colony does no scanning.
+        /// </summary>
+        public static CombatContext Context(Pawn pawn, string role)
         {
             int now = Find.TickManager?.TicksGame ?? 0;
             if (contexts.TryGetValue(pawn.thingIDNumber, out var held) && now >= held.Tick && now - held.Tick < ContextTicks) return held.Context;
@@ -94,21 +109,22 @@ namespace FamilyLife
             if (pawn.Spawned && map != null)
             {
                 Thing target = pawn.mindState?.enemyTarget; if (target == null && pawn.CurJob != null && (pawn.CurJob.def == JobDefOf.AttackMelee || pawn.CurJob.def == JobDefOf.AttackStatic)) target = pawn.CurJob.targetA.Thing;
-                if (Hostile(pawn, target) && !(target is Pawn down && down.Downed))
-                {
-                    c.InCombat = true; c.TargetDistance = pawn.Position.DistanceTo(target.Position); c.Stationary = pawn.pather == null || !pawn.pather.MovingNow;
+                bool fighting = Hostile(pawn, target) && !(target is Pawn down && down.Downed);
+                if (fighting) { c.InCombat = true; c.TargetDistance = pawn.Position.DistanceTo(target.Position); c.Stationary = pawn.pather == null || !pawn.pather.MovingNow; }
+                if (fighting || role == "FieldMedic")
                     foreach (var p in map.mapPawns.AllPawnsSpawned)
                     {
                         if (p == pawn || p.Dead) continue;
                         float d = pawn.Position.DistanceTo(p.Position);
-                        if (d <= NearCells && !p.Downed && p.HostileTo(pawn)) c.HostilesNear++;
-                        if (!c.CoveringAlly && d <= CoverCells && p.Faction == pawn.Faction && p.RaceProps.Humanlike)
+                        if (fighting && d <= NearCells && !p.Downed && p.HostileTo(pawn)) c.HostilesNear++;
+                        if (p.Faction != pawn.Faction || !p.RaceProps.Humanlike) continue;
+                        if (d <= CoverCells)
                         {
-                            if (p.Downed) c.CoveringAlly = true;
-                            else if (target.Position.DistanceTo(p.Position) <= 2f) c.CoveringAlly = true;          // the enemy is on top of a friend we can reach
+                            if (p.Downed) { c.AllyDownedNear = true; if (fighting) c.CoveringAlly = true; }
+                            else if (fighting && target.Position.DistanceTo(p.Position) <= 2f) c.CoveringAlly = true;          // the enemy is on top of a friend we can reach
                         }
+                        if (fighting && !c.OfficerNear && d <= OfficerCells && !p.Downed && MilitaryRoles.Specialty(p) == "Officer") c.OfficerNear = true;
                     }
-                }
             }
             contexts[pawn.thingIDNumber] = new Held { Tick = now, Context = c };
             return c;
@@ -153,10 +169,31 @@ namespace FamilyLife
             if (!first && !r.Killed) return;
             var facts = Gather(r); var track = CombatClassifier.Classify(facts); if (track == null) return;
             var ledger = c.Registry.Careers();
-            string credit = ledger.IsSpecialist(r.Attacker.thingIDNumber, MilitaryCareers.Career, track.Route) ? track.Specialty : track.Route;
+            bool inBranch = ledger.IsSpecialist(r.Attacker.thingIDNumber, MilitaryCareers.Career, track.Route);
+            string credit = inBranch ? track.Specialty : track.Route;
+            int points = r.Killed ? MilitaryCareers.KillPoints : MilitaryCareers.EngagePoints;
+            if (inBranch) points = MilitaryCareers.SpecialtyPoints(points);          // a specialty is earned mainly through daily duties; the fight only adds a share
             string kind = (r.Ranged ? "mil.shoot" : "mil.melee") + (r.Killed ? ".kill" : ".engage");
-            CareerService.Report(c, r.Attacker, MilitaryCareers.Career, credit, kind, (r.Killed ? "kill:" : "engage:") + r.Victim.thingIDNumber, r.Killed ? MilitaryCareers.KillPoints : MilitaryCareers.EngagePoints, FrameworkServices.Now);
+            CareerService.Report(c, r.Attacker, MilitaryCareers.Career, credit, kind, (r.Killed ? "kill:" : "engage:") + r.Victim.thingIDNumber, points, FrameworkServices.Now);
             if (r.Killed) MilitaryStories.Kill(r.Attacker, track, facts, r.Victim.thingIDNumber);
+        }
+
+        /// <summary>
+        /// A comrade was tended while hostiles were about: the Field Medic's experience from the field. Anyone who does it banks it (the specialty needs the Doctor qualification as well, which
+        /// is checked when it is earned). Once per patient per day.
+        /// </summary>
+        public static void Tended(Pawn tender, Pawn patient)
+        {
+            var c = FamilyComponent.Current; if (c == null || !Colonist(tender) || !Colonist(patient) || tender == patient || tender.Map == null || tender.Map != patient.Map) return;
+            if (!HostilesAbout(tender.Map)) return;
+            int day = FrameworkServices.Now / ActivityTuning.TicksPerDay;
+            CareerService.Report(c, tender, MilitaryCareers.Career, "FieldMedic", "mil.tend", "tend:" + patient.thingIDNumber + ":" + day, MilitaryCareers.FieldTendPoints, FrameworkServices.Now);
+        }
+
+        private static bool HostilesAbout(Map map)
+        {
+            foreach (var p in map.mapPawns.AllPawnsSpawned) if (!p.Dead && !p.Downed && p.Faction != Faction.OfPlayer && p.HostileTo(Faction.OfPlayer) && !p.IsPrisoner) return true;
+            return false;
         }
 
         private static CombatFacts Gather(CombatReport r)
@@ -214,7 +251,7 @@ namespace FamilyLife
         public static void Fell(Pawn witness, Pawn fallen)
         {
             string role = MilitaryRoles.ActiveRole(witness); if (role == null) return;
-            string fact = role == "Guardian" ? "FriendFell" : role == "Soldier" ? "SquanderedLife" : role == "Vanguard" ? "LostMyFlank" : null;
+            string fact = role == "Guardian" ? "FriendFell" : role == "Soldier" ? "SquanderedLife" : role == "Vanguard" ? "LostMyFlank" : role == "FieldMedic" ? "TooLateToSave" : role == "Officer" ? "WeightOfCommand" : null;
             GiveFact(witness, null, role, fact);
         }
 
@@ -222,7 +259,7 @@ namespace FamilyLife
         public static void Struck(Pawn pawn)
         {
             string role = MilitaryRoles.ActiveRole(pawn); if (role == null) return;
-            string fact = role == "Recruit" ? "FirstBlood" : role == "Soldier" ? "WoundedInAction" : role == "Vanguard" ? "CutDownLeading" : role == "Duelist" ? "StruckDown" : role == "Sniper" ? "ExposedAlone" : role == "Ranger" ? "SpottedPosition" : null;
+            string fact = role == "Recruit" ? "FirstBlood" : role == "Soldier" ? "WoundedInAction" : role == "Vanguard" ? "CutDownLeading" : role == "Duelist" ? "StruckDown" : role == "Sniper" ? "ExposedAlone" : role == "Ranger" ? "SpottedPosition" : role == "FieldMedic" ? "HitWhileTending" : null;
             GiveFact(pawn, null, role, fact);
         }
 
@@ -242,11 +279,17 @@ namespace FamilyLife
     {
         private float Factor(StatRequest req, out string role)
         {
-            role = null; var pawn = req.Thing as Pawn; if (pawn == null || parentStat == null || pawn.Dead) return 1f;
-            role = MilitaryRoles.Specialty(pawn); if (role == null) return 1f;
-            return MilitaryDoctrine.Factor(role, parentStat.defName, MilitaryDoctrineGame.Context(pawn));
+            role = null; var pawn = req.Thing as Pawn; if (pawn == null || parentStat == null || pawn.Dead || !MilitaryRoles.Serving(pawn)) return 1f;
+            role = MilitaryRoles.Specialty(pawn);
+            string stat = parentStat.defName;
+            // Only look at the surroundings when something could apply: the pawn's own specialty touches this stat, or the Officer's aura does.
+            bool aura = stat == MilitaryDoctrine.Accuracy || stat == MilitaryDoctrine.MeleeHit;
+            if (role == null && !aura) return 1f;
+            var context = MilitaryDoctrineGame.Context(pawn, role);
+            float f = role == null ? 1f : MilitaryDoctrine.Factor(role, stat, context);
+            return f * MilitaryDoctrine.AuraFactor(stat, context);
         }
         public override void TransformValue(StatRequest req, ref float val) { float f = Factor(req, out _); if (f != 1f) val *= f; }
-        public override string ExplanationPart(StatRequest req) { float f = Factor(req, out string role); return f != 1f ? role + ": x" + f.ToString("0.##") : null; }
+        public override string ExplanationPart(StatRequest req) { float f = Factor(req, out string role); return f != 1f ? (role ?? "Officer's aura") + ": x" + f.ToString("0.##") : null; }
     }
 }

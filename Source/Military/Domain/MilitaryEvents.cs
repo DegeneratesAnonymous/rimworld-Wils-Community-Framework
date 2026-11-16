@@ -12,7 +12,7 @@ namespace FamilyLife.Domain
     /// <summary>Every Military role has five positive, five negative and five relationship events; the thought for each is in the package's Defs. Generated from one table so the facts and the thoughts cannot drift apart.</summary>
     public static class MilitaryEvents
     {
-        public static readonly string[] Roles = { "Recruit", "Soldier", "Ranger", "Vanguard", "Guardian", "Duelist", "Marksman", "Gunner", "Sniper" };
+        public static readonly string[] Roles = { "Recruit", "Soldier", "Ranger", "Vanguard", "Guardian", "Duelist", "Marksman", "Gunner", "Sniper", "FieldMedic", "Officer" };
         /// <summary>Facts for each role, in trigger order. Positive: routine success, outstanding result, milestone, recognised by others, pride. Negative: failed work, waste or setback, strain, rejected, danger or harm. Social: praised, helped, shared know-how, dispute, betrayal or stolen credit.</summary>
         private static readonly Dictionary<string, string[][]> facts = new Dictionary<string, string[][]>
         {
@@ -25,6 +25,8 @@ namespace FamilyLife.Domain
             { "Marksman", new[] { new[] { "CleanHit", "ThreatDropped", "ShotOfTheDay", "SpokenOfAim", "TrueAim" }, new[] { "MissedImportant", "OpenedTooSoon", "RifleStrain", "AimQuestioned", "ShotWentWide" }, new[] { "ThankedForCover", "CalledTargets", "ShowedMeZero", "WonBetOnMe", "TookMyKill" } } },
             { "Gunner", new[] { new[] { "HeadsDown", "SuppressedThem", "FireDiscipline", "CoverFireThanks", "RoarOfGuns" }, new[] { "ThrewRoundsAway", "BarrelBurned", "EarsRinging", "NoAmmoLeft", "HitOurOwn" }, new[] { "MovedUnderMyFire", "ReloadedForMe", "ShowedMeBursts", "WastefulCalled", "FrozeMyFire" } } },
             { "Sniper", new[] { new[] { "OneShotOneKill", "ThreatEliminated", "PatienceRewarded", "WatchedOverThem", "QuietPride" }, new[] { "ShotLost", "WaitForNothing", "StiffAndCold", "PositionCompromised", "ExposedAlone" }, new[] { "TrustedMyWatch", "SpottedForSniper", "ShowedMeBreath", "CalledMeCold", "GaveAwayPosition" } } },
+            { "FieldMedic", new[] { new[] { "StabilisedUnderFire", "SavedTheDowned", "EveryoneHomeAlive", "ThankedByTheTended", "CalledToTheWounded" }, new[] { "TooLateToSave", "OutOfSupplies", "BloodAndStrain", "OrdersKeptMeBack", "HitWhileTending" }, new[] { "ThankedMyHands", "CoveredMyWork", "ShowedMeDressing", "QuestionedMyCall", "BlamedTheLoss" } } },
+            { "Officer", new[] { new[] { "OrderFollowed", "PlanWorked", "HeldTheirNerve", "TrustedWithCommand", "BornToCommand" }, new[] { "BadCall", "LostTheMuster", "WeightOfCommand", "OrdersDisobeyed", "CommandUndermined" }, new[] { "ObeyedWillingly", "OfferedCounsel", "TaughtMeTactics", "ChallengedMyAuthority", "WentAroundMe" } } },
         };
         public static string Fact(string role, int category, int index) => facts.TryGetValue(role, out var f) && category >= 0 && category < 3 && index >= 0 && index < 5 ? f[category][index] : null;
         public const int Positive = 0, Negative = 1, Social = 2;
