@@ -4,4 +4,10 @@
 <wils.works.minerlabourer_label>Labourer (Miner)</wils.works.minerlabourer_label><wils.works.minerjourneyman_label>Journeyman (Miner)</wils.works.minerjourneyman_label>
 <wils.works.mason_label>Mason</wils.works.mason_label><wils.works.carpenter_label>Carpenter</wils.works.carpenter_label><wils.works.engineer_label>Engineer</wils.works.engineer_label>
 <wils.works.prospector_label>Prospector</wils.works.prospector_label><wils.works.quarryman_label>Quarryman</wils.works.quarryman_label><wils.works.tunneller_label>Tunneller</wils.works.tunneller_label>
+<WFL_Works_MasonBonus>Construction speed rises 15% and construction success 10%. Experience comes from building.</WFL_Works_MasonBonus>
+<WFL_Works_CarpenterBonus>Smoothing speed rises 15% and construction success 10%. Experience comes from building and smoothing.</WFL_Works_CarpenterBonus>
+<WFL_Works_EngineerBonus>Construction speed rises 15% and success at fixing broken-down buildings 15%. Experience comes from building and repair.</WFL_Works_EngineerBonus>
+<WFL_Works_ProspectorBonus>Mining speed rises 15%. Experience comes from mining.</WFL_Works_ProspectorBonus>
+<WFL_Works_QuarrymanBonus>Mining speed rises 20%. Experience comes from mining.</WFL_Works_QuarrymanBonus>
+<WFL_Works_TunnellerBonus>Mining speed rises 10%. Experience comes from mining.</WFL_Works_TunnellerBonus>
 </LanguageData>

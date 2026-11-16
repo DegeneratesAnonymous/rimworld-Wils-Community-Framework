@@ -71,5 +71,39 @@ namespace FamilyLife.Tests
             foreach (var file in Directory.GetFiles(Path.Combine(RepoPaths.Root(), "Source/Works"), "*.cs", SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/"))) Assert.DoesNotContain("HarmonyPatch", File.ReadAllText(file));
             string csproj = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/WilsWorks.csproj")); Assert.Contains("<AssemblyName>WilsWorks</AssemblyName>", csproj); Assert.DoesNotContain("WilsWardens", csproj);
         }
+
+        [Theory]
+        [InlineData("Mason", "ConstructionSpeed", 1.15f)]
+        [InlineData("Mason", "ConstructSuccessChance", 1.10f)]
+        [InlineData("Carpenter", "SmoothingSpeed", 1.15f)]
+        [InlineData("Carpenter", "ConstructSuccessChance", 1.10f)]
+        [InlineData("Engineer", "ConstructionSpeed", 1.15f)]
+        [InlineData("Engineer", "FixBrokenDownBuildingSuccessChance", 1.15f)]
+        [InlineData("Prospector", "MiningSpeed", 1.15f)]
+        [InlineData("Quarryman", "MiningSpeed", 1.20f)]
+        [InlineData("Tunneller", "MiningSpeed", 1.10f)]
+        public void Each_specialty_has_the_agreed_bonus_and_nothing_else(string specialty, string stat, float factor)
+        {
+            Assert.Equal(factor, WorksBonuses.Factor(specialty, stat));
+            foreach (var other in WorksBonuses.Stats.Where(s => s != stat && WorksBonuses.Factor(specialty, s) != 1f)) Assert.True(WorksBonuses.Factor(specialty, other) > 1f);          // only agreed stats
+            Assert.Equal(1f, WorksBonuses.Factor("BuilderLabourer", stat)); Assert.Equal(1f, WorksBonuses.Factor("BuilderJourneyman", stat)); Assert.Equal(1f, WorksBonuses.Factor(null, stat));
+        }
+
+        [Fact]
+        public void Bonuses_are_modest_and_a_builder_never_digs_faster_nor_a_miner_builds_faster()
+        {
+            foreach (var specialty in WorksCareers.BuilderSpecialties) Assert.Equal(1f, WorksBonuses.Factor(specialty, WorksBonuses.MiningSpeed));
+            foreach (var specialty in WorksCareers.MinerSpecialties) foreach (var stat in WorksBonuses.Stats.Where(s => s != WorksBonuses.MiningSpeed)) Assert.Equal(1f, WorksBonuses.Factor(specialty, stat));
+            foreach (var specialty in WorksCareers.BuilderSpecialties.Concat(WorksCareers.MinerSpecialties)) foreach (var stat in WorksBonuses.Stats) Assert.InRange(WorksBonuses.Factor(specialty, stat), 1f, 1.2f);
+        }
+
+        [Fact]
+        public void The_patch_covers_exactly_the_bonus_stats_and_every_specialty_has_its_text()
+        {
+            string patch = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Patches/WorksStats.xml"));
+            foreach (var stat in WorksBonuses.Stats) Assert.Contains("defName=\"" + stat + "\"", patch); Assert.Contains("<success>Always</success>", patch); Assert.Equal(WorksBonuses.Stats.Length, System.Text.RegularExpressions.Regex.Matches(patch, "PatchOperationConditional").Count / 1);
+            var lang = XDocument.Load(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Languages/English/Keyed/Works.xml")).Root;
+            foreach (var specialty in WorksCareers.BuilderSpecialties.Concat(WorksCareers.MinerSpecialties)) { Assert.NotNull(lang.Element("WFL_Works_" + specialty + "Bonus")); Assert.NotNull(lang.Element(WorksCareers.Role(specialty) + "_label")); }
+        }
     }
 }

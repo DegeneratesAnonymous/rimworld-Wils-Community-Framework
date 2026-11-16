@@ -46,3 +46,31 @@ namespace FamilyLife.Domain
         public const int BuildPoints = 4, RepairPoints = 3, SmoothPoints = 2, MinePoints = 4, RoundPoints = 4;
     }
 }
+
+namespace FamilyLife.Domain
+{
+    /// <summary>
+    /// A specialty is worth something only while the pawn is qualified and assigned to that exact specialty (docs/SPECIALTY-BONUSES.md). Mason: +15% construction speed and +10% construction success.
+    /// Carpenter: +15% smoothing speed and +10% construction success. Engineer: +15% construction speed and +15% success at fixing broken-down buildings. Prospector: +15% mining speed.
+    /// Quarryman: +20% mining speed. Tunneller: +10% mining speed (the game gives no safe way to make digging safer, so there is no injury effect). The Labourer and Journeyman have no bonus.
+    /// </summary>
+    public static class WorksBonuses
+    {
+        public const string ConstructionSpeed = "ConstructionSpeed", ConstructSuccessChance = "ConstructSuccessChance", SmoothingSpeed = "SmoothingSpeed", FixBroken = "FixBrokenDownBuildingSuccessChance", MiningSpeed = "MiningSpeed";
+        public static readonly string[] Stats = { ConstructionSpeed, ConstructSuccessChance, SmoothingSpeed, FixBroken, MiningSpeed };
+
+        public static float Factor(string specialty, string stat)
+        {
+            switch (specialty)
+            {
+                case "Mason": return stat == ConstructionSpeed ? 1.15f : stat == ConstructSuccessChance ? 1.10f : 1f;
+                case "Carpenter": return stat == SmoothingSpeed ? 1.15f : stat == ConstructSuccessChance ? 1.10f : 1f;
+                case "Engineer": return stat == ConstructionSpeed ? 1.15f : stat == FixBroken ? 1.15f : 1f;
+                case "Prospector": return stat == MiningSpeed ? 1.15f : 1f;
+                case "Quarryman": return stat == MiningSpeed ? 1.20f : 1f;
+                case "Tunneller": return stat == MiningSpeed ? 1.10f : 1f;
+                default: return 1f;
+            }
+        }
+    }
+}

@@ -54,3 +54,23 @@ namespace FamilyLife
         }
     }
 }
+
+namespace FamilyLife
+{
+    /// <summary>Applies an assigned specialty's bonus to the stat it is attached to: construction, smoothing, repair and mining.</summary>
+    public sealed class StatPart_WorksSpecialty : StatPart
+    {
+        private float Factor(StatRequest req, out string who)
+        {
+            who = null; var pawn = req.Thing as Pawn; if (pawn == null || parentStat == null) return 1f;
+            foreach (var specialty in WorksCareers.BuilderSpecialties.Concat(WorksCareers.MinerSpecialties))
+            {
+                float f = WorksBonuses.Factor(specialty, parentStat.defName);
+                if (f != 1f && CareerService.IsAssignedSpecialist(pawn, WorksCareers.CareerOf(specialty), specialty)) { who = specialty; return f; }
+            }
+            return 1f;
+        }
+        public override void TransformValue(StatRequest req, ref float val) { float f = Factor(req, out _); if (f != 1f) val *= f; }
+        public override string ExplanationPart(StatRequest req) { float f = Factor(req, out string who); return f != 1f ? who + ": x" + f.ToString("0.##") : null; }
+    }
+}
