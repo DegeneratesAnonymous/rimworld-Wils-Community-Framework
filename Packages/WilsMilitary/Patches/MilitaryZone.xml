@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <!-- Adds Training Yard, Place a post and Remove a post to Architect > Zone, right after the growing zone (the same place Treasury's zone goes). -->
+  <Operation Class="PatchOperationInsert">
+    <success>Always</success>
+    <xpath>*/DesignationCategoryDef[defName="Zone"]/specialDesignatorClasses/li[text()="Designator_ZoneAdd_Growing"]</xpath>
+    <order>Append</order>
+    <value>
+      <li>FamilyLife.Designator_ZoneAdd_TrainingYard</li>
+      <li>FamilyLife.Designator_MilitaryPost</li>
+      <li>FamilyLife.Designator_RemoveMilitaryPost</li>
+    </value>
+  </Operation>
+</Patch>

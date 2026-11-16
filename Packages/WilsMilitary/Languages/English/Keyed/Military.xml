@@ -19,4 +19,37 @@
 <WFL_Military_SniperBonus>Overwatch: patient long-range kills on the enemy's most dangerous. 15% more accurate beyond 25 cells once set up (not moving); prefers the most dangerous target. Weakness: 25% slower to aim, and 15% less accurate inside 10 cells.</WFL_Military_SniperBonus>
 <WFL_Military_FieldMedicBonus>Medic: keeps the line standing, tending the fallen where they lie. Needs a Community Care Doctor qualification as well as Soldier or Ranger. Tends 15% faster with a friend down within 6 cells. Weakness: fights worse, 10% less accurate and 10% worse at landing a melee blow.</WFL_Military_FieldMedicBonus>
 <WFL_Military_OfficerBonus>Commander: coordinates the line and steadies those near. Soldiers within 10 cells of them shoot and strike 5% better in a fight (it does not stack). Weakness: directs rather than fights, 8% less accurate and 8% worse at dodging.</WFL_Military_OfficerBonus>
+<WFL_Military_Page>Military</WFL_Military_Page>
+<WFL_Military_AlertTitle>Alert</WFL_Military_AlertTitle>
+<WFL_Military_AlertNow>Current level: {0}{1}</WFL_Military_AlertNow>
+<WFL_Military_ByThreat> (raised by a threat; it stands down by itself once the map has been calm for an hour)</WFL_Military_ByThreat>
+<WFL_Military_AlertLabel>Military alert: {0}</WFL_Military_AlertLabel>
+<WFL_Military_AlertExplain_Normal>Routine and training.</WFL_Military_AlertExplain_Normal>
+<WFL_Military_AlertExplain_Yellow>Heightened watch: patrols, lookout and guard. Open Community, Military to change the level.</WFL_Military_AlertExplain_Yellow>
+<WFL_Military_AlertExplain_Red>Defensive positions. Serving soldiers are drafted and sent to their posts. Open Community, Military to change the level. Anything you order yourself stands.</WFL_Military_AlertExplain_Red>
+<WFL_Military_AutoRed>Raise Red automatically when hostiles appear</WFL_Military_AutoRed>
+<WFL_Military_AutoRedTip>When hostiles appear on the map the colony goes to Red by itself, then drops back to the level you set after an hour without any. Only pawns you have assigned a Military role are drafted, and each is handled once, so any order you give afterwards stands.</WFL_Military_AutoRedTip>
+<WFL_Military_AlertHelp>Normal is routine and training. Yellow is a heightened watch. Red sends serving soldiers to defensive positions: they are drafted and sent to the posts below (a Sniper or Marksman to an Overwatch post, a Guardian, Vanguard or Gunner to a Guard post, everyone else to the Rally point). With no posts placed, nobody is sent anywhere. At stand-down only the soldiers drafted by Red are undrafted.</WFL_Military_AlertHelp>
+<WFL_Military_RedRaised>Hostiles sighted: Red alert. Serving soldiers are going to their posts.</WFL_Military_RedRaised>
+<WFL_Military_StoodDown>The threat has passed. Military alert is now {0}.</WFL_Military_StoodDown>
+<WFL_Military_PostsTitle>Posts ({0} of {1})</WFL_Military_PostsTitle>
+<WFL_Military_PostsHelp>Posts are where soldiers stand at Red. You place them. A Guard or Overwatch post holds one soldier; the Rally point is shared. Also under Architect, Zone.</WFL_Military_PostsHelp>
+<WFL_Military_PlacePost>Place a post</WFL_Military_PlacePost>
+<WFL_Military_PlacePostDesc>Place an Overwatch post, a Guard post or the Rally point. Soldiers on Red alert go to them.</WFL_Military_PlacePostDesc>
+<WFL_Military_RemovePost>Remove a post</WFL_Military_RemovePost>
+<WFL_Military_RemovePostDesc>Take a Military post away.</WFL_Military_RemovePostDesc>
+<WFL_Military_PlaceYard>Paint a Training Yard</WFL_Military_PlaceYard>
+<WFL_Military_PostHomeOnly>Posts can only be placed on a home map.</WFL_Military_PostHomeOnly>
+<WFL_Military_PostsFull>There are already {0} posts.</WFL_Military_PostsFull>
+<WFL_Military_MorePosts>and {0} more</WFL_Military_MorePosts>
+<WFL_Military_Remove>Remove</WFL_Military_Remove>
+<WFL_Military_Post_Overwatch>Overwatch post</WFL_Military_Post_Overwatch>
+<WFL_Military_Post_Guard>Guard post</WFL_Military_Post_Guard>
+<WFL_Military_Post_Rally>Rally point</WFL_Military_Post_Rally>
+<WFL_Military_PostDesc_Overwatch>for Snipers and Marksmen</WFL_Military_PostDesc_Overwatch>
+<WFL_Military_PostDesc_Guard>for Guardians, Vanguards and Gunners</WFL_Military_PostDesc_Guard>
+<WFL_Military_PostDesc_Rally>where everyone else gathers</WFL_Military_PostDesc_Rally>
+<WFL_Military_TrainingYard>Training Yard</WFL_Military_TrainingYard>
+<WFL_Military_TrainingYardDesc>Paint an area where soldiers drill, spar and practise.</WFL_Military_TrainingYardDesc>
+<WFL_Military_RolesTitle>Roles and doctrine</WFL_Military_RolesTitle>
 </LanguageData>

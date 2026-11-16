@@ -30,11 +30,15 @@ namespace FamilyLife
             FamilyFramework.Tended.Add(Id + ".tends", Id, MilitaryCombat.Tended);
             FamilyFramework.TargetBias.Add(Id + ".targets", Id, MilitaryDoctrineGame.Bias);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, MilitaryStories.Social);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, MilitaryDoctrineGame.Reset);
+            FamilyFramework.Pages.Register(new CommunityPage<Func<Rect, FamilyComponent, float>> { Id = Id + ".alert", ModuleId = Id, LabelKey = "WFL_Military_Page", Order = 160, Icon = "UI/Commands/Attack", Render = MilitaryPage.Draw, Status = MilitaryPage.Attention });
+            FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".alert", ModuleId = Id, Interval = 250, Run = MilitaryAlertDriver.Run });
+            FamilyFramework.Reconcilers.Add(Id + ".reconcile", Id, MilitaryAlertDriver.Reconcile);
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Clear in-memory combat records", () => { MilitaryDoctrineGame.Reset(); return "careers, experience and memories retained; this module adds no jobs or hediffs"; });
+                report.Step("Stand down any Red alert", () => { var state = c.Registry.Alert(); int n = state.Drafted.Count; MilitaryAlertDriver.StandDown(c, state); state.RaisedByThreat = false; state.Set = AlertLevel.Normal; return n + " soldier(s) this drafted were undrafted; posts and the Training Yard are kept"; });
+                report.Step("Clear in-memory combat records", () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); return "careers, experience and memories retained; this module adds no jobs or hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);
@@ -190,7 +194,7 @@ namespace FamilyLife
             CareerService.Report(c, tender, MilitaryCareers.Career, "FieldMedic", "mil.tend", "tend:" + patient.thingIDNumber + ":" + day, MilitaryCareers.FieldTendPoints, FrameworkServices.Now);
         }
 
-        private static bool HostilesAbout(Map map)
+        internal static bool HostilesAbout(Map map)
         {
             foreach (var p in map.mapPawns.AllPawnsSpawned) if (!p.Dead && !p.Downed && p.Faction != Faction.OfPlayer && p.HostileTo(Faction.OfPlayer) && !p.IsPrisoner) return true;
             return false;
