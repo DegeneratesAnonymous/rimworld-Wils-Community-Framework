@@ -2,7 +2,7 @@
 
 Two optional role modules, built the way Crafting and Agriculture are: a career tree in the shared career ledger, experience from real game activity, specialty bonuses that apply only to a pawn who is **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events for every role. Each references only the framework.
 
-**Status: compiles for 1.6 and 1.7, 1,542 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
+**Status: compiles for 1.6 and 1.7, 1,560 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
 
 ## 1. Intelligence — `SpacemanWil.WilsIntelligence`
 
@@ -127,8 +127,19 @@ Settled by question and answer; none of it is in the code yet.
 ## 9. Build slices for Military v2
 
 1. **Built:** the cross-career rule, the Support branch (Field Medic, Officer) with doctrine, events and strings, the 40% combat share, field tending experience.
-2. Alert levels, the toggle, posts and the Training Yard.
-3. The daily duties and their experience.
+2. **Built:** alert levels, the toggle, posts and the Training Yard (below).
+3. The daily duties and their experience (not built).
+
+### Slice 2: what it does
+
+- **Alert state** (`AlertState`, saved as `wils.military.alert`): Normal, Yellow or Red. The player sets a level on **Community → Military** (three buttons). With *automatic Red* on (the default), hostiles on a home map raise Red; after an hour (`CalmTicks` = 2,500) with none it drops back to the set level. A Red the player sets stays until they change it. An on-screen alert ("Military alert: Yellow/Red") is shown whenever the level is not Normal, and the Military page carries a badge at Red.
+- **At Red** every *serving* soldier (anyone assigned a Military role) who is a free colonist, able, not in a mental state and not barred from violence is **drafted** if not already, and sent **once** to a post: Sniper and Marksman to an Overwatch post, Guardian, Vanguard and Gunner to a Guard post, everyone else to the Rally point. An Overwatch or Guard post holds one soldier, Rally is shared, and with no suitable post nobody is sent. Each soldier is handled once per Red, so anything the player orders afterwards stands. At stand-down **only the people Red drafted** are undrafted. Assigning a Military role is the consent; there is no other switch beyond *automatic Red*.
+- **Posts** are placed from Architect → Zone ("Place a post", then Overwatch, Guard or Rally; "Remove a post") or from the Military page, are saved per map, shown on the map while placing and at Red, and capped at 60.
+- **Training Yard** is a painted zone (Architect → Zone). It stores nothing and **does nothing yet**: the drills that use it are slice 3.
+- **Normal and Yellow have no effect yet** beyond the level showing: patrols, lookout, guard, drills and the rest are the duties of slice 3.
+- Not built: a hotkey, and a button on the map itself. The on-screen alert and the Community page are the ways in for now.
+
+**Not verified in the game:** that drafting and the Goto order behave as intended (including pawns that are asleep, carrying someone, or on a job the game protects), that the Architect entries appear, that the on-screen alert shows and the map labels draw, and the zone's behaviour. All of it compiles for 1.6 and 1.7 and its rules are tested, but none of it has run.
 
 ## 10. Open items
 
