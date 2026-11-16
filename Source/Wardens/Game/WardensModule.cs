@@ -25,12 +25,15 @@ namespace FamilyLife
             foreach (var specialty in WardenCareers.Specialties)
                 CareerService.RegisterRole(new ProfessionRole { Id = WardenCareers.Role(specialty), ModuleId = Id, Career = WardenCareers.Career, Level = 3, Specialty = specialty, BonusKey = "WFL_Wardens_" + specialty + "Bonus" });
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, WardenWork.Labour);
+            FamilyFramework.LabourDone.Add(Id + ".responsible", Id, WardenTreatmentGame.Labour);
+            FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".treatment", ModuleId = Id, Interval = 2500, Run = WardenTreatmentGame.Run });
+            FamilyFramework.Reconcilers.Add(Id + ".reconcile", Id, WardenTreatmentGame.Reconcile);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, WardenStories.Social);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, WardenStories.Reset);
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Clear in-memory records", () => { WardenStories.Reset(); return "careers, experience and memories retained; this module adds no jobs or hediffs"; });
+                report.Step("Clear in-memory records", () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); return "careers, experience, the treatment record and memories retained; this module adds no jobs or hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);

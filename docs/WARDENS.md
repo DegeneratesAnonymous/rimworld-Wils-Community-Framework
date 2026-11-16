@@ -1,6 +1,6 @@
-# Wardens — agreed design (slice 1 built)
+# Wardens — agreed design (slices 1 and 2 built)
 
-A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Slice 1 is built** (the career tree, 75 events, strings, the three stat bonuses, experience hooks and packaging); **everything else below is not.** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
+A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Slices 1 and 2 are built** (the career tree, 75 events, strings, the three stat bonuses, experience hooks and packaging; then the treatment record, kin reactions and conflict of interest); **the rooms, the Community page and cell rounds are not.** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
 
 ## Tree
 
@@ -52,9 +52,20 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 ## Build slices
 
 1. **Built:** tree, careers, events, strings, stat bonuses, experience hooks, tests, packaging. Experience is routed by name (`WardenClassifier`): a conversion job, a slave or suppression job, a holding-platform or containment job, else any job under the Warden work type or with *Prisoner* or *Warden* in its name. Memories: routine success, outstanding result or pride after a finished job, and relationship events when two role-holders interact. **Not verified in the game:** that those names match the real jobs, that the work-type name is `Warden`, and the stat parts. The negative events have thoughts but no triggers yet.
-2. Treatment record, kin reactions and conflict of interest.
+2. **Built:** the treatment record, kin reactions and conflict of interest (below).
 3. The recognised rooms and the Community page.
 4. Cell rounds and the slave-family check.
+
+## Slice 2: the treatment record
+
+- **Who is responsible.** A holder of any Warden role who finishes a job whose target is a prisoner of the colony becomes **the warden responsible** for that prisoner for the next five days (renewed by every job). Nobody else is ever credited.
+- **Care, every hour.** Each prisoner on a home map is looked at: **Good** if fed (30% or more), in a decent mood (40% or more) and not needing tending; **Poor** if starving (under 15%), miserable (under 20%) or needing tending now; otherwise Fair. The result is added to the responsible warden's record, counted separately for kin and for everyone else.
+- **Outcomes.** Live references to the current prisoners are kept; when someone stops being a prisoner their final state is read: dead (executed if the colony had set them to be executed, otherwise died in custody), a slave of the colony (enslaved), a member of the colony (recruited), otherwise released. (A prisoner who escapes also reads as released.) Counted on the responsible warden's record.
+- **Kin reactions.** Relatives (blood, spouse, lover or fiancé) in the colony react to **both**: good care pleases them (mood +2) and poor care angers them (−3); a recruit (+3) and a release (+4) please them; an enslavement (−5), a death in custody (−4) and an execution (−8) hurt. If a warden was responsible they also gain a **good or bad opinion of that warden** (+6 or −6 for five days). Fair care changes nothing. Each is given at most once in three days per person, thought and prisoner.
+- **Conflict of interest.** A warden looking after a prisoner who is their own kin is **torn between duty and family** (mood −2). And a warden whose share of good care for kin prisoners differs from their share for everyone else's by 40 points or more (at least six looks at each; either direction, easy or hard) is noticed: **colleagues** (other Warden-role holders) get a bad opinion of them, at most once a week, after which the counts are halved so it is not announced again at once. Whole-number arithmetic, so a gap of exactly forty counts.
+- **Saved** as `wils.wardens.record` (per-warden counters, who is responsible for whom, the time of the last favouritism notice), bounded: counters are halved at 400, 200 prisoners are remembered, and records of people who are gone are dropped on load.
+- **It only watches.** A test fails if the code ever starts changing a prisoner (faction, jobs, health, interaction mode, drafting, release, killing).
+- **Not verified in the game:** that the prisoner and slave properties read what is meant, that the execution mode is read in time, that the relation checks find the kin, the thought values and wording in play, and the hourly look at a large prison. Slave families (the Overseer's check on rounds) are slice 4 and not built.
 
 ## What it would not do
 
