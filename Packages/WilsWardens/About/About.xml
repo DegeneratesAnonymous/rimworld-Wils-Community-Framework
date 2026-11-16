@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+<name>Wil's Role Modules : Wardens</name><author>Spaceman_Wil</author><packageId>SpacemanWil.WilsWardens</packageId><modVersion>0.1.0</modVersion>
+<supportedVersions><li>1.6</li><li>1.7</li></supportedVersions>
+<modDependencies><li><packageId>SpacemanWil.WilsFamilyLife</packageId><displayName>Wil's Community Framework</displayName></li></modDependencies>
+<loadAfter><li>SpacemanWil.WilsFamilyLife</li></loadAfter>
+<description>Guard, Warden, and the specialties Confessor, Overseer and Containment Keeper. Experience comes from the game's own warden work, conversion, slave oversight and containment work; specialty bonuses (conversion power, suppression power, study efficiency) apply only to a qualified pawn assigned to that exact specialty. Confessor and Overseer need Ideology and the Containment Keeper needs Anomaly: without them those specialties simply have no work. First slice only: the career, its events and its bonuses. Early draft: offline builds and tests do not constitute RimWorld gameplay validation.</description>
+</ModMetaData>

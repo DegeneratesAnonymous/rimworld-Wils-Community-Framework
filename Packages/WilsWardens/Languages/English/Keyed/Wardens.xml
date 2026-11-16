@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?><LanguageData>
+<WFL_Wardens_Career>Wardens</WFL_Wardens_Career>
+<wils.wardens.guard_label>Guard</wils.wardens.guard_label><wils.wardens.warden_label>Warden</wils.wardens.warden_label>
+<wils.wardens.confessor_label>Confessor</wils.wardens.confessor_label><wils.wardens.overseer_label>Overseer</wils.wardens.overseer_label><wils.wardens.containmentkeeper_label>Containment Keeper</wils.wardens.containmentkeeper_label>
+<WFL_Wardens_ConfessorBonus>Needs Ideology. Conversion power rises 15%. Experience comes from converting prisoners.</WFL_Wardens_ConfessorBonus>
+<WFL_Wardens_OverseerBonus>Needs Ideology (slaves). Slave suppression power rises 15%. Experience comes from overseeing slaves.</WFL_Wardens_OverseerBonus>
+<WFL_Wardens_ContainmentKeeperBonus>Needs Anomaly. Study efficiency rises 10%. Experience comes from containment work.</WFL_Wardens_ContainmentKeeperBonus>
+</LanguageData>

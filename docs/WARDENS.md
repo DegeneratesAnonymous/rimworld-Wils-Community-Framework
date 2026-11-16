@@ -1,6 +1,6 @@
-# Wardens — agreed design (not yet built)
+# Wardens — agreed design (slice 1 built)
 
-A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Nothing here is in the code yet.** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
+A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Slice 1 is built** (the career tree, 75 events, strings, the three stat bonuses, experience hooks and packaging); **everything else below is not.** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
 
 ## Tree
 
@@ -49,9 +49,9 @@ Warden: Social 6, 120 experience. Confessor: Social 8 and Intellectual 6. Overse
 
 Whether the Confessor should need the Chaplain's post or stay independent of it (they overlap); the Warden's events (the 75 thoughts, to be written); the exact care measurements (what counts as "decent mood", how long a stint is credited); and whether prisoner outcomes the player chooses by hand are credited to the warden at all or only to the colony.
 
-## Build slices (proposed)
+## Build slices
 
-1. Tree, careers, events, strings, stat bonuses, experience hooks, tests.
+1. **Built:** tree, careers, events, strings, stat bonuses, experience hooks, tests, packaging. Experience is routed by name (`WardenClassifier`): a conversion job, a slave or suppression job, a holding-platform or containment job, else any job under the Warden work type or with *Prisoner* or *Warden* in its name. Memories: routine success, outstanding result or pride after a finished job, and relationship events when two role-holders interact. **Not verified in the game:** that those names match the real jobs, that the work-type name is `Warden`, and the stat parts. The negative events have thoughts but no triggers yet.
 2. Treatment record, kin reactions and conflict of interest.
 3. The recognised rooms and the Community page.
 4. Cell rounds and the slave-family check.

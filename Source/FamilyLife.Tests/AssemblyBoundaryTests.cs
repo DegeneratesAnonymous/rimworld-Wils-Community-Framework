@@ -151,11 +151,13 @@ namespace FamilyLife.Tests
         [InlineData("1.7", "WilsIntelligence")]
         [InlineData("1.6", "WilsMilitary")]
         [InlineData("1.7", "WilsMilitary")]
+        [InlineData("1.6", "WilsWardens")]
+        [InlineData("1.7", "WilsWardens")]
         public void Intelligence_and_Military_use_only_the_framework_contract_and_ship_only_their_assembly(string version, string name)
         {
             var module = Read(Module(version, name, name)); var framework = Read(Framework(version));
             Assert.Contains("FamilyLife", module.References);
-            foreach (var other in new[] { "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsIntelligence", "WilsMilitary" }.Where(o => o != name)) Assert.DoesNotContain(other, module.References);
+            foreach (var other in new[] { "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsIntelligence", "WilsMilitary", "WilsWardens" }.Where(o => o != name)) Assert.DoesNotContain(other, module.References);
             Assert.Empty(module.Types.Intersect(framework.Types));
             var dlls = Directory.GetFiles(Path.GetDirectoryName(module.Path), "*.dll").Select(Path.GetFileName).ToList(); Assert.Equal(new[] { name + ".dll" }, dlls);
         }

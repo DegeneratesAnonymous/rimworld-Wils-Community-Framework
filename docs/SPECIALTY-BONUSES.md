@@ -33,4 +33,8 @@ Analyst: +10% on any project. Geneticist: +15% on gene projects. Dark Scholar (D
 
 Each combat specialty has one job and one weakness, applied only in the situation it is for: Vanguard (faster while closing, harder once engaged, easier to hit), Guardian (less damage while covering an ally, slower), Duelist (better one-on-one, worse outnumbered), Marksman (accurate at mid range and prefers the exposed, poor point-blank), Gunner (fires more often and prefers the nearest, poor at range), Sniper (accurate from far once set up and prefers the most dangerous, slow to aim and poor close in). Field Medic (tends 15% faster beside a downed friend, fights 10% worse; needs a Community Care Doctor as well as Soldier or Ranger). Officer (other soldiers within 10 cells shoot and strike 5% better, does not stack; the Officer is 8% less accurate and worse at dodging). Factors stay within 0.8 to 1.25; shooters' target preferences nudge the game's score and never remove a target. Detail: [INTELLIGENCE-MILITARY.md](INTELLIGENCE-MILITARY.md).
 
+## Wardens
+
+Confessor: +15% conversion power (Ideology). Overseer: +15% suppression power (Ideology slaves). Containment Keeper: +10% study efficiency (Anomaly). The plain Warden has no bonus: it earns experience only. Detail: [WARDENS.md](WARDENS.md).
+
 Wil's Role Modules : Treasury currently has no level-three specialty; Treasurer and Tax Collector therefore receive no fabricated specialty bonus. If Treasury gains branching specialties later, they should use this same assigned-specialty rule.

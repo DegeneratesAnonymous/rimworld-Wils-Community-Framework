@@ -18,6 +18,7 @@
     <Compile Include="..\Crafting\Domain\**\*.cs" LinkBase="Crafting\Domain" />
     <Compile Include="..\Intelligence\Domain\**\*.cs" LinkBase="Intelligence\Domain" />
     <Compile Include="..\Military\Domain\**\*.cs" LinkBase="Military\Domain" />
+    <Compile Include="..\Wardens\Domain\**\*.cs" LinkBase="Wardens\Domain" />
     <Compile Remove="obj/**" />
   </ItemGroup>
   <ItemGroup>

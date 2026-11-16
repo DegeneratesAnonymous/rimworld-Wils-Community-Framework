@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <!-- Most vanilla StatDefs declare no parts list: append when one exists, otherwise create the list with the part in it. Always succeeds, so a stat that is not there
+       (ConversionPower and SuppressionPower need Ideology, StudyEfficiency needs Anomaly) is skipped quietly. -->
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="ConversionPower"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="ConversionPower"]/parts</xpath><value><li Class="FamilyLife.StatPart_WardenSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="ConversionPower"]</xpath><value><parts><li Class="FamilyLife.StatPart_WardenSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="SuppressionPower"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="SuppressionPower"]/parts</xpath><value><li Class="FamilyLife.StatPart_WardenSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="SuppressionPower"]</xpath><value><parts><li Class="FamilyLife.StatPart_WardenSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="StudyEfficiency"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="StudyEfficiency"]/parts</xpath><value><li Class="FamilyLife.StatPart_WardenSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="StudyEfficiency"]</xpath><value><parts><li Class="FamilyLife.StatPart_WardenSpecialty" /></parts></value></nomatch>
+  </Operation>
+</Patch>
