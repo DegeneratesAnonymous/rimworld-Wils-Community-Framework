@@ -46,15 +46,35 @@ namespace FamilyLife.Domain
         }
     }
 
-    /// <summary>What the colony remembers for Works (saved as <c>wils.works.record</c>): whether workers make their rounds on their own.</summary>
+    /// <summary>What the colony remembers for Works (saved as <c>wils.works.record</c>): whether workers make their rounds on their own, and for each worker when they were last hurt on the job and when their kin last felt relieved. Bounded.</summary>
     public sealed class WorksLedger : IModuleState
     {
         public const string StateId = "wils.works.record";
+        public const int MaxWorkers = 200;
         public string Id => StateId;
         /// <summary>On by default (holding a Works role is the consent); the player can turn it off.</summary>
         public bool RoundsOn = true;
-        public string Encode() => new StateWriter().Bool("norounds", !RoundsOn).ToString();
-        public static WorksLedger Decode(StateReader r) => new WorksLedger { RoundsOn = !r.Bool("norounds") };
+        private readonly Dictionary<int, int> harm = new Dictionary<int, int>(), relief = new Dictionary<int, int>();
+
+        public int LastHarm(int worker) => harm.TryGetValue(worker, out int t) ? t : 0;
+        public int LastRelief(int worker) => relief.TryGetValue(worker, out int t) ? t : 0;
+        public void Harmed(int worker, int now) { if (worker > 0 && (harm.ContainsKey(worker) || harm.Count < MaxWorkers)) harm[worker] = Math.Max(1, now); }
+        public void Relieved(int worker, int now) { if (worker > 0 && (relief.ContainsKey(worker) || relief.Count < MaxWorkers)) relief[worker] = Math.Max(1, now); }
+        public void Prune(Func<int, bool> alive) { foreach (int id in harm.Keys.Where(k => !alive(k)).ToList()) harm.Remove(id); foreach (int id in relief.Keys.Where(k => !alive(k)).ToList()) relief.Remove(id); }
+
+        public string Encode()
+        {
+            var h = harm.Keys.OrderBy(x => x).ToList(); var r = relief.Keys.OrderBy(x => x).ToList();
+            return new StateWriter().Bool("norounds", !RoundsOn).Ints("h", h).Ints("ht", h.Select(i => harm[i]).ToList()).Ints("r", r).Ints("rt", r.Select(i => relief[i]).ToList()).ToString();
+        }
+
+        public static WorksLedger Decode(StateReader rd)
+        {
+            var l = new WorksLedger { RoundsOn = !rd.Bool("norounds") };
+            var h = rd.Ints("h"); var ht = rd.Ints("ht"); for (int i = 0; i < h.Count && i < ht.Count && l.harm.Count < MaxWorkers; i++) if (h[i] > 0 && ht[i] > 0) l.harm[h[i]] = ht[i];
+            var r = rd.Ints("r"); var rt = rd.Ints("rt"); for (int i = 0; i < r.Count && i < rt.Count && l.relief.Count < MaxWorkers; i++) if (r[i] > 0 && rt[i] > 0) l.relief[r[i]] = rt[i];
+            return l;
+        }
     }
 
     public sealed class WorksLedgerFactory : IStateFactory<WorksLedger>

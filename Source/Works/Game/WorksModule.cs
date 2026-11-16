@@ -29,11 +29,13 @@ namespace FamilyLife
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, WorksWork.Labour);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, WorksStories.Social);
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".rounds", ModuleId = Id, Interval = 500, Run = WorksRoundGame.Run });
-            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WorksStories.Reset(); WorksRoomGame.Reset(); WorksRoundGame.Reset(); });
+            FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".family", ModuleId = Id, Interval = 2500, Run = WorksFamilyGame.Run });
+            FamilyFramework.Reconcilers.Add(Id + ".reconcile", Id, WorksFamilyGame.Reconcile);
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WorksStories.Reset(); WorksRoomGame.Reset(); WorksRoundGame.Reset(); WorksFamilyGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Clear in-memory records", () => { WorksStories.Reset(); WorksRoomGame.Reset(); WorksRoundGame.Reset(); return "careers and experience retained; the round job ends by itself and adds no hediffs"; });
+                report.Step("Clear in-memory records", () => { WorksStories.Reset(); WorksRoomGame.Reset(); WorksRoundGame.Reset(); WorksFamilyGame.Reset(); return "careers and experience retained; the round job ends by itself and adds no hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);
@@ -113,7 +115,8 @@ namespace FamilyLife
             var track = WorksClassifier.Classify(r.JobDef, Facts(r)); if (track == null) return;
             int points = WorksRooms.Points(track.Points, WorksRooms.Suits(track.Kind), WorksRoomGame.PlaceOf(r.Pawn.Map, r.Pawn.CurJob?.targetA.Cell ?? r.Pawn.Position));
             CareerService.Report(c, r.Pawn, track.Career, track.Specialty, track.Kind, track.Kind + ":" + r.JobId, points, FrameworkServices.Now);
-            WorksStories.Worked(r.Pawn, r.JobId);
+            WorksStories.Worked(r.Pawn, r.JobId); WorksFamilyGame.Crew(r.Pawn);
+            if (r.JobDef == "FinishFrame") WorksFamilyGame.Built(r.Pawn, r.Pawn.CurJob?.targetA.Cell ?? r.Pawn.Position);
         }
     }
 }

@@ -222,5 +222,58 @@ namespace FamilyLife.Tests
             string module = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/Game/WorksModule.cs")); Assert.Contains("WorksRoundGame.Run", module); Assert.Contains("WorksRoundGame.Reset()", module);
             Assert.Contains("WFL_WorksRound", File.ReadAllText(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Defs/WorksJobs.xml")));
         }
+
+        [Fact]
+        public void Kin_are_worried_by_deep_wounds_not_scratches_and_grieve_only_what_the_work_took()
+        {
+            Assert.False(WorksFamily.Worrying(4.9f)); Assert.True(WorksFamily.Worrying(5f)); Assert.False(WorksFamily.Worrying(0f));
+            Assert.True(WorksFamily.LostToTheWork(true, false)); Assert.False(WorksFamily.LostToTheWork(true, true)); Assert.False(WorksFamily.LostToTheWork(false, false));          // a death in a fight is the fight's, and someone not at work is not the work's
+        }
+
+        [Fact]
+        public void Relief_comes_only_after_a_safe_fifteen_days_of_real_work_and_never_before_a_baseline_exists()
+        {
+            int d = 60000;
+            Assert.False(WorksFamily.ReliefDue(100 * d, 0, 0, true)); Assert.False(WorksFamily.ReliefDue(100 * d, 80 * d, 0, false));
+            Assert.False(WorksFamily.ReliefDue(94 * d, 80 * d, 0, true)); Assert.True(WorksFamily.ReliefDue(95 * d, 80 * d, 0, true));
+            Assert.False(WorksFamily.ReliefDue(95 * d, 80 * d, 90 * d, true));          // relieved five days ago
+            Assert.False(WorksFamily.ReliefDue(60 * d, 80 * d, 0, true));          // the clock never runs backwards
+        }
+
+        [Fact]
+        public void Working_alongside_needs_both_at_work_and_close()
+        {
+            Assert.True(WorksFamily.Alongside(true, true, 12f)); Assert.False(WorksFamily.Alongside(true, true, 12.1f)); Assert.False(WorksFamily.Alongside(true, false, 1f)); Assert.False(WorksFamily.Alongside(false, true, 1f));
+        }
+
+        [Fact]
+        public void The_family_thoughts_are_defined_with_the_right_signs_and_do_not_collide_with_events()
+        {
+            var defs = XDocument.Load(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Defs/WorksFamilyThoughts.xml")).Descendants("ThoughtDef").ToDictionary(x => x.Element("defName").Value);
+            Assert.Equal(WorksFamily.Thoughts.OrderBy(x => x), defs.Keys.OrderBy(x => x));
+            int Mood(string n) => int.Parse(defs[n].Descendants("baseMoodEffect").Single().Value);
+            Assert.True(Mood(WorksFamily.Worried) < 0); Assert.True(Mood(WorksFamily.Lost) < Mood(WorksFamily.Worried)); Assert.True(Mood(WorksFamily.Relieved) > 0); Assert.True(Mood(WorksFamily.BuiltForUs) > 0); Assert.True(Mood(WorksFamily.CrewMood) > 0);
+            Assert.True(int.Parse(defs[WorksFamily.CrewBond].Descendants("baseOpinionOffset").Single().Value) > 0);
+            Assert.Empty(WorksFamily.Thoughts.Intersect(WorksEvents.All.Select(e => e.Thought)));
+        }
+
+        [Fact]
+        public void The_history_is_saved_bounded_and_forgets_the_gone()
+        {
+            var l = new WorksLedger(); l.Harmed(1, 500); l.Relieved(1, 900); l.Harmed(0, 5); l.Relieved(-3, 5); l.Relieved(2, 100);
+            var d = WorksLedger.Decode(new StateReader(l.Encode())); Assert.Equal(500, d.LastHarm(1)); Assert.Equal(900, d.LastRelief(1)); Assert.Equal(100, d.LastRelief(2)); Assert.Equal(0, d.LastHarm(0)); Assert.Equal(0, d.LastRelief(-3)); Assert.True(d.RoundsOn);
+            d.Prune(id => id == 1); Assert.Equal(0, d.LastRelief(2)); Assert.Equal(500, d.LastHarm(1));
+            var big = new WorksLedger(); for (int i = 1; i <= WorksLedger.MaxWorkers + 50; i++) big.Harmed(i, i); Assert.Equal(0, big.LastHarm(WorksLedger.MaxWorkers + 1)); Assert.Equal(5, big.LastHarm(5));
+        }
+
+        [Fact]
+        public void The_family_game_only_remembers_and_reacts_and_is_registered_and_pruned()
+        {
+            string code = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/Game/WorksFamilyGame.cs"));
+            foreach (var forbidden in new[] { ".Destroy(", ".Kill(", "SetFaction", ".jobs.", "StartJob", "TakeDamage", ".Severity =", "ownership.Unclaim", "ClaimBedIfNonMedical", "Designate" }) Assert.DoesNotContain(forbidden, code);
+            Assert.DoesNotContain("\"WFL_K_", code);          // every thought comes from the named constants, which are tested against the Defs
+            Assert.Contains("IsPlayerHome", code); Assert.Contains("k != builder", code); Assert.Contains("k != worker", code);          // nobody is given a memory about themselves
+            string module = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/Game/WorksModule.cs")); Assert.Contains("WorksFamilyGame.Run", module); Assert.Contains("WorksFamilyGame.Reconcile", module); Assert.Contains("WorksFamilyGame.Reset()", module); Assert.Contains("WorksFamilyGame.Crew", module); Assert.Contains("WorksFamilyGame.Built", module);
+        }
     }
 }
