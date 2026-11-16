@@ -11,10 +11,10 @@ Casters were considered and **set aside for now**: the owner could not see how t
 
 5. **Ladder.** Labourer (level 1, anyone) → Journeyman (level 2, a modest skill and some experience, earns experience only) → specialty (level 3, a higher skill, carries the bonus). Same shape for both careers.
 6. **Daily work: maintenance rounds.** An idle Builder walks the colony repairing damaged buildings through the game's own repair job; an idle Miner walks the mines and tunnels checking supports and roofs and earns experience (nothing is changed). Gentle form as in Military duties and Warden rounds: idle only, rested, capped per day, ended at once by any need, order or hostiles, with an on/off switch.
+7. **Bonuses** (each only for a pawn qualified and assigned to that exact specialty; stats checked to exist in the 1.6 reference): Mason +15% ConstructionSpeed and +10% ConstructSuccessChance; Carpenter +15% SmoothingSpeed and +10% ConstructSuccessChance; Engineer +15% ConstructionSpeed and +15% FixBrokenDownBuildingSuccessChance; Prospector +15% MiningSpeed; Quarryman +20% MiningSpeed; Tunneller +10% MiningSpeed plus the injury idea if feasible. **There is no MiningYield stat in the game's code, so ore yield is not boosted.** To be re-checked against 1.7 by compiling before building.
 
 ## Still to decide (asked in this order)
 
-- Each specialty's bonus: which stats the game really has (to be verified by compiling against both versions, as in every other module).
 - What counts as experience (jobs finished, by kind).
 - Daily automated work that benefits the colony, in the gentle idle-only form used by Military duties and Warden rounds.
 - Recognised rooms or places, if any.
