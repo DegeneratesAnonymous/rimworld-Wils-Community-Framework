@@ -162,7 +162,22 @@ Settled by question and answer. **The Military items are now built (section 9); 
 - **Community → Intelligence** shows how many of each room the game has recognised, the rule, and what each specialty does.
 - **Not verified in the game:** the room matching (furniture names), that a pawn's room is the one meant, the mech job names, that a Chemist's extra unit lands on the stack, the stat parts on `NegotiationAbility`, `SocialImpact` and `MechBandwidth`, and that the page lists rooms.
 
-## 11. Open items
+## 11. Military management menu (agreed, not yet built)
+
+Settled with the owner by question and answer; none of it is in the code yet. Today the Military page has the alert buttons, the duties switches, a post list and the roles; the on-screen alert only *displays* the level, so there is **no quick control yet**.
+
+- **Home:** the Military page becomes a tabbed menu in the Community window: **Alert**, **Positions**, **Facilities**, **Soldiers**. Placing things still happens on the map.
+- **Defensive positions** are typed **Melee, Ranged or Mixed**, plus the **Rally** point, and replace Overwatch and Guard (an existing Overwatch post becomes Ranged, Guard becomes Melee, Rally is unchanged). A soldier takes a position of their own type first (Soldier branch: Melee, Ranger branch: Ranged), then a Mixed one, then Rally; Field Medics and Officers prefer Mixed. One soldier per position; Rally is shared.
+- **Patrol spots** are typed **Melee, Ranged or Mixed**. Single spots, **ordered automatically within a route**, **no limit on spots per route, several routes**. A route is named and numbered (Route 1, Route 2, ...), each with a colour on the map; **the route is chosen when the spot is placed**, and a spot can be moved to another route from the menu. **A patrol walks a stretch of its route for about one duty block and the next patrol continues where it stopped**, so a long route is covered over several patrols and a short one is walked in full. With fewer than two spots a patrol still falls back to the home area.
+- **Armory:** a painted zone preset as a weapons and armour stockpile. At **Yellow or Red** a serving soldier with no suitable weapon (none, or the wrong kind for their branch) takes **the best suited** one from it (highest quality of the right kind, ties by value; any for Support and Recruits) and **keeps it**. Existing gear is never touched.
+- **Training Yard:** unchanged, one type.
+- **Who goes where:** automatic by type and distance by default, with **optional posting**: on the Soldiers tab a specific soldier can be posted to a route or position and then always uses it; choosing automatic puts them back.
+- **Soldiers tab:** each serving soldier's role, the specialty they are practising and their progress; what they are doing now and where (route or position), click to select; and the posting control. (No off-duty toggle.)
+- **Quick alert control:** an **icon in the bottom bar's button cluster**, coloured by level. **Left-click cycles** Normal, Yellow, Red and back; **right-click** opens a menu to pick a level or open the Military menu. The Military menu's Alert tab is the secondary place to set it.
+
+**Build slices:** (1) typed positions, patrol routes, posting and the tabbed menu; (2) the Armory and arming the unarmed; (3) the bottom-bar icon.
+
+## 12. Open items
 
 - A Community page for each module (the doctrine table, who holds which role, recent combat credit), like Agriculture's.
 - Positioning (section 3).
