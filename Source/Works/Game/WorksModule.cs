@@ -28,11 +28,12 @@ namespace FamilyLife
             FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Works_Page", Order = 170, Render = WorksPage.Draw });
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, WorksWork.Labour);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, WorksStories.Social);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WorksStories.Reset(); WorksRoomGame.Reset(); });
+            FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".rounds", ModuleId = Id, Interval = 500, Run = WorksRoundGame.Run });
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WorksStories.Reset(); WorksRoomGame.Reset(); WorksRoundGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Clear in-memory records", () => { WorksStories.Reset(); WorksRoomGame.Reset(); return "careers and experience retained; this module adds no jobs or hediffs"; });
+                report.Step("Clear in-memory records", () => { WorksStories.Reset(); WorksRoomGame.Reset(); WorksRoundGame.Reset(); return "careers and experience retained; the round job ends by itself and adds no hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);

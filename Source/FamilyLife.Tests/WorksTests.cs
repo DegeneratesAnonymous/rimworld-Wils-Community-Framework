@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using FamilyLife.Domain;
+using FamilyLife.Framework;
 using Xunit;
 
 namespace FamilyLife.Tests
@@ -178,6 +179,48 @@ namespace FamilyLife.Tests
             Assert.Contains("class WorksRoomGame", code); Assert.Contains("WorksPage.Draw", code); Assert.Contains("WorksRoomGame.PlaceOf", code);
             var lang = XDocument.Load(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Languages/English/Keyed/Works.xml")).Root;
             foreach (var key in new[] { "WFL_Works_Page", "WFL_Works_PlacesTitle", "WFL_Works_SpecialtiesTitle", "WFL_Works_PlacesFound", "WFL_Works_PlacesHelp" }) Assert.NotNull(lang.Element(key));
+        }
+
+        private static WorkStop S(long id, int x, float fraction = 1f, int seen = 0) => new WorkStop { Id = id, X = x, Fraction = fraction, LastSeen = seen };
+
+        [Fact]
+        public void A_builder_repairs_the_most_damaged_building_below_the_threshold_nearest_first_and_nothing_whole()
+        {
+            Assert.Equal(2, WorksRounds.ChooseRepair(new[] { S(1, 0, .6f), S(2, 50, .3f), S(3, 5, .9f) }, 0, 0).Id);
+            Assert.Equal(1, WorksRounds.ChooseRepair(new[] { S(1, 2, .5f), S(2, 50, .5f) }, 0, 0).Id);          // equally damaged: the nearer
+            Assert.Null(WorksRounds.ChooseRepair(new[] { S(1, 0, 1f), S(2, 0, .75f), S(3, 0, 0f) }, 0, 0)); Assert.Null(WorksRounds.ChooseRepair(null, 0, 0)); Assert.Null(WorksRounds.ChooseRepair(new WorkStop[] { null }, 0, 0));
+        }
+
+        [Fact]
+        public void A_miners_walk_visits_the_least_recently_seen_rooms_first_at_most_four_nearest_first_and_deterministically()
+        {
+            var plan = WorksRounds.Plan(new[] { S(1, 0, seen: 900), S(2, 50), S(3, 10), S(4, 20, seen: 500), S(5, 5, seen: 2000), S(2, 1, seen: 7) }, 0, 0);
+            Assert.Equal(WorksRounds.MaxStops, plan.Count); Assert.Equal(1, plan.Count(s => s.Id == 2)); Assert.DoesNotContain(plan, s => s.Id == 5);          // the most recently seen is left for next time
+            Assert.Equal(plan.Select(s => s.Id), WorksRounds.Plan(new[] { S(1, 0, seen: 900), S(2, 50), S(3, 10), S(4, 20, seen: 500), S(5, 5, seen: 2000), S(2, 1, seen: 7) }.Reverse(), 0, 0).Select(s => s.Id));
+            Assert.Empty(WorksRounds.Plan(null, 0, 0));
+        }
+
+        [Fact]
+        public void Rounds_are_rationed_and_never_empty_the_site()
+        {
+            Assert.True(WorksRounds.MayStart(1000, 0, 0)); Assert.False(WorksRounds.MayStart(1000 + WorksRounds.CooldownTicks - 1, 1000, 1)); Assert.True(WorksRounds.MayStart(1000 + WorksRounds.CooldownTicks, 1000, 1)); Assert.False(WorksRounds.MayStart(999999, 1000, WorksRounds.MaxPerDay));
+            Assert.Equal(0, WorksRounds.MaxOnRound(0)); Assert.Equal(1, WorksRounds.MaxOnRound(1)); Assert.Equal(1, WorksRounds.MaxOnRound(2)); Assert.Equal(2, WorksRounds.MaxOnRound(3)); for (int n = 2; n < 30; n++) Assert.True(WorksRounds.MaxOnRound(n) < n);
+        }
+
+        [Fact]
+        public void The_rounds_switch_is_saved_and_defaults_to_on()
+        {
+            var l = new WorksLedger(); Assert.True(WorksLedger.Decode(new StateReader(l.Encode())).RoundsOn); l.RoundsOn = false; Assert.False(WorksLedger.Decode(new StateReader(l.Encode())).RoundsOn); Assert.True(WorksLedger.Decode(new StateReader("")).RoundsOn);
+        }
+
+        [Fact]
+        public void The_round_only_repairs_through_the_games_job_or_walks_and_never_changes_anything_else()
+        {
+            string code = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/Game/WorksRoundGame.cs"));
+            foreach (var forbidden in new[] { ".Destroy(", ".Kill(", "SetFaction", "Designate", "TakeDamage", ".HitPoints =", "HitPoints +=", "Teleport", "TryTakeOrderedJob", "roofGrid.SetRoof" }) Assert.DoesNotContain(forbidden, code);
+            Assert.Contains("JobDefOf.Repair", code); Assert.Contains("lastJobTag != JobTag.Idle", code); Assert.Contains("playerForced", code); Assert.Contains("Sleep", code); Assert.Contains("HostilesAbout", code); Assert.Contains("RoundsOn", code); Assert.Contains("CanReserveAndReach", code);
+            string module = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/Game/WorksModule.cs")); Assert.Contains("WorksRoundGame.Run", module); Assert.Contains("WorksRoundGame.Reset()", module);
+            Assert.Contains("WFL_WorksRound", File.ReadAllText(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Defs/WorksJobs.xml")));
         }
     }
 }

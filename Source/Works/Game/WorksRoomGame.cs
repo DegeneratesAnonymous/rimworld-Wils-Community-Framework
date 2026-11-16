@@ -67,6 +67,11 @@ namespace FamilyLife
                 float h = CommunityPageLayout.Line(s, 0f, "WFL_Works_PlacesFound".Translate(workshops, mines));
                 return CommunityPageLayout.Line(s, h, "WFL_Works_PlacesHelp".Translate(), true);
             });
+            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Works_RoundsTitle".Translate(), s =>
+            {
+                var ledger = c.Registry.Works(); bool on = ledger.RoundsOn; Widgets.CheckboxLabeled(new Rect(0f, 0f, s.width, 24f), "WFL_Works_RoundsOn".Translate(), ref on); ledger.RoundsOn = on;
+                return CommunityPageLayout.Line(s, 28f, "WFL_Works_RoundsHelp".Translate(), true);
+            });
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Works_SpecialtiesTitle".Translate(), s =>
             {
                 float h = 0f;

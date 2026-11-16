@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?><Defs>
+  <JobDef><defName>WFL_WorksRound</defName><driverClass>FamilyLife.JobDriver_WorksRound</driverClass><reportString>looking over the workings.</reportString><casualInterruptible>true</casualInterruptible></JobDef>
+</Defs>
