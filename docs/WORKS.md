@@ -13,10 +13,10 @@ Casters were considered and **set aside for now**: the owner could not see how t
 6. **Daily work: maintenance rounds.** An idle Builder walks the colony repairing damaged buildings through the game's own repair job; an idle Miner walks the mines and tunnels checking supports and roofs and earns experience (nothing is changed). Gentle form as in Military duties and Warden rounds: idle only, rested, capped per day, ended at once by any need, order or hostiles, with an on/off switch.
 7. **Bonuses** (each only for a pawn qualified and assigned to that exact specialty; stats checked to exist in the 1.6 reference): Mason +15% ConstructionSpeed and +10% ConstructSuccessChance; Carpenter +15% SmoothingSpeed and +10% ConstructSuccessChance; Engineer +15% ConstructionSpeed and +15% FixBrokenDownBuildingSuccessChance; Prospector +15% MiningSpeed; Quarryman +20% MiningSpeed; Tunneller +10% MiningSpeed plus the injury idea if feasible. **There is no MiningYield stat in the game's code, so ore yield is not boosted.** To be re-checked against 1.7 by compiling before building.
 
-## Still to decide (asked in this order)
+8. **Places:** a **Workshop** (an enclosed room with a work table or two; work in it earns ×1.25 experience for Builders) and a **Mine** (the colony's own dug-out tunnels; work there earns ×1.25 for Miners). Recognised from what is in them, never painted, and shown on the Community page. How a Mine is told from natural rock still has to be worked out.
+9. **Family and social effects:** (a) **dangerous work worries kin**: a Builder or Miner hurt, nearly killed or killed on the job leaves their relatives in the colony a worry or grief memory, and a safe stretch earns a relieved memory; (b) **home-building pride**: a Builder who finishes a room or building that a family member lives in leaves that relative a "built this for us" memory; (c) **working families**: relatives on the same crew get a small bond bonus and a shared memory for a job done together. Each role also gets the usual 5 positive, 5 negative and 5 relationship events, generated like the other modules'.
 
-- What counts as experience (jobs finished, by kind).
-- Daily automated work that benefits the colony, in the gentle idle-only form used by Military duties and Warden rounds.
-- Recognised rooms or places, if any.
-- Events, moods and family and social effects: the five positive, five negative and five relationship events for each role.
-- Build slices and verification.
+## Still to settle (my defaults, to be confirmed before building)
+
+- What counts as experience: jobs finished, by kind (construction, repair, smoothing, mining, deep drilling), with Journeyman and specialty thresholds to be chosen.
+- Build slices and verification, as for Wardens: career tree and events first, then bonuses, then experience hooks, then places and the page, then rounds, then family effects.
