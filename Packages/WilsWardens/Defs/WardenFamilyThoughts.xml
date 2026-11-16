@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+<ThoughtDef><defName>WFL_W_SlaveFamilyTogether</defName><durationDays>3</durationDays><stackLimit>1</stackLimit><stages><li><label>my family is together</label><description>We sleep under the same roof, whatever else is done to us.</description><baseMoodEffect>2</baseMoodEffect></li></stages></ThoughtDef>
+<ThoughtDef><defName>WFL_W_SlaveFamilyApart</defName><durationDays>3</durationDays><stackLimit>1</stackLimit><stages><li><label>my family is kept apart</label><description>They sleep in another room, and I cannot reach them.</description><baseMoodEffect>-3</baseMoodEffect></li></stages></ThoughtDef>
+</Defs>

@@ -20,7 +20,7 @@ namespace FamilyLife
         private static readonly Dictionary<string, int> last = new Dictionary<string, int>();
         public static void Reset() { watched.Clear(); last.Clear(); }
 
-        private static bool Kin(Pawn a, Pawn b)
+        internal static bool Kin(Pawn a, Pawn b)
         {
             if (a?.relations == null || b == null || a == b) return false;
             try
@@ -32,7 +32,7 @@ namespace FamilyLife
         }
 
         /// <summary>Gives a thought, at most once in three days per person, thought, other person and prisoner.</summary>
-        private static void Give(Pawn subject, string thought, Pawn other, int prisoner)
+        internal static void Give(Pawn subject, string thought, Pawn other, int prisoner)
         {
             if (subject == null || thought == null) return;
             int day = FrameworkServices.EconomyDay; string key = subject.thingIDNumber + ":" + thought + ":" + (other?.thingIDNumber ?? 0) + ":" + prisoner;

@@ -28,13 +28,14 @@ namespace FamilyLife
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, WardenWork.Labour);
             FamilyFramework.LabourDone.Add(Id + ".responsible", Id, WardenTreatmentGame.Labour);
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".treatment", ModuleId = Id, Interval = 2500, Run = WardenTreatmentGame.Run });
+            FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".rounds", ModuleId = Id, Interval = 500, Run = WardenRoundGame.Run });
             FamilyFramework.Reconcilers.Add(Id + ".reconcile", Id, WardenTreatmentGame.Reconcile);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, WardenStories.Social);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); WardenRoomGame.Reset(); });
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); WardenRoomGame.Reset(); WardenRoundGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Clear in-memory records", () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); WardenRoomGame.Reset(); return "careers, experience, the treatment record and memories retained; this module adds no jobs or hediffs"; });
+                report.Step("Clear in-memory records", () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); WardenRoomGame.Reset(); WardenRoundGame.Reset(); return "careers, experience, the treatment record and memories retained; the round job ends by itself and adds no hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);

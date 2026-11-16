@@ -1,6 +1,6 @@
-# Wardens — agreed design (slices 1 to 3 built)
+# Wardens — agreed design (slices 1 to 4 built)
 
-A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Slices 1 and 2 are built** (the career tree, 75 events, strings, the three stat bonuses, experience hooks and packaging; then the treatment record, kin reactions and conflict of interest); **the rounds and the slave-family check are not, and the Interview and Visiting rooms do nothing yet (see below).** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
+A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Slices 1 and 2 are built** (the career tree, 75 events, strings, the three stat bonuses, experience hooks and packaging; then the treatment record, kin reactions and conflict of interest); **slice 3 (rooms and the Community page) and slice 4 (cell rounds and the slave-family check) are built too, but the Interview and Visiting rooms do nothing yet (see below).** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
 
 ## Tree
 
@@ -54,7 +54,7 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 1. **Built:** tree, careers, events, strings, stat bonuses, experience hooks, tests, packaging. Experience is routed by name (`WardenClassifier`): a conversion job, a slave or suppression job, a holding-platform or containment job, else any job under the Warden work type or with *Prisoner* or *Warden* in its name. Memories: routine success, outstanding result or pride after a finished job, and relationship events when two role-holders interact. **Not verified in the game:** that those names match the real jobs, that the work-type name is `Warden`, and the stat parts. The negative events have thoughts but no triggers yet.
 2. **Built:** the treatment record, kin reactions and conflict of interest (below).
 3. **Built:** the recognised rooms and the Community page (below).
-4. Cell rounds and the slave-family check.
+4. Cell rounds and the slave-family check (built).
 
 ## Slice 2: the treatment record
 
@@ -65,7 +65,7 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 - **Conflict of interest.** A warden looking after a prisoner who is their own kin is **torn between duty and family** (mood −2). And a warden whose share of good care for kin prisoners differs from their share for everyone else's by 40 points or more (at least six looks at each; either direction, easy or hard) is noticed: **colleagues** (other Warden-role holders) get a bad opinion of them, at most once a week, after which the counts are halved so it is not announced again at once. Whole-number arithmetic, so a gap of exactly forty counts.
 - **Saved** as `wils.wardens.record` (per-warden counters, who is responsible for whom, the time of the last favouritism notice), bounded: counters are halved at 400, 200 prisoners are remembered, and records of people who are gone are dropped on load.
 - **It only watches.** A test fails if the code ever starts changing a prisoner (faction, jobs, health, interaction mode, drafting, release, killing).
-- **Not verified in the game:** that the prisoner and slave properties read what is meant, that the execution mode is read in time, that the relation checks find the kin, the thought values and wording in play, and the hourly look at a large prison. Slave families (the Overseer's check on rounds) are slice 4 and not built.
+- **Not verified in the game:** that the prisoner and slave properties read what is meant, that the execution mode is read in time, that the relation checks find the kin, the thought values and wording in play, and the hourly look at a large prison. Slave families are slice 4, below.
 
 ## Slice 3: rooms and the Community page
 
@@ -74,6 +74,14 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 - **Community → Wardens** shows how many of each room the game has recognised, each warden's treatment record (care good, fair and poor, kin, and outcomes), and what each specialty does.
 - **The Interview and Visiting rooms have no effect, and the page says so.** In the vanilla game a warden chats with, feeds and converts a prisoner where the prisoner is, in their cell, and nothing ever takes a prisoner to another room. The design said the module would never move anyone, which would leave these two rooms recognised but unable to matter. **The owner chose to add escorts so they work.** That reverses "never moves anyone" and needs its own design and feasibility checks, so it is **not built**: it is slice 5, below.
 - **Not verified in the game:** that the room role and the chair, table and bed counts read what is meant, and that the page lists rooms.
+
+## Slice 4: cell rounds and the slave-family check
+
+- **The round** is the job `WFL_WardenRound`. `WardenRoundGame.Run` looks every 500 ticks. A Warden is sent only if idle (the game's own idle tag, not forced by the player), awake, outside Sleep and Joy hours, not hungry or tired, with no need or medical rest pending, rested (4000 ticks since the last round, at most 3 a day) and no hostiles on the map. At most half the wardens (at least one) are on a round at once, and at most one is started per look. Holding any Warden role counts as consent; the Community "Wardens" page has a switch to turn rounds off.
+- **Where:** `WardenRounds.Plan` takes the rooms where prisoners sleep (an Overseer also gets the slave rooms), the rooms seen least recently first, at most 6 stops, then walks them nearest-first. Each stop is a 200-tick pause. Deterministic and tested.
+- **What a round does:** whoever is in the room at a stop becomes that warden's responsibility (the same record the care samples credit), and a round that made at least one stop earns 4 points (an Overseer's count toward their specialty). It never moves, locks, frees or changes anyone; a guard test enforces that.
+- **Slave families:** at the end of an Overseer's round every pair of slave kin is looked at: the same room is *together*, different rooms *apart* (unknown rooms and repeated pairs are not counted). The slaves get a 3-day memory (+2 together, -3 apart), the Overseer's record keeps the counts (shown on the page), and nothing is moved.
+- **Not verified in the game:** idle detection and job pickup, room recognition for stops and slave beds, the thought values, and whether wardens walk sensibly around a large prison.
 
 ## Slice 5 (not designed yet): escorts
 

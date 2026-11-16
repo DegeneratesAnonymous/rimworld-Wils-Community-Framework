@@ -88,11 +88,13 @@ namespace FamilyLife.Domain
 
         public sealed class Stats
         {
-            public int Good, Fair, Poor, KinGood, KinTotal, OtherGood, OtherTotal, Recruited, Released, Enslaved, Executed, Died, LastFavouritism;
+            public int Good, Fair, Poor, KinGood, KinTotal, OtherGood, OtherTotal, Recruited, Released, Enslaved, Executed, Died, LastFavouritism, FamiliesTogether, FamiliesApart;
             public int Samples => Good + Fair + Poor;
             public int Outcomes => Recruited + Released + Enslaved + Executed + Died;
         }
 
+        /// <summary>Wardens make their rounds on their own. On by default (holding a Warden role is the consent); the player can turn it off.</summary>
+        public bool RoundsOn = true;
         private readonly Dictionary<int, Stats> wardens = new Dictionary<int, Stats>();
         private readonly Dictionary<int, KeyValuePair<int, int>> responsible = new Dictionary<int, KeyValuePair<int, int>>();          // prisoner -> (warden, tick)
         public IEnumerable<int> Wardens => wardens.Keys;
@@ -120,6 +122,9 @@ namespace FamilyLife.Domain
 
         private static void Halve(Stats s) { s.Good /= 2; s.Fair /= 2; s.Poor /= 2; s.KinGood /= 2; s.KinTotal /= 2; s.OtherGood /= 2; s.OtherTotal /= 2; }
 
+        /// <summary>An Overseer's look at slave families: how many were together and how many apart.</summary>
+        public void Families(int warden, int together, int apart) { if (warden <= 0) return; var s = Of(warden); s.FamiliesTogether += Math.Max(0, together); s.FamiliesApart += Math.Max(0, apart); }
+
         public void Outcome(int warden, PrisonerOutcome outcome)
         {
             if (warden <= 0) return; var s = Of(warden);
@@ -146,19 +151,19 @@ namespace FamilyLife.Domain
         {
             var ids = wardens.Keys.OrderBy(x => x).ToList(); Func<Func<Stats, int>, List<int>> col = f => ids.Select(i => f(wardens[i])).ToList();
             var pr = responsible.Keys.OrderBy(x => x).ToList();
-            return new StateWriter().Ints("w", ids).Ints("good", col(s => s.Good)).Ints("fair", col(s => s.Fair)).Ints("poor", col(s => s.Poor)).Ints("kg", col(s => s.KinGood)).Ints("kt", col(s => s.KinTotal)).Ints("og", col(s => s.OtherGood)).Ints("ot", col(s => s.OtherTotal))
-                .Ints("rec", col(s => s.Recruited)).Ints("rel", col(s => s.Released)).Ints("ens", col(s => s.Enslaved)).Ints("exe", col(s => s.Executed)).Ints("die", col(s => s.Died)).Ints("fav", col(s => s.LastFavouritism))
+            return new StateWriter().Bool("norounds", !RoundsOn).Ints("w", ids).Ints("good", col(s => s.Good)).Ints("fair", col(s => s.Fair)).Ints("poor", col(s => s.Poor)).Ints("kg", col(s => s.KinGood)).Ints("kt", col(s => s.KinTotal)).Ints("og", col(s => s.OtherGood)).Ints("ot", col(s => s.OtherTotal))
+                .Ints("rec", col(s => s.Recruited)).Ints("rel", col(s => s.Released)).Ints("ens", col(s => s.Enslaved)).Ints("exe", col(s => s.Executed)).Ints("die", col(s => s.Died)).Ints("fav", col(s => s.LastFavouritism)).Ints("ft", col(s => s.FamiliesTogether)).Ints("fa", col(s => s.FamiliesApart))
                 .Ints("p", pr).Ints("pw", pr.Select(i => responsible[i].Key).ToList()).Ints("pt", pr.Select(i => responsible[i].Value).ToList()).ToString();
         }
 
         public static WardenLedger Decode(StateReader r)
         {
-            var l = new WardenLedger(); var ids = r.Ints("w");
+            var l = new WardenLedger { RoundsOn = !r.Bool("norounds") }; var ids = r.Ints("w");
             Func<string, List<int>> col = k => r.Ints(k); var good = col("good"); var fair = col("fair"); var poor = col("poor"); var kg = col("kg"); var kt = col("kt"); var og = col("og"); var ot = col("ot");
-            var rec = col("rec"); var rel = col("rel"); var ens = col("ens"); var exe = col("exe"); var die = col("die"); var fav = col("fav");
+            var rec = col("rec"); var rel = col("rel"); var ens = col("ens"); var exe = col("exe"); var die = col("die"); var fav = col("fav"); var ft = col("ft"); var fa = col("fa");
             Func<List<int>, int, int> at = (list, i) => i < list.Count ? Math.Max(0, list[i]) : 0;
             for (int i = 0; i < ids.Count; i++)
-                if (ids[i] > 0 && !l.wardens.ContainsKey(ids[i])) l.wardens[ids[i]] = new Stats { Good = at(good, i), Fair = at(fair, i), Poor = at(poor, i), KinGood = at(kg, i), KinTotal = at(kt, i), OtherGood = at(og, i), OtherTotal = at(ot, i), Recruited = at(rec, i), Released = at(rel, i), Enslaved = at(ens, i), Executed = at(exe, i), Died = at(die, i), LastFavouritism = at(fav, i) };
+                if (ids[i] > 0 && !l.wardens.ContainsKey(ids[i])) l.wardens[ids[i]] = new Stats { Good = at(good, i), Fair = at(fair, i), Poor = at(poor, i), KinGood = at(kg, i), KinTotal = at(kt, i), OtherGood = at(og, i), OtherTotal = at(ot, i), Recruited = at(rec, i), Released = at(rel, i), Enslaved = at(ens, i), Executed = at(exe, i), Died = at(die, i), LastFavouritism = at(fav, i), FamiliesTogether = at(ft, i), FamiliesApart = at(fa, i) };
             var p = r.Ints("p"); var pw = r.Ints("pw"); var pt = r.Ints("pt");
             for (int i = 0; i < p.Count && i < pw.Count && i < pt.Count && l.responsible.Count < MaxPrisoners; i++) if (p[i] > 0 && pw[i] > 0) l.responsible[p[i]] = new KeyValuePair<int, int>(pw[i], pt[i]);
             return l;

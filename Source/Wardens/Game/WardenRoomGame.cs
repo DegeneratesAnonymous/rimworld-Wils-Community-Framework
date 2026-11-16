@@ -80,6 +80,17 @@ namespace FamilyLife
                 }
                 return shown == 0 ? CommunityPageLayout.Line(s, h, "WFL_Wardens_RecordNone".Translate(), true) : h;
             });
+            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Wardens_RoundsTitle".Translate(), s =>
+            {
+                var ledger = c.Registry.Wardens(); bool on = ledger.RoundsOn; Widgets.CheckboxLabeled(new Rect(0f, 0f, s.width, 24f), "WFL_Wardens_RoundsOn".Translate(), ref on); ledger.RoundsOn = on;
+                float h = CommunityPageLayout.Line(s, 28f, "WFL_Wardens_RoundsHelp".Translate(), true); int shown = 0;
+                foreach (int id in ledger.Wardens.OrderBy(x => x))
+                {
+                    var st = ledger.Of(id); if (st.FamiliesTogether + st.FamiliesApart == 0) continue;
+                    var pawn = c.TryGetPawn(id); h = CommunityPageLayout.Line(s, h, "WFL_Wardens_FamilyLine".Translate(pawn != null ? pawn.LabelShortCap : "?", st.FamiliesTogether, st.FamiliesApart)); shown++;
+                }
+                return h;
+            });
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Wardens_SpecialtiesTitle".Translate(), s =>
             {
                 float h = 0f;

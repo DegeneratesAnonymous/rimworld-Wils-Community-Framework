@@ -14,4 +14,9 @@
 <WFL_Wardens_RecordLine>{0}: care good {1}, fair {2}, poor {3} (kin good {4} of {5}). Prisoners: recruited {6}, released {7}, enslaved {8}, executed {9}, died {10}.</WFL_Wardens_RecordLine>
 <WFL_Wardens_RecordNone>Nobody has looked after a prisoner yet.</WFL_Wardens_RecordNone>
 <WFL_Wardens_SpecialtiesTitle>Specialties</WFL_Wardens_SpecialtiesTitle>
+<WFL_Wardens_Round>making the rounds.</WFL_Wardens_Round>
+<WFL_Wardens_RoundsTitle>Rounds</WFL_Wardens_RoundsTitle>
+<WFL_Wardens_RoundsOn>Wardens make their rounds when idle</WFL_Wardens_RoundsOn>
+<WFL_Wardens_RoundsHelp>An idle Warden walks past the cells, pausing at each; whoever they see becomes theirs to answer for. Never with hostiles about, never more than half the wardens at once, and any need or order ends it. An Overseer also looks in on the slave quarters and notes whether slave families sleep together. Nobody is ever moved.</WFL_Wardens_RoundsHelp>
+<WFL_Wardens_FamilyLine>{0}: slave families together {1}, apart {2}</WFL_Wardens_FamilyLine>
 </LanguageData>
