@@ -47,6 +47,7 @@ namespace FamilyLife
                 var pending = new List<Pawn>();
                 foreach (var p in map.mapPawns.FreeColonistsSpawned) if (MilitaryRoles.Serving(p) && !state.Ordered.Contains(p.thingIDNumber) && CanMuster(p)) pending.Add(p);
                 if (pending.Count == 0) continue;
+                var weapons = MilitaryArmory.Weapons(map); int now = FrameworkServices.Now;
                 var plan = PostPlanner.Assign(pending.Select(p => new RedSoldier { Id = p.thingIDNumber, Specialty = MilitaryRoles.Specialty(p), X = p.Position.x, Z = p.Position.z, Posted = postings.PositionOf(p.thingIDNumber) }), posts.All.Where(x => x.Map == map.uniqueID));
                 foreach (var p in pending)
                 {
@@ -54,12 +55,16 @@ namespace FamilyLife
                     if (!alreadyDrafted) { p.drafter.Drafted = true; state.Drafted.Add(id); }
                     state.Ordered.Add(id);
                     // someone the player had already drafted is under the player's hand: they are counted but not sent, so an order given a moment ago is never cut across
-                    if (!alreadyDrafted && plan.TryGetValue(id, out var post)) Send(p, map, post);
+                    // a soldier with no suitable weapon fetches the best one from an Armory first, then goes to their position
+                    Job arm = null;
+                    if (!alreadyDrafted && weapons.Count > 0 && MilitaryArmory.MayTry(p, now)) { MilitaryArmory.NoteTry(p, now); arm = MilitaryArmory.ArmJob(p, MilitaryRoles.ActiveRole(p), weapons); }
+                    if (arm != null) { weapons.Remove((ThingWithComps)arm.targetA.Thing); p.jobs.TryTakeOrderedJob(arm, JobTag.Misc); }
+                    if (!alreadyDrafted && plan.TryGetValue(id, out var post)) Send(p, map, post, arm != null);
                 }
             }
         }
 
-        private static void Send(Pawn pawn, Map map, MilitaryPost post)
+        private static void Send(Pawn pawn, Map map, MilitaryPost post, bool queue = false)
         {
             var center = new IntVec3(post.X, 0, post.Z); IntVec3 dest = IntVec3.Invalid;
             foreach (var cell in GenRadial.RadialCellsAround(center, post.Kind == PostKind.Rally ? 5f : 1f, true))
@@ -72,7 +77,7 @@ namespace FamilyLife
             if (!dest.IsValid) return;
             claimed.Add(dest);
             var job = JobMaker.MakeJob(JobDefOf.Goto, dest); job.locomotionUrgency = LocomotionUrgency.Jog;
-            pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
+            pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc, queue);
         }
 
         public static void StandDown(FamilyComponent c, AlertState state)

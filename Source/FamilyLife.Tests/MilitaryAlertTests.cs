@@ -229,7 +229,7 @@ namespace FamilyLife.Tests
         {
             string text = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Patches/MilitaryZone.xml")); string source = string.Join("\n", System.IO.Directory.GetFiles(System.IO.Path.Combine(Root, "Source/Military"), "*.cs", System.IO.SearchOption.AllDirectories));
             string code = string.Join("\n", System.IO.Directory.GetFiles(System.IO.Path.Combine(Root, "Source/Military"), "*.cs", System.IO.SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")).Select(System.IO.File.ReadAllText));
-            foreach (var cls in new[] { "Designator_ZoneAdd_TrainingYard", "Designator_MilitaryPost", "Designator_PatrolSpot", "Designator_RemoveMilitaryPost" })
+            foreach (var cls in new[] { "Designator_ZoneAdd_TrainingYard", "Designator_ZoneAddStockpile_Armory", "Designator_MilitaryPost", "Designator_PatrolSpot", "Designator_RemoveMilitaryPost" })
             { Assert.Contains("<li>FamilyLife." + cls + "</li>", text); Assert.Matches(@"class\s+" + cls + @"\b", code); }
             Assert.Contains("<success>Always</success>", text);
             Assert.Matches(@"class\s+Zone_TrainingYard\b", code); Assert.Matches(@"class\s+MilitaryMapComponent\s*:\s*MapComponent", code); Assert.Matches(@"class\s+Alert_MilitaryAlert\s*:\s*Alert", code);
@@ -299,6 +299,22 @@ namespace FamilyLife.Tests
             Assert.Contains("posted || PatrolPlanner.Eligible(type, x.Type)", duty);          // a posted soldier walks every spot of their route, others only what suits them
             Assert.Contains("Posted = postings.PositionOf(p.thingIDNumber)", alert);          // Red honours a posting
             Assert.Contains("c.Registry.Postings().Reconcile(", alert);          // and a posting never outlives its soldier, route or position
+        }
+
+        [Fact]
+        public void The_armory_is_a_real_stockpile_set_to_weapons_and_armour_and_arming_only_fills_gaps()
+        {
+            string armory = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryArmoryGame.cs")); string alert = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryAlertGame.cs")); string module = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryModule.cs"));
+            Assert.Matches(@"class\s+Zone_Armory\s*:\s*Zone_Stockpile", armory); Assert.Matches(@"class\s+Designator_ZoneAddStockpile_Armory\s*:\s*Designator_ZoneAddStockpile", armory);
+            Assert.Contains("filter.SetDisallowAll()", armory); Assert.Contains("\"Weapons\"", armory); Assert.Contains("\"ApparelArmor\"", armory);          // weapons and armour only
+            Assert.Contains("weapon.IsForbidden(p)", armory); Assert.Contains("CanReserveAndReach(weapon", armory); Assert.Contains("EquipmentUtility.CanEquip(weapon, p)", armory);          // never a forbidden, unreachable or unequippable weapon
+            Assert.Contains("!Needs(p, role)", armory); Assert.Contains("ArmoryRules.NeedsWeapon(PostPlanner.TypeOf(role), Held(p))", armory);          // only a soldier with a gap
+            Assert.Contains("Effective != AlertLevel.Yellow", armory); Assert.Contains("ThreatNow(map)", armory);          // at Yellow, and never with hostiles about (Red does its own)
+            Assert.Contains("MilitaryDutyGame.SoldierFree(p)", armory); Assert.Contains("ArmoryRules.PerLook", armory);          // only the idle, a couple at a time
+            Assert.Contains("if (!alreadyDrafted && weapons.Count > 0 && MilitaryArmory.MayTry(p, now))", alert);          // at Red, never a soldier the player had already drafted
+            Assert.Contains("weapons.Remove((ThingWithComps)arm.targetA.Thing)", alert); Assert.Contains("Send(p, map, post, arm != null)", alert);          // each weapon goes to one soldier, then they go to their position
+            Assert.Contains("OfType<Zone_Armory>().ToList()", module);          // a saved zone of an absent module cannot load, so it is removed with the module
+            Assert.Contains("Id + \".armory\"", module);
         }
     }
 }

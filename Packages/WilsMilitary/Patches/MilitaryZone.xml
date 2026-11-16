@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Patch>
-  <!-- Adds Training Yard, Place a defensive position, Place a patrol spot and Remove to Architect > Zone, right after the growing zone (the same place Treasury's zone goes). -->
+  <!-- Adds Training Yard, Armory, Place a defensive position, Place a patrol spot and Remove to Architect > Zone, right after the growing zone (the same place Treasury's zone goes). -->
   <Operation Class="PatchOperationInsert">
     <success>Always</success>
     <xpath>*/DesignationCategoryDef[defName="Zone"]/specialDesignatorClasses/li[text()="Designator_ZoneAdd_Growing"]</xpath>
     <order>Append</order>
     <value>
       <li>FamilyLife.Designator_ZoneAdd_TrainingYard</li>
+      <li>FamilyLife.Designator_ZoneAddStockpile_Armory</li>
       <li>FamilyLife.Designator_MilitaryPost</li>
       <li>FamilyLife.Designator_PatrolSpot</li>
       <li>FamilyLife.Designator_RemoveMilitaryPost</li>

@@ -113,4 +113,11 @@
 <WFL_Military_Where_Rally>Rally point</WFL_Military_Where_Rally>
 <WFL_Military_Where_Position>{0} at {1}, {2}</WFL_Military_Where_Position>
 <WFL_Military_Where_Home>home area</WFL_Military_Where_Home>
+<WFL_Military_Armory>Armory</WFL_Military_Armory>
+<WFL_Military_ArmoryDesc>Paint a stockpile for the military's weapons and armour. When the alert is Yellow or Red, a soldier with no suitable weapon takes the best one from it.</WFL_Military_ArmoryDesc>
+<WFL_Military_ArmoryTitle>Armory</WFL_Military_ArmoryTitle>
+<WFL_Military_ArmoryStatus>{0} Armory zones holding {1} melee and {2} ranged weapons.</WFL_Military_ArmoryStatus>
+<WFL_Military_ArmoryNeeding>{0} serving soldiers have no suitable weapon right now.</WFL_Military_ArmoryNeeding>
+<WFL_Military_ArmoryHelp>An Armory is an ordinary stockpile with its filter set to weapons and armour (change it like any stockpile) that haulers will fill. At Yellow, and when Red is raised, a serving soldier with no suitable weapon (none, or the wrong kind: a melee weapon for a Ranger, a ranged one for a Soldier) goes and takes the best one: the highest quality of the right kind, ties by value. Support and Recruits take the best of any kind. They keep it. Nobody who already holds a suitable weapon is touched, and a soldier you had already drafted is never sent.</WFL_Military_ArmoryHelp>
+<WFL_Military_PlaceArmory>Paint an Armory</WFL_Military_PlaceArmory>
 </LanguageData>

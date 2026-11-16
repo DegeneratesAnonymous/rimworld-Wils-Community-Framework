@@ -33,13 +33,14 @@ namespace FamilyLife
             FamilyFramework.Pages.Register(new CommunityPage<Func<Rect, FamilyComponent, float>> { Id = Id + ".alert", ModuleId = Id, LabelKey = "WFL_Military_Page", Order = 160, Icon = "UI/Commands/Attack", Render = MilitaryPage.Draw, Status = MilitaryPage.Attention });
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".alert", ModuleId = Id, Interval = 250, Run = MilitaryAlertDriver.Run });
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".duties", ModuleId = Id, Interval = 300, Run = MilitaryDutyGame.Run });
+            FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".armory", ModuleId = Id, Interval = 600, Run = MilitaryArmory.Run });
             FamilyFramework.Reconcilers.Add(Id + ".reconcile", Id, MilitaryAlertDriver.Reconcile);
             FamilyFramework.Resets.Add(Id + ".reset", Id, () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); MilitaryDutyGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
                 report.Step("End every duty in progress", () => ModuleCleanup.EndJobs("WFL_MilitaryDuty") + " soldier(s) released from duty");
-                report.Step("Remove the Training Yard zones", () => { int n = 0; foreach (var map in Find.Maps) foreach (var z in map.zoneManager.AllZones.OfType<Zone_TrainingYard>().ToList()) { z.Delete(); n++; } return n + " zone(s) removed (a saved zone of an absent module cannot load)"; });
+                report.Step("Remove the Training Yard and Armory zones", () => { int n = 0; foreach (var map in Find.Maps) { foreach (var z in map.zoneManager.AllZones.OfType<Zone_TrainingYard>().ToList()) { z.Delete(); n++; } foreach (var z in map.zoneManager.AllZones.OfType<Zone_Armory>().ToList()) { z.Delete(); n++; } } return n + " zone(s) removed (a saved zone of an absent module cannot load; the weapons and armour in an Armory stay where they are)"; });
                 report.Step("Stand down any Red alert", () => { var state = c.Registry.Alert(); int n = state.Drafted.Count; MilitaryAlertDriver.StandDown(c, state); state.RaisedByThreat = false; state.Set = AlertLevel.Normal; return n + " soldier(s) this drafted were undrafted; posts are kept (they are only saved numbers)"; });
                 report.Step("Clear in-memory combat records", () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); MilitaryDutyGame.Reset(); return "careers, experience and memories retained; the module's one job was ended above and it adds no hediffs"; });
                 return report;

@@ -38,7 +38,7 @@ namespace FamilyLife
         private static readonly MilitaryCareerCache careerCache = new MilitaryCareerCache();
         private const int ThreatKeep = 60;
 
-        public static void Reset() { sessions.Clear(); lastEnd.Clear(); daily.Clear(); held.Clear(); heldPost.Clear(); threat.Clear(); where.Clear(); walks.Clear(); }
+        public static void Reset() { MilitaryArmory.Reset(); sessions.Clear(); lastEnd.Clear(); daily.Clear(); held.Clear(); heldPost.Clear(); threat.Clear(); where.Clear(); walks.Clear(); }
 
         /// <summary>Where a pawn on duty is posted (the yard, a route, a position), or null.</summary>
         public static string WhereOf(Pawn pawn) => pawn != null && where.TryGetValue(pawn.thingIDNumber, out var w) ? w : null;
@@ -64,10 +64,10 @@ namespace FamilyLife
             return !state.DutiesOn || state.Effective == AlertLevel.Red || pawn.Drafted || pawn.InMentalState || ThreatNow(pawn.Map);
         }
 
-        private static bool OnDuty(Pawn p) => p.CurJobDef == MilitaryDefOf.WFL_MilitaryDuty;
+        internal static bool OnDuty(Pawn p) => p.CurJobDef == MilitaryDefOf.WFL_MilitaryDuty;
 
         /// <summary>A serving soldier with nothing to do: awake, able, not hungry or tired, in Work or Anything hours, and idle (not in the middle of a task, an order or a need).</summary>
-        private static bool SoldierFree(Pawn p)
+        internal static bool SoldierFree(Pawn p)
         {
             if (p == null || !p.Spawned || p.Dead || p.Downed || p.Drafted || p.InMentalState || p.IsPrisoner || !p.RaceProps.Humanlike || p.DevelopmentalStage.Baby() || !p.Awake()) return false;
             if (p.ageTracker.AgeBiologicalYears < MilitaryDuties.MinTrainingAge || p.WorkTagIsDisabled(WorkTags.Violent)) return false;

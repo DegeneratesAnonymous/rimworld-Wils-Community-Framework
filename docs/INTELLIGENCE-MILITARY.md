@@ -2,7 +2,7 @@
 
 Two optional role modules, built the way Crafting and Agriculture are: a career tree in the shared career ledger, experience from real game activity, specialty bonuses that apply only to a pawn who is **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events for every role. Each references only the framework.
 
-**Status: compiles for 1.6 and 1.7, 1,608 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
+**Status: compiles for 1.6 and 1.7, 1,616 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
 
 ## 1. Intelligence — `SpacemanWil.WilsIntelligence`
 
@@ -164,7 +164,7 @@ Settled by question and answer. **The Military items are now built (section 9); 
 
 ## 11. Military management menu
 
-Settled with the owner by question and answer. **Slice 1 is built** (the tabbed menu, typed positions, patrol routes, posting); **the Armory and the bottom-bar icon are not yet.** Until the icon exists the on-screen alert only *displays* the level and there is **no quick control**: the Alert tab is the only place to set it.
+Settled with the owner by question and answer. **Slices 1 and 2 are built** (the tabbed menu, typed positions, patrol routes, posting, the Armory); **the bottom-bar icon is not yet.** Until the icon exists the on-screen alert only *displays* the level and there is **no quick control**: the Alert tab is the only place to set it.
 
 - **Home:** the Military page becomes a tabbed menu in the Community window: **Alert**, **Positions**, **Facilities**, **Soldiers**. Placing things still happens on the map.
 - **Defensive positions** are typed **Melee, Ranged or Mixed**, plus the **Rally** point, and replace Overwatch and Guard (an existing Overwatch post becomes Ranged, Guard becomes Melee, Rally is unchanged). A soldier takes a position of their own type first (Soldier branch: Melee, Ranger branch: Ranged), then a Mixed one, then Rally; Field Medics and Officers prefer Mixed. One soldier per position; Rally is shared.
@@ -175,11 +175,18 @@ Settled with the owner by question and answer. **Slice 1 is built** (the tabbed 
 - **Soldiers tab:** each serving soldier's role, the specialty they are practising and their progress; what they are doing now and where (route or position), click to select; and the posting control. (No off-duty toggle.)
 - **Quick alert control:** an **icon in the bottom bar's button cluster**, coloured by level. **Left-click cycles** Normal, Yellow, Red and back; **right-click** opens a menu to pick a level or open the Military menu. The Military menu's Alert tab is the secondary place to set it.
 
-**Build slices:** (1) **built:** typed positions, patrol routes, posting and the tabbed menu; (2) the Armory and arming the unarmed; (3) the bottom-bar icon.
+**Build slices:** (1) **built:** typed positions, patrol routes, posting and the tabbed menu; (2) **built:** the Armory and arming the unarmed; (3) the bottom-bar icon.
+
+### Slice 2: the Armory
+
+- **The zone.** Architect → Zone → Armory (or the Facilities tab) paints an ordinary **stockpile** zone whose filter is already set to **weapons and armour** (you can change it like any stockpile), so haulers fill it. It is a real stockpile subclass, which means a saved Armory of an absent module cannot load: preparing the module for removal deletes Armory zones (the items stay where they are).
+- **Who is armed, and when.** A serving soldier **with a gap**: no weapon, or the wrong kind for their branch (a ranged weapon for a Soldier, a melee one for a Ranger; Support and Recruits are content with anything, so only when they hold nothing). **At Yellow**, every 600 ticks, idle serving soldiers with a gap go and fetch one, at most two per look, never with hostiles about, and a soldier whose attempt failed is left alone for 5,000 ticks. **At Red**, the muster does it: a soldier the muster has just drafted fetches a weapon first and is then sent to their position. A soldier the player had already drafted is never sent.
+- **Which weapon.** The best suited: the highest quality of the right kind, ties by market value, then the lowest id; a weapon with no quality ranks below any that has one. Forbidden, unreachable and unequippable weapons (the game's own `CanEquip`, which covers a brawler and a biocoded weapon) are skipped. Each weapon goes to one soldier. They **keep** it; a wrong-kind weapon they held is replaced (the game drops it).
+- **Not verified in the game:** that the stockpile subclass and its preset filter behave, that the Equip order is accepted by drafted and idle pawns, the queued walk to the position after equipping, and the category names `Weapons` and `ApparelArmor` (matched by name; if a category is not found it is simply not allowed).
 
 ### Slice 1: what it does
 
-- **Community → Military** is now four tabs. **Alert** holds the level buttons, automatic Red and the duties and volunteers switches. **Positions** places and lists defensive positions (showing who is posted to each) and manages patrol routes. **Facilities** paints the Training Yard. **Soldiers** lists every serving soldier.
+- **Community → Military** is now four tabs. **Alert** holds the level buttons, automatic Red and the duties and volunteers switches. **Positions** places and lists defensive positions (showing who is posted to each) and manages patrol routes. **Facilities** paints the Training Yard and the Armory and shows what the Armory holds and who lacks a weapon. **Soldiers** lists every serving soldier.
 - **Defensive positions:** Melee, Ranged, Mixed and the Rally point, as agreed. A position is one soldier; Rally is shared. The lookout and the gate guard use them too.
 - **Patrol routes:** up to 12 routes and 300 spots, each route named (Route 1, Route 2, ...) and coloured on the map, each spot typed Melee, Ranged or Mixed and placed in a route you choose (from the Architect "Place a patrol spot", which asks for the route, or a new one, and the type; or the route's own buttons in the menu). A spot can be moved to another route or removed. Within a route the order is automatic: a chain from the first spot placed, nearest next. A patrol walks the **stretch** of its route that fits in about one duty block (at least two spots, never more than one lap) starting where the last patrol on that route stopped, so a long route is covered over several patrols and a short one is walked in full. A soldier walks the spots of their own type and Mixed (a Mixed soldier walks all) on the route walked least recently that has spots they may walk; a soldier posted to a route walks all of it.
 - **Posting:** on the Soldiers tab each soldier has a button: Automatic, a route or a position. A posted soldier always uses it; a posting to something that is gone, or a soldier who is gone, is dropped when the colony loads. At Red a soldier posted to a position goes there first.

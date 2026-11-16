@@ -173,7 +173,7 @@ namespace FamilyLife
 
         private static float DrawFacilities(Rect r, float y, FamilyComponent c)
         {
-            return CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Military_YardTitle".Translate(), s =>
+            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Military_YardTitle".Translate(), s =>
             {
                 int yard = 0, zones = 0;
                 foreach (var map in Find.Maps) if (map.IsPlayerHome) { var z = map.zoneManager.AllZones.OfType<Zone_TrainingYard>().ToList(); zones += z.Count; yard += z.Sum(x => x.Cells.Count); }
@@ -181,6 +181,22 @@ namespace FamilyLife
                 h = CommunityPageLayout.Line(s, h, "WFL_Military_YardHelp".Translate(), true);
                 return CommunityPageLayout.Button(s, h, "WFL_Military_PlaceYard".Translate(), () => Place(new Designator_ZoneAdd_TrainingYard()));
             });
+            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Military_ArmoryTitle".Translate(), s =>
+            {
+                int zones = 0, melee = 0, ranged = 0, needing = 0;
+                foreach (var map in Find.Maps)
+                {
+                    if (!map.IsPlayerHome) continue;
+                    zones += MilitaryArmory.Zones(map).Count();
+                    foreach (var w in MilitaryArmory.Weapons(map)) { if (w.def.IsRangedWeapon) ranged++; else melee++; }
+                    foreach (var p in map.mapPawns.FreeColonistsSpawned.Where(MilitaryRoles.Serving)) if (MilitaryArmory.Needs(p, MilitaryRoles.ActiveRole(p))) needing++;
+                }
+                float h = CommunityPageLayout.Line(s, 0f, "WFL_Military_ArmoryStatus".Translate(zones, melee, ranged));
+                h = CommunityPageLayout.Line(s, h, "WFL_Military_ArmoryNeeding".Translate(needing));
+                h = CommunityPageLayout.Line(s, h, "WFL_Military_ArmoryHelp".Translate(), true);
+                return CommunityPageLayout.Button(s, h, "WFL_Military_PlaceArmory".Translate(), () => Place(new Designator_ZoneAddStockpile_Armory()));
+            });
+            return y;
         }
 
         // ------------------------------------------------------------------ Soldiers
