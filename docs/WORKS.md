@@ -9,9 +9,11 @@ Casters were considered and **set aside for now**: the owner could not see how t
 3. **Miner specialties:** Prospector, Quarryman, Tunneller. (Deep Driller was offered and not chosen.)
 4. **Tunneller:** faster digging through rock, plus *fewer injuries*. **Feasibility caveat, to be checked before building:** vanilla has no cave-ins, so "fewer injuries" must be something the game can actually express (for example a reduced chance of harm from roof collapse near mined areas, or from mining accidents). If the game gives no safe hook for it, it will be dropped and the specialty will be digging speed only, and I will say so rather than claim it.
 
+5. **Ladder.** Labourer (level 1, anyone) → Journeyman (level 2, a modest skill and some experience, earns experience only) → specialty (level 3, a higher skill, carries the bonus). Same shape for both careers.
+6. **Daily work: maintenance rounds.** An idle Builder walks the colony repairing damaged buildings through the game's own repair job; an idle Miner walks the mines and tunnels checking supports and roofs and earns experience (nothing is changed). Gentle form as in Military duties and Warden rounds: idle only, rested, capped per day, ended at once by any need, order or hostiles, with an on/off switch.
+
 ## Still to decide (asked in this order)
 
-- The entry roles and the level-2 role of each career (names, skill thresholds, experience).
 - Each specialty's bonus: which stats the game really has (to be verified by compiling against both versions, as in every other module).
 - What counts as experience (jobs finished, by kind).
 - Daily automated work that benefits the colony, in the gentle idle-only form used by Military duties and Warden rounds.
