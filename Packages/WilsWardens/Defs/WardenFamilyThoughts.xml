@@ -2,4 +2,7 @@
 <Defs>
 <ThoughtDef><defName>WFL_W_SlaveFamilyTogether</defName><durationDays>3</durationDays><stackLimit>1</stackLimit><stages><li><label>my family is together</label><description>We sleep under the same roof, whatever else is done to us.</description><baseMoodEffect>2</baseMoodEffect></li></stages></ThoughtDef>
 <ThoughtDef><defName>WFL_W_SlaveFamilyApart</defName><durationDays>3</durationDays><stackLimit>1</stackLimit><stages><li><label>my family is kept apart</label><description>They sleep in another room, and I cannot reach them.</description><baseMoodEffect>-3</baseMoodEffect></li></stages></ThoughtDef>
+<ThoughtDef><defName>WFL_W_Interviewed</defName><durationDays>1</durationDays><stackLimit>1</stackLimit><stages><li><label>was spoken to properly</label><description>Someone sat down with me and listened.</description><baseMoodEffect>3</baseMoodEffect></li></stages></ThoughtDef>
+<ThoughtDef><defName>WFL_W_Visited</defName><durationDays>2</durationDays><stackLimit>1</stackLimit><stages><li><label>saw family</label><description>I was allowed to see someone of my own blood.</description><baseMoodEffect>6</baseMoodEffect></li></stages></ThoughtDef>
+<ThoughtDef><defName>WFL_W_VisitedKin</defName><durationDays>2</durationDays><stackLimit>1</stackLimit><stages><li><label>visited kin</label><description>I was let in to see my relative, and they are alive.</description><baseMoodEffect>3</baseMoodEffect></li></stages></ThoughtDef>
 </Defs>

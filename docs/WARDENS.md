@@ -1,4 +1,4 @@
-# Wardens — agreed design (slices 1 to 4 built)
+# Wardens — agreed design (slices 1 to 5 built)
 
 A third career module in the same pattern as Crafting, Intelligence and Military: a career tree in the shared ledger, experience from real game activity, bonuses only for a pawn **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events per role. It would reference only the framework. **Slices 1 and 2 are built** (the career tree, 75 events, strings, the three stat bonuses, experience hooks and packaging; then the treatment record, kin reactions and conflict of interest); **slice 3 (rooms and the Community page) and slice 4 (cell rounds and the slave-family check) are built too, but the Interview and Visiting rooms do nothing yet (see below).** Every decision below was made by the owner, one question at a time; the parts marked *default* are mine, to be confirmed before building.
 
@@ -35,7 +35,7 @@ Not chosen, so not planned: a gentle-or-hard doctrine for wardens.
 
 ## Daily work: cell rounds
 
-An idle Warden in their Work hours walks the Cell Block checking on prisoners (and, for an Overseer, slaves): a short automated round, in the same gentle form as Military's duties (idle only, rested, not needed elsewhere, never with hostiles about, capped per day, any need or order interrupts, a hostile or a draft ends it). It feeds the care record (who was seen, fed and tended) and the slave-family check, and earns experience. Visit escorts were *not* chosen.
+An idle Warden in their Work hours walks the Cell Block checking on prisoners (and, for an Overseer, slaves): a short automated round, in the same gentle form as Military's duties (idle only, rested, not needed elsewhere, never with hostiles about, capped per day, any need or order interrupts, a hostile or a draft ends it). It feeds the care record (who was seen, fed and tended) and the slave-family check, and earns experience. (Escorts to the Interview and Visiting rooms came later, in slice 5.)
 
 ## Experience (default, matched by name, unverified)
 
@@ -72,7 +72,7 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 - **Recognised, never painted** (`WardenRooms`, cached 600 ticks per room): a **prison cell** is whatever the game says is one (its room role is prison cell or prison barracks); **humane** means at least two of: a bed, six cells of room for each bed, a clean floor (cleanliness not below zero). An **Interview Room** is an enclosed room with no bed, a table and at least two chairs; a **Visiting Room** the same with at least four chairs.
 - **Deviation from the design.** I wrote that the Visiting Room would be "near but not inside the cells". Distance to a cell block is awkward to define, so I told the two apart by chair count instead. Say so if you want it changed.
 - **Community → Wardens** shows how many of each room the game has recognised, each warden's treatment record (care good, fair and poor, kin, and outcomes), and what each specialty does.
-- **The Interview and Visiting rooms have no effect, and the page says so.** In the vanilla game a warden chats with, feeds and converts a prisoner where the prisoner is, in their cell, and nothing ever takes a prisoner to another room. The design said the module would never move anyone, which would leave these two rooms recognised but unable to matter. **The owner chose to add escorts so they work.** That reverses "never moves anyone" and needs its own design and feasibility checks, so it is **not built**: it is slice 5, below.
+- **The Interview and Visiting rooms had no effect until slice 5.** In the vanilla game a warden chats with, feeds and converts a prisoner where the prisoner is, in their cell, and nothing ever takes a prisoner to another room. The design said the module would never move anyone, which would leave these two rooms recognised but unable to matter. **The owner chose to add escorts so they work.** That reverses "never moves anyone" and needs its own design and feasibility checks, so it was built last, as slice 5, below.
 - **Not verified in the game:** that the room role and the chair, table and bed counts read what is meant, and that the page lists rooms.
 
 ## Slice 4: cell rounds and the slave-family check
@@ -83,7 +83,7 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 - **Slave families:** at the end of an Overseer's round every pair of slave kin is looked at: the same room is *together*, different rooms *apart* (unknown rooms and repeated pairs are not counted). The slaves get a 3-day memory (+2 together, -3 apart), the Overseer's record keeps the counts (shown on the page), and nothing is moved.
 - **Not verified in the game:** idle detection and job pickup, room recognition for stops and slave beds, the thought values, and whether wardens walk sensibly around a large prison.
 
-## Slice 5: escorts (design settled in part, not built)
+## Slice 5: escorts (built)
 
 A Warden brings a prisoner to the Interview Room (for persuasion or conversion) or, if a relative is in the colony, to the Visiting Room. Decided by the owner:
 
@@ -92,8 +92,14 @@ A Warden brings a prisoner to the Interview Room (for persuasion or conversion) 
 - **How:** the Warden leads and the prisoner follows. The prisoner takes a short "being escorted" job: walks to the room beside the Warden, stays a set time, then walks back to their cell. If the Warden is interrupted or hostiles appear, the prisoner is returned at once and the escort ends. They never leave the enclosed area.
 - **Effect:** a small mood lift and good care on the warden's record; a bigger lift for a visit from kin, and kin hear of it as good treatment; and an interview also eases recruitment or conversion for that day. The recruitment effect changes game balance, so it is the most important thing to verify in play.
 
-Still to settle before code: the exact size of the recruitment and mood effects, how a door or the room's exits are kept safe while a prisoner is out, and what happens if the prisoner's own needs (hunger, sleep) come due mid-escort. Because this reverses "never moves anyone", it will need the strictest guard tests of any slice.
+**As built:**
+- `WardenEscortGame.Run` looks every 600 ticks (and honours the same rounds switch). The Warden must be idle and rested; at most half the wardens are out at once, 3 escorts a day each, and a rest after each. Candidates are checked by `WardenEscorts.Check` (mood at least 40%, not hungry or tired below 30%, not breaking out, not needing tending) and by a pathfinding check that every cell on the way is in an enclosed, roofed room that does not touch the map edge, within 80 steps.
+- **Room:** the Visiting Room if a free relative can come (they get the same job and a "visited kin" memory), otherwise the Interview Room if the prisoner is being recruited, having resistance reduced, or converted; otherwise nobody is taken.
+- **One job, three roles** (`WFL_WardenEscort`): the Warden walks there and stays 1200 ticks with the prisoner close by; the prisoner and any visitor wait for the Warden; the prisoner then walks home. Hostiles, a draft, a mental state, a need, the Warden being interrupted or 5000 ticks all end the wait, and the prisoner still goes home.
+- **Effects, deliberately small:** interview: +3 mood for a day, resistance reduced by 0.5 once (about half a vanilla recruitment chat; never below zero), or conviction down 2 points for a conversion; visit: +6 mood for two days for the prisoner and +3 for the visiting relative. Both count as good care on the warden's record (kin hear of it) and earn 6 experience.
+- **Balance:** with a daily limit per prisoner and per warden, the most an interview can remove is 0.5 resistance a day per prisoner. Treat it as a gentle help to the Confessor, not a substitute for recruiting, and tune in play.
+- **Not verified in the game:** the prisoner's behaviour once given a job (that they resume their routine and return to the cell), the pathing check, whether guards and doors interact, the thought values, and that the guest resistance and certainty changes behave. These are the first things to check in a test run.
 
 ## What it would not do
 
-It never moves, frees or punishes anyone, never decides a prisoner's fate, and changes no vanilla chance except by the three agreed stat bonuses.
+Apart from the escorts (a calm prisoner walked to a room and back), it never moves, frees or punishes anyone, never decides a prisoner's fate, and changes no vanilla chance except by the three agreed stat bonuses.

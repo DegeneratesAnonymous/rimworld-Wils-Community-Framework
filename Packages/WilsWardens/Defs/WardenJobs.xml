@@ -1,3 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?><Defs>
   <JobDef><defName>WFL_WardenRound</defName><driverClass>FamilyLife.JobDriver_WardenRound</driverClass><reportString>making the rounds.</reportString><casualInterruptible>true</casualInterruptible></JobDef>
+  <JobDef><defName>WFL_WardenEscort</defName><driverClass>FamilyLife.JobDriver_WardenEscort</driverClass><reportString>on an escort.</reportString><casualInterruptible>true</casualInterruptible></JobDef>
 </Defs>

@@ -92,6 +92,13 @@ namespace FamilyLife
                     foreach (var colleague in Colonists().Where(p => p != warden && WardenStories.ActiveRole(p) != null).ToList()) Give(colleague, KinReactions.Favouritism, warden, 0);
         }
 
+        /// <summary>A warden took a prisoner somewhere they were treated well: good care on the record, and kin hear of it.</summary>
+        internal static void Escorted(Pawn prisoner, Pawn warden)
+        {
+            var c = FamilyComponent.Current; if (c == null || prisoner == null || warden == null) return;
+            c.Registry.Wardens().Rate(warden.thingIDNumber, PrisonerCare.Good, Kin(warden, prisoner)); React(prisoner, KinReactions.ForCare(PrisonerCare.Good), warden);
+        }
+
         /// <summary>After a load: forget wardens who are gone.</summary>
         public static void Reconcile(FamilyComponent c) => c.Registry.Wardens().Prune(id => c.TryGetPawn(id) != null);
     }

@@ -13,6 +13,7 @@ namespace FamilyLife
     public static class WardenDefOf
     {
         public static JobDef WFL_WardenRound;
+        public static JobDef WFL_WardenEscort;
         static WardenDefOf() { DefOfHelper.EnsureInitializedInCtor(typeof(WardenDefOf)); }
     }
 
@@ -28,7 +29,7 @@ namespace FamilyLife
         private static readonly Dictionary<int, int[]> daily = new Dictionary<int, int[]>();
         public static void Reset() { seen.Clear(); lastEnd.Clear(); daily.Clear(); }
 
-        private static bool HostilesAbout(Map map) { try { return GenHostility.AnyHostileActiveThreatToPlayer(map); } catch (Exception) { return false; } }
+        internal static bool HostilesAbout(Map map) { try { return GenHostility.AnyHostileActiveThreatToPlayer(map); } catch (Exception) { return false; } }
         internal static bool OnRound(Pawn p) => p.CurJobDef == WardenDefOf.WFL_WardenRound;
 
         public static bool ShouldStop(Pawn p)
@@ -36,7 +37,7 @@ namespace FamilyLife
             var c = FamilyComponent.Current; return c == null || !c.Registry.Wardens().RoundsOn || p.Drafted || p.InMentalState || HostilesAbout(p.Map);
         }
 
-        private static bool Free(Pawn p)
+        internal static bool Free(Pawn p)
         {
             if (p == null || !p.Spawned || p.Dead || p.Downed || p.Drafted || p.InMentalState || p.IsPrisoner || p.IsSlave || !p.RaceProps.Humanlike || p.DevelopmentalStage.Baby() || !p.Awake()) return false;
             var assignment = p.timetable?.CurrentAssignment;
@@ -47,8 +48,8 @@ namespace FamilyLife
         }
 
         private static long Key(Map map, Room room) => ((long)map.uniqueID << 32) | (uint)room.ID;
-        private static Room RoomOf(Pawn p) => (p.ownership?.OwnedBed?.GetRoom()) ?? p.GetRoom();
-        private static IntVec3 StandIn(Room room, IntVec3 near) => room.Cells.Where(x => x.Standable(room.Map)).OrderBy(x => x.DistanceToSquared(near)).FirstOrDefault();
+        internal static Room RoomOf(Pawn p) => (p.ownership?.OwnedBed?.GetRoom()) ?? p.GetRoom();
+        internal static IntVec3 StandIn(Room room, IntVec3 near) => room.Cells.Where(x => x.Standable(room.Map)).OrderBy(x => x.DistanceToSquared(near)).FirstOrDefault();
 
         private static List<RoundStop> Stops(Map map, bool includeSlaves)
         {
