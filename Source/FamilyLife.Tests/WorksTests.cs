@@ -105,5 +105,52 @@ namespace FamilyLife.Tests
             var lang = XDocument.Load(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Languages/English/Keyed/Works.xml")).Root;
             foreach (var specialty in WorksCareers.BuilderSpecialties.Concat(WorksCareers.MinerSpecialties)) { Assert.NotNull(lang.Element("WFL_Works_" + specialty + "Bonus")); Assert.NotNull(lang.Element(WorksCareers.Role(specialty) + "_label")); }
         }
+
+        [Theory]
+        [InlineData("FinishFrame", true, false, false, "Builder", "Mason")]
+        [InlineData("FinishFrame", false, true, false, "Builder", "Carpenter")]
+        [InlineData("FinishFrame", true, true, false, "Builder", "Carpenter")]          // a stone table is furniture
+        [InlineData("FinishFrame", false, false, true, "Builder", "Engineer")]
+        [InlineData("FinishFrame", false, false, false, "Builder", null)]
+        [InlineData("Repair", true, true, true, "Builder", null)]
+        [InlineData("FixBrokenDownBuilding", false, false, false, "Builder", "Engineer")]
+        [InlineData("SmoothWall", false, false, false, "Builder", "Carpenter")]
+        [InlineData("SmoothFloor", false, false, false, "Builder", "Carpenter")]
+        [InlineData("OperateDeepDrill", false, false, false, "Miner", null)]
+        public void Finished_building_jobs_go_to_the_right_route(string job, bool stone, bool furniture, bool machine, string career, string specialty)
+        {
+            var t = WorksClassifier.Classify(job, new WorksJobFacts { Stone = stone, Furniture = furniture, Machine = machine });
+            Assert.Equal(career == "Builder" ? WorksCareers.Builder : WorksCareers.Miner, t.Career); Assert.Equal(specialty, t.Specialty); Assert.True(t.Points > 0);
+        }
+
+        [Theory]
+        [InlineData(true, true, "Prospector")]
+        [InlineData(true, false, "Prospector")]
+        [InlineData(false, true, "Tunneller")]
+        [InlineData(false, false, "Quarryman")]
+        public void Mining_goes_to_the_prospector_for_ore_the_tunneller_inside_the_mountain_and_the_quarryman_in_the_open(bool ore, bool underRock, string specialty)
+        {
+            var t = WorksClassifier.Classify("Mine", new WorksJobFacts { Ore = ore, UnderRock = underRock }); Assert.Equal(WorksCareers.Miner, t.Career); Assert.Equal(specialty, t.Specialty);
+        }
+
+        [Theory]
+        [InlineData("Examine")]          // contains the letters of Mine, and is not mining
+        [InlineData("Mineral")]
+        [InlineData("DeliverFood")]
+        [InlineData("")]
+        [InlineData(null)]
+        public void Other_jobs_earn_nothing_and_names_are_matched_whole(string job)
+        {
+            Assert.Null(WorksClassifier.Classify(job, null));
+        }
+
+        [Fact]
+        public void Experience_is_reported_once_per_job_by_the_real_hooks_and_nothing_is_changed()
+        {
+            string code = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/Game/WorksModule.cs"));
+            Assert.Contains("FamilyFramework.LabourDone.Add", code); Assert.Contains("track.Kind + \":\" + r.JobId", code);
+            foreach (var forbidden in new[] { ".Destroy(", ".Kill(", "SetFaction", ".jobs.", "StartJob", "Designate" }) Assert.DoesNotContain(forbidden, code);
+            Assert.True(WorksCareers.BuildPoints >= WorksCareers.RepairPoints && WorksCareers.RepairPoints >= WorksCareers.SmoothPoints);
+        }
     }
 }

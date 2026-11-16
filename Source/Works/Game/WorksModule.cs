@@ -25,6 +25,8 @@ namespace FamilyLife
             Role(WorksCareers.MinerLabourer, WorksCareers.Miner, 1, null); Role(WorksCareers.MinerJourneyman, WorksCareers.Miner, 2, null);
             foreach (var specialty in WorksCareers.BuilderSpecialties) Role(specialty, WorksCareers.Builder, 3, specialty);
             foreach (var specialty in WorksCareers.MinerSpecialties) Role(specialty, WorksCareers.Miner, 3, specialty);
+            FamilyFramework.LabourDone.Add(Id + ".labour", Id, WorksWork.Labour);
+            FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, WorksStories.Social);
             FamilyFramework.Resets.Add(Id + ".reset", Id, () => WorksStories.Reset());
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
@@ -51,6 +53,64 @@ namespace FamilyLife
             foreach (var specialty in WorksCareers.BuilderSpecialties.Concat(WorksCareers.MinerSpecialties)) if (book.IsAssigned(pawn.thingIDNumber, WorksCareers.Role(specialty))) return specialty;
             foreach (var name in new[] { WorksCareers.BuilderJourneyman, WorksCareers.MinerJourneyman, WorksCareers.BuilderLabourer, WorksCareers.MinerLabourer }) if (book.IsAssigned(pawn.thingIDNumber, WorksCareers.Role(name))) return name;
             return null;
+        }
+
+        private static void Give(Pawn subject, Pawn other, string role, int category, int index)
+        {
+            string fact = WorksEvents.Fact(role, category, index); if (fact == null) return;
+            var e = WorksEvents.Eligible(role, fact, other != null).FirstOrDefault(); if (e == null) return;
+            int day = FrameworkServices.EconomyDay; string key = subject.thingIDNumber + ":" + e.Id + ":" + (other?.thingIDNumber ?? 0);
+            if (last.TryGetValue(key, out int before) && day - before < 3) return;
+            last[key] = day; FrameworkServices.GainMemory(subject, e.Thought, other);
+        }
+
+        private static readonly int[] Routine = { 0, 1, 4 };
+        /// <summary>Finished work: routine success, an outstanding result, or pride in the trade, in turn.</summary>
+        public static void Worked(Pawn pawn, int seed)
+        {
+            string role = ActiveRole(pawn); if (role == null) return;
+            Give(pawn, null, role, WorksEvents.Positive, Routine[Math.Abs(seed) % Routine.Length]);
+        }
+
+        public static void Social(Pawn actor, Pawn other, InteractionDef interaction)
+        {
+            string role = ActiveRole(actor); if (role == null || ActiveRole(other) == null) return;
+            int seed = (actor.thingIDNumber * 397) ^ other.thingIDNumber ^ (FrameworkServices.EconomyDay / 3);
+            Give(actor, other, role, WorksEvents.Social, Math.Abs(seed) % 5);
+        }
+    }
+
+    public static class WorksWork
+    {
+        private static WorksJobFacts Facts(LabourReport r)
+        {
+            var f = new WorksJobFacts(); var job = r.Pawn.CurJob; var map = r.Pawn.Map; if (job == null) return f;
+            try
+            {
+                var thing = job.targetA.Thing;
+                if (r.JobDef == "FinishFrame" && thing is Frame frame)
+                {
+                    var built = frame.def.entityDefToBuild as ThingDef;
+                    f.Stone = frame.Stuff != null && frame.Stuff.stuffProps?.categories != null && frame.Stuff.stuffProps.categories.Contains(StuffCategoryDefOf.Stony);
+                    string cat = built?.designationCategory?.defName ?? ""; f.Furniture = cat == "Furniture"; f.Machine = cat == "Power" || cat == "Production" || cat == "Temperature";
+                }
+                else if (r.JobDef == "Mine")
+                {
+                    f.Ore = thing?.def?.building != null && thing.def.building.isResourceRock;
+                    var cell = job.targetA.Cell; if (map != null && cell.InBounds(map)) f.UnderRock = map.roofGrid.RoofAt(cell)?.isThickRoof == true;
+                }
+            }
+            catch (Exception) { }
+            return f;
+        }
+
+        /// <summary>A finished construction, repair, smoothing or mining job: experience, once per job. Nothing about the work itself is changed.</summary>
+        public static void Labour(LabourReport r)
+        {
+            var c = FamilyComponent.Current; if (c == null || r?.Pawn == null) return;
+            var track = WorksClassifier.Classify(r.JobDef, Facts(r)); if (track == null) return;
+            CareerService.Report(c, r.Pawn, track.Career, track.Specialty, track.Kind, track.Kind + ":" + r.JobId, track.Points, FrameworkServices.Now);
+            WorksStories.Worked(r.Pawn, r.JobId);
         }
     }
 }

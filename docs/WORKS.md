@@ -30,3 +30,7 @@ Casters were considered and **set aside for now**: the owner could not see how t
 ## Slice 2: the bonuses (built)
 
 `WorksBonuses.Factor` and `StatPart_WorksSpecialty`, patched onto ConstructionSpeed, ConstructSuccessChance, SmoothingSpeed, FixBrokenDownBuildingSuccessChance and MiningSpeed (`Patches/WorksStats.xml`, always-succeeding so a missing stat is skipped). Applies only to a pawn qualified and assigned to that exact specialty. **Not verified in the game:** that the stat parts show and apply, and the balance.
+
+## Slice 3: experience (built)
+
+`WorksClassifier` routes a finished job by the game's own job name, matched whole (so "Examine" is not "Mine"): **FinishFrame** (building: Engineer if the thing built is power, production or temperature, Carpenter if furniture, Mason if made of stone, otherwise plain Builder; 4 points), **FixBrokenDownBuilding** (Engineer, 3), **Repair** (Builder, 3), **SmoothFloor/SmoothWall** (Carpenter, 2), **Mine** (Prospector for ore, Tunneller for rock under thick mountain roof, Quarryman for rock in the open; 4) and **OperateDeepDrill** (Miner, 4). Hooked through the framework's LabourDone report, once per job. Finished work also gives the worker the routine, outstanding or pride memory of their role, and chatting with another Works worker the relationship events, at most once in three days. **Not verified in the game:** the job names, the frame, stuff and roof reads at the moment a job ends, and the memory pacing.
