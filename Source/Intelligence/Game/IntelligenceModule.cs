@@ -24,15 +24,17 @@ namespace FamilyLife
             CareerService.RegisterRole(new ProfessionRole { Id = IntelligenceCareers.Researcher, ModuleId = Id, Career = IntelligenceCareers.Career, Level = 2 });
             foreach (var specialty in IntelligenceCareers.Specialties)
                 CareerService.RegisterRole(new ProfessionRole { Id = IntelligenceCareers.Role(specialty), ModuleId = Id, Career = IntelligenceCareers.Career, Level = 3, Specialty = specialty, BonusKey = "WFL_Intelligence_" + specialty + "Bonus" });
+            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Intelligence_Page", Order = 155, Render = IntelligencePage.Draw });
             FamilyFramework.ResearchDone.Add(Id + ".research", Id, IntelligenceWork.Researched);
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, IntelligenceWork.Labour);
             FamilyFramework.ProductMade.Add(Id + ".products", Id, IntelligenceWork.Made);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, IntelligenceStories.Social);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { IntelligenceWork.Reset(); IntelligenceStories.Reset(); });
+            FamilyFramework.SocialInteraction.Add(Id + ".talks", Id, IntelligenceWork.Talked);
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { IntelligenceWork.Reset(); IntelligenceStories.Reset(); IntelligenceRoomGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Clear in-memory research tallies", () => { IntelligenceWork.Reset(); IntelligenceStories.Reset(); return "careers, experience and memories retained; this module adds no jobs or hediffs"; });
+                report.Step("Clear in-memory research tallies", () => { IntelligenceWork.Reset(); IntelligenceStories.Reset(); IntelligenceRoomGame.Reset(); return "careers, experience and memories retained; this module adds no jobs or hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);
@@ -49,12 +51,53 @@ namespace FamilyLife
         {
             if (project == null) return null;
             if (cache.TryGetValue(project.defName, out var known)) return known;
-            var f = new ResearchFacts { Anomaly = project.knowledgeCategory != null, Gene = IntelligenceClassifier.GeneProject(project.defName, project.label), Industrial = project.techLevel >= TechLevel.Industrial };
+            var f = new ResearchFacts { Anomaly = project.knowledgeCategory != null, Gene = IntelligenceClassifier.GeneProject(project.defName, project.label) };
             return cache[project.defName] = f;
         }
 
         /// <summary>The project the colony is working on now, or null.</summary>
         public static ResearchProjectDef Current() => Find.ResearchManager?.GetProject();
+    }
+
+    /// <summary>Recognises Intelligence rooms from what is in them. Never saved; each room is looked at again at most once every 600 ticks.</summary>
+    public static class IntelligenceRoomGame
+    {
+        private struct Seen { public int Tick; public IntelligenceRoom Kind; }
+        private static readonly Dictionary<long, Seen> cache = new Dictionary<long, Seen>();
+        private const int Keep = 600, MaxCells = 400;
+        public static void Reset() => cache.Clear();
+
+        private static bool Named(Thing t, params string[] words)
+        {
+            string n = ((t.def.defName ?? "") + " " + (t.def.label ?? "")); foreach (var w in words) if (n.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0) return true; return false;
+        }
+
+        public static IntelligenceRoom KindOf(Room room)
+        {
+            if (room == null || room.Map == null) return IntelligenceRoom.None;
+            int now = Find.TickManager.TicksGame; long key = ((long)room.Map.uniqueID << 32) ^ (uint)room.ID;
+            if (cache.TryGetValue(key, out var seen) && now >= seen.Tick && now - seen.Tick < Keep) return seen.Kind;
+            var f = new IntelligenceRoomFacts { Enclosed = room.ProperRoom && !room.TouchesMapEdge };
+            if (f.Enclosed)
+            {
+                var counted = new HashSet<Thing>(); int scanned = 0;
+                foreach (var cell in room.Cells)
+                {
+                    if (++scanned > MaxCells) break;
+                    foreach (var thing in cell.GetThingList(room.Map))
+                    {
+                        if (!(thing is Building b) || !counted.Add(b)) continue;
+                        if (Named(b, "GeneExtractor", "GeneAssembler", "GeneBank", "GeneProcessor", "Xenogerm")) f.GeneEquipment++;
+                        else if (Named(b, "ResearchBench")) f.ResearchBenches++;
+                        else if (Named(b, "Bookcase", "Bookshelf", "Bookshelves")) f.Bookshelves++;
+                        if (b.def.surfaceType == SurfaceType.Eat) f.Tables++;
+                    }
+                }
+            }
+            var kind = IntelligenceRooms.Classify(f); cache[key] = new Seen { Tick = now, Kind = kind }; return kind;
+        }
+
+        public static IntelligenceRoom Of(Thing thing) => thing != null && thing.Spawned ? KindOf(thing.GetRoom()) : IntelligenceRoom.None;
     }
 
     public static class IntelligenceWork
@@ -63,9 +106,11 @@ namespace FamilyLife
         private static int serial;
         public static void Reset() { tally.Clear(); IntelligenceResearch.Reset(); }
 
-        private static void Credit(Pawn pawn, IntelligenceTrack track, string key, int points, int seed)
+        private static void Credit(Pawn pawn, IntelligenceTrack track, string key, int points, int seed, Thing where = null)
         {
             var c = FamilyComponent.Current; if (c == null || pawn == null || track == null) return;
+            // work done in a room that suits it counts for more: research at a bench in a Research Lab, a book in a Library, a xenogerm in a Gene Lab
+            points = IntelligenceRooms.Points(points, IntelligenceRooms.Suits(track.Kind), IntelligenceRoomGame.Of(where ?? pawn));
             CareerService.Report(c, pawn, IntelligenceCareers.Career, track.Specialty, track.Kind, key, points, FrameworkServices.Now);
             IntelligenceStories.Worked(pawn, track.Specialty, seed);
         }
@@ -85,19 +130,32 @@ namespace FamilyLife
             Credit(pawn, track, "research:" + FrameworkServices.Now + ":" + n, IntelligenceCareers.ResearchPoints, n);
         }
 
-        /// <summary>A finished scan is the Analyst's; a finished study session is Dark Study's.</summary>
+        /// <summary>A finished scan is the Analyst's; a finished study session is Dark Study's; finished work on a mechanoid is the Mech Commander's.</summary>
         public static void Labour(LabourReport r)
         {
             if (r?.Pawn == null) return;
             if (IntelligenceClassifier.IsScan(r.JobDef)) Credit(r.Pawn, new IntelligenceTrack { Specialty = "Analyst", Kind = "intel.scan" }, "scan:" + r.JobId, IntelligenceCareers.ScanPoints, r.JobId);
             else if (IntelligenceClassifier.IsStudy(r.JobDef)) Credit(r.Pawn, new IntelligenceTrack { Specialty = "DarkScholar", Kind = "intel.study" }, "study:" + r.JobId, IntelligenceCareers.StudyPoints, r.JobId);
+            else if (IntelligenceClassifier.IsMechWork(r.JobDef)) Credit(r.Pawn, new IntelligenceTrack { Specialty = "MechCommander", Kind = "intel.mech" }, "mech:" + r.JobId, IntelligenceCareers.MechPoints, r.JobId);
         }
 
-        /// <summary>A book written or a xenogerm made at a bench. A book's quality rises one band for an assigned Author; nothing else about vanilla work is changed.</summary>
+        /// <summary>
+        /// A colonist who talks with someone from outside the colony (a guest, a visitor, a prisoner): the Diplomat's experience, once per person per day. Nothing about the conversation is changed.
+        /// </summary>
+        public static void Talked(Pawn actor, Pawn other, InteractionDef interaction)
+        {
+            var c = FamilyComponent.Current; if (c == null || actor == null || other == null || actor.Faction != Faction.OfPlayer || !actor.RaceProps.Humanlike || !other.RaceProps.Humanlike) return;
+            bool colonist = other.Faction == Faction.OfPlayer && !other.IsPrisonerOfColony; if (!IntelligenceClassifier.IsOutsider(colonist, other.IsPrisonerOfColony)) return;
+            int day = FrameworkServices.Now / ActivityTuning.TicksPerDay;
+            CareerService.Report(c, actor, IntelligenceCareers.Career, "Diplomat", "intel.talk", "talk:" + other.thingIDNumber + ":" + day, IntelligenceCareers.TalkPoints, FrameworkServices.Now);
+            IntelligenceStories.Worked(actor, "Diplomat", other.thingIDNumber + day);
+        }
+
+        /// <summary>A book written, a xenogerm made, a drug or medicine finished. A book's quality rises one band for an assigned Author, and an assigned Chemist sometimes gets one more unit.</summary>
         public static void Made(Pawn pawn, Thing bench, Thing product, int job)
         {
             if (pawn == null || product?.def == null) return;
-            var track = IntelligenceClassifier.Product(product.def.defName, product.TryGetComp<CompBook>() != null);
+            var track = IntelligenceClassifier.Product(product.def.defName, product.TryGetComp<CompBook>() != null, product.def.IsDrug || product.def.IsMedicine);
             if (track == null) return;
             bool active = CareerService.IsAssignedSpecialist(pawn, IntelligenceCareers.Career, track.Specialty);
             if (active && track.Specialty == "Author")
@@ -105,7 +163,8 @@ namespace FamilyLife
                 var quality = product.TryGetComp<CompQuality>();
                 if (quality != null) { var now = quality.Quality; var better = (QualityCategory)IntelligenceBonuses.ImprovedQuality((int)now, true); if (better != now) quality.SetQuality(better, ArtGenerationContext.Colony); }
             }
-            if (job != 0) { Credit(pawn, track, "made:" + job, IntelligenceCareers.ProductPoints, job); }
+            if (active && track.Specialty == "Chemist" && product.stackCount > 0 && product.stackCount < product.def.stackLimit && IntelligenceBonuses.ExtraUnit(job, pawn.thingIDNumber)) product.stackCount++;
+            if (job != 0) { Credit(pawn, track, "made:" + job, IntelligenceCareers.ProductPoints, job, bench); }
             if (track.Specialty == "Author" && product.TryGetQuality(out QualityCategory q) && q <= QualityCategory.Poor) IntelligenceStories.Setback(pawn, "Author", 1, job);          // "threw out the draft"
         }
     }
@@ -154,7 +213,10 @@ namespace FamilyLife
         }
     }
 
-    /// <summary>Applies an assigned specialty's research or study bonus to the stat it is attached to (patched onto ResearchSpeed and StudyEfficiency).</summary>
+    /// <summary>
+    /// Applies an assigned specialty's bonus to the stat it is attached to: research speed and study efficiency (Analyst, Geneticist, Dark Scholar), negotiation ability and social impact
+    /// (Diplomat), mech bandwidth (Mech Commander, and only for a mechanitor).
+    /// </summary>
     public sealed class StatPart_IntelligenceSpecialty : StatPart
     {
         private static string Assigned(Pawn pawn)
@@ -166,12 +228,52 @@ namespace FamilyLife
         {
             who = null; var pawn = req.Thing as Pawn; if (pawn == null || parentStat == null) return 1f;
             string specialty = Assigned(pawn); if (specialty == null) return 1f;
-            who = specialty;
-            if (parentStat.defName == "StudyEfficiency") return IntelligenceBonuses.StudyFactor(specialty);
-            if (parentStat.defName == "ResearchSpeed") return IntelligenceBonuses.ResearchFactor(specialty, IntelligenceResearch.Facts(IntelligenceResearch.Current()));
-            return 1f;
+            who = specialty; string stat = parentStat.defName;
+            if (stat == "StudyEfficiency") return IntelligenceBonuses.StudyFactor(specialty);
+            if (stat == "ResearchSpeed") return IntelligenceBonuses.ResearchFactor(specialty, IntelligenceResearch.Facts(IntelligenceResearch.Current()));
+            return IntelligenceBonuses.SocialFactor(specialty, stat);
         }
-        public override void TransformValue(StatRequest req, ref float val) { float f = Factor(req, out _); if (f != 1f) val *= f; }
-        public override string ExplanationPart(StatRequest req) { float f = Factor(req, out string who); return f != 1f ? who + ": x" + f.ToString("0.##") : null; }
+        private float Add(StatRequest req)
+        {
+            var pawn = req.Thing as Pawn; if (pawn == null || parentStat == null || pawn.mechanitor == null) return 0f;          // bandwidth means something only to a mechanitor
+            string specialty = Assigned(pawn); return specialty == null ? 0f : IntelligenceBonuses.Offset(specialty, parentStat.defName);
+        }
+        public override void TransformValue(StatRequest req, ref float val) { float f = Factor(req, out _); if (f != 1f) val *= f; val += Add(req); }
+        public override string ExplanationPart(StatRequest req)
+        {
+            float f = Factor(req, out string who), a = Add(req);
+            return f != 1f ? who + ": x" + f.ToString("0.##") : a != 0f ? "Mech Commander: +" + a.ToString("0.##") : null;
+        }
+    }
+}
+
+namespace FamilyLife
+{
+    /// <summary>Community: Intelligence. Shows the rooms the game has recognised and what each specialty does, so the recognition is never a secret.</summary>
+    public static class IntelligencePage
+    {
+        public static float Draw(UnityEngine.Rect r, FamilyComponent c)
+        {
+            float y = 0f;
+            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Intelligence_RoomsTitle".Translate(), s =>
+            {
+                var counts = new int[4];
+                foreach (var map in Find.Maps)
+                {
+                    if (!map.IsPlayerHome) continue;
+                    foreach (var room in map.regionGrid.AllRooms) { var kind = IntelligenceRoomGame.KindOf(room); if (kind != IntelligenceRoom.None) counts[(int)kind]++; }
+                }
+                float h = CommunityPageLayout.Line(s, 0f, "WFL_Intelligence_RoomsFound".Translate(counts[(int)IntelligenceRoom.Library], counts[(int)IntelligenceRoom.ResearchLab], counts[(int)IntelligenceRoom.GeneLab]));
+                return CommunityPageLayout.Line(s, h, "WFL_Intelligence_RoomsHelp".Translate(), true);
+            });
+            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Intelligence_SpecialtiesTitle".Translate(), s =>
+            {
+                float h = 0f;
+                foreach (var specialty in IntelligenceCareers.Specialties)
+                    h = CommunityPageLayout.Line(s, h, ("wils.intelligence." + specialty.ToLowerInvariant() + "_label").Translate() + ": " + ("WFL_Intelligence_" + specialty + "Bonus").Translate(), true);
+                return h;
+            });
+            return y;
+        }
     }
 }

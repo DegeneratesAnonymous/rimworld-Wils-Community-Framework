@@ -2,7 +2,7 @@
 
 Two optional role modules, built the way Crafting and Agriculture are: a career tree in the shared career ledger, experience from real game activity, specialty bonuses that apply only to a pawn who is **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events for every role. Each references only the framework.
 
-**Status: compiles for 1.6 and 1.7, 1,576 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
+**Status: compiles for 1.6 and 1.7, 1,587 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
 
 ## 1. Intelligence — `SpacemanWil.WilsIntelligence`
 
@@ -10,17 +10,21 @@ Assistant (anyone) → **Researcher** (Intellectual 6, 120 experience) → a spe
 
 | Specialty | Skills | Experience comes from | Assigned bonus |
 |---|---|---|---|
-| **Inventor** | Intellectual 10, Crafting 5 | research on industrial-era and later projects | +15% research speed on those projects |
 | **Analyst** | Intellectual 8, Social 5 | finishing a scanner operation (any job whose name contains "Scanner") | +10% research speed on any project (the generalist) |
 | **Geneticist** | Intellectual 10, Medicine 10 | research on gene and xenogerm projects; making a xenogerm or genepack at a bench | +15% research speed on gene projects |
 | **Dark Scholar** (Dark Study) | Intellectual 10 | research on Anomaly projects; finishing a study session | +15% research speed on Anomaly projects, +20% study efficiency |
 | **Author** (Writing) | Intellectual 8, Artistic 8 | writing a book (Anomaly books) | books gain one quality band, up to Excellent |
+| **Mech Commander** (Biotech) | Intellectual 8, Crafting 6 | finishing work on a mechanoid (any job whose name contains "Mech") | +1 mech bandwidth, for a mechanitor only |
+| **Diplomat** | Intellectual 6, Social 8 | talking with an outsider: a guest, a visitor or a prisoner (once per person per day) | +10% negotiation ability, +5% social impact |
+| **Chemist** | Intellectual 8, Medicine 4 | finishing a drug or medicine bill | a 10% chance of one extra unit when a bill finishes |
 
-The draft's *Scientist* is folded into **Researcher**: with Assistant → Researcher already the general science step, a third "generalist" specialty had nothing of its own to do. It is one entry to bring back if wanted.
+Changes agreed with the owner: the draft's *Scientist* is folded into **Researcher**; the **Inventor** is removed (it had no work of its own: its bonus applied to nearly all research by mid-game and to none early); **Mech Commander**, **Diplomat** (the "Diplomat or Informant" idea; the name is open) and **Chemist** are added. **Analyst** stays the research generalist.
+
+**Why these bonuses.** Each is on something that could be checked: `NegotiationAbility`, `SocialImpact` and `MechBandwidth` all appear in the game's code. The drug and medicine production-speed stats do **not**, so a Chemist bonus on them could silently do nothing; the Chemist's bonus is instead the extra unit, which the module decides itself (from the job and the pawn, so it is the same however often it is asked) and which only an *assigned* Chemist gets. It adds a unit to a stack the game has already made, so it changes no recipe. Mech work, the drug and medicine tests and the gene, book and study names are matched by name fragment and need checking in play.
 
 **Geneticist** keeps the rule from [CAREERS.md](CAREERS.md): it wraps an existing vanilla bill (the Xenogerm Forge's), not an invented activity, and changes no vanilla surgery. "Doctor first" is dropped because modules never depend on each other; Medicine 10 stands in for it.
 
-**Dark Study needs Anomaly, Geneticist needs Biotech, Author needs books to write.** Without them those specialties simply have no work and nobody earns them. Nothing is gated or faked. `StudyEfficiency` is an Anomaly stat; the patch that touches it succeeds quietly where it is absent.
+**Dark Study needs Anomaly, Geneticist and Mech Commander need Biotech, Author needs books to write.** Without them those specialties simply have no work and nobody earns them. Nothing is gated or faked. `StudyEfficiency` is an Anomaly stat; the patch that touches it succeeds quietly where it is absent.
 
 Experience from research is given once per 50 *project points*, to the discipline of the project being worked on. (The game's `ResearchPerformed` hook reports the raw per-tick work rate, which `ResearchManager.ResearchPointsPerWorkTick` = 0.00825 scales into points; this module applies that scaling.) At speed 1 over an eight-hour shift that is about 165 points a day, and 4 experience per chunk is about 13 a day: roughly **9 days to Researcher and 19 to a specialty**, if the work is in that discipline. Preliminary.
 
@@ -65,7 +69,7 @@ Every specialty (the Officer's strength is lent to others) has **one job and one
 
 ## 4. Events
 
-Every role has five positive, five negative and five relationship events (Intelligence: 7 roles, 105 events; Military: 9 roles, 135). Each has its own thought with its own wording. They are generated from one table (`scripts/role_events/spec.py`, run `gen.py`) so a fact and its thought cannot drift apart. Within each category the index means the same thing for every role: positive — routine success, outstanding result, milestone, recognised by others, pride; negative — failed work, waste or setback, strain, rejected, danger or harm; relationship — praised, helped, shared know-how, dispute, betrayal or stolen credit.
+Every role has five positive, five negative and five relationship events (Intelligence: 9 roles, 135 events; Military: 11 roles, 165). Each has its own thought with its own wording. They are generated from one table (`scripts/role_events/spec.py`, run `gen.py`) so a fact and its thought cannot drift apart. Within each category the index means the same thing for every role: positive — routine success, outstanding result, milestone, recognised by others, pride; negative — failed work, waste or setback, strain, rejected, danger or harm; relationship — praised, helped, shared know-how, dispute, betrayal or stolen credit.
 
 **Wired to real triggers now**
 
@@ -119,8 +123,7 @@ Settled by question and answer. **The Military items are now built (section 9); 
 - **Experience:** specialties mainly from duties, combat adds the 40% share (built).
 
 **Intelligence**
-- Remove **Inventor**. Add **Mech Commander** (Biotech), **Diplomat or Informant**, and **Chemist** (its skill and recipes must be checked before any bonus is promised). Keep **Analyst** as the research generalist.
-- Rooms, recognised not painted: **Library**, **Research Lab**, **Gene Lab**. No Dark Study room.
+- **Built (section 11):** Inventor removed; Mech Commander, Diplomat and Chemist added; Analyst kept as the research generalist; rooms recognised, not painted: **Library**, **Research Lab**, **Gene Lab** (no Dark Study room).
 
 **Other modules under discussion:** Wardens and Casters.
 
@@ -152,7 +155,14 @@ Settled by question and answer. **The Military items are now built (section 9); 
 
 **Not verified in the game:** that the duty job runs and ends cleanly; that an "idle" soldier is detected often enough in Work hours to ever be given duty; that pawns find and reach yard cells; the patrol route; that the experience arrives and a specialty is in fact earned this way; and the pacing. Training in the yard has no animation or targets, the pawn stands there while their skill improves, which is honest but plain.
 
-## 10. Open items
+## 10. Intelligence v2
+
+- **Specialties** are as in section 1. The Diplomat's experience comes from the framework's existing `SocialInteraction` hook (a colonist talking with a non-colonist, or a prisoner); the Mech Commander's and the rest from `LabourDone`, `ProductMade` and `ResearchDone`.
+- **Rooms.** An *enclosed* room is a **Gene Lab** if it holds gene equipment (extractor, assembler, gene bank or processor, xenogerm forge), else a **Research Lab** if it holds a research bench, else a **Library** if it has at least two bookshelves and a table. Matched by name fragment; each room is looked at again at most once every 600 ticks; nothing is saved or painted. **Work done in a room that suits it earns 25% more experience** (at least one more point): research at a bench in a Research Lab, a book in a Library, a xenogerm in a Gene Lab. Nothing else about the work changes.
+- **Community → Intelligence** shows how many of each room the game has recognised, the rule, and what each specialty does.
+- **Not verified in the game:** the room matching (furniture names), that a pawn's room is the one meant, the mech job names, that a Chemist's extra unit lands on the stack, the stat parts on `NegotiationAbility`, `SocialImpact` and `MechBandwidth`, and that the page lists rooms.
+
+## 11. Open items
 
 - A Community page for each module (the doctrine table, who holds which role, recent combat credit), like Agriculture's.
 - Positioning (section 3).

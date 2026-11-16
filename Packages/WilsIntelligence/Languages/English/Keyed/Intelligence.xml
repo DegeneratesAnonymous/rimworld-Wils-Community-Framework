@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?><LanguageData>
 <WFL_Intelligence_Career>Intelligence</WFL_Intelligence_Career>
 <wils.intelligence.assistant_label>Assistant</wils.intelligence.assistant_label><wils.intelligence.researcher_label>Researcher</wils.intelligence.researcher_label>
-<wils.intelligence.inventor_label>Inventor</wils.intelligence.inventor_label><wils.intelligence.analyst_label>Analyst</wils.intelligence.analyst_label>
+<wils.intelligence.analyst_label>Analyst</wils.intelligence.analyst_label>
 <wils.intelligence.geneticist_label>Geneticist</wils.intelligence.geneticist_label><wils.intelligence.darkscholar_label>Dark Scholar</wils.intelligence.darkscholar_label>
 <wils.intelligence.author_label>Author</wils.intelligence.author_label>
-<WFL_Intelligence_InventorBonus>Research on industrial-era and later projects goes 15% faster.</WFL_Intelligence_InventorBonus>
+<wils.intelligence.mechcommander_label>Mech Commander</wils.intelligence.mechcommander_label>
+<wils.intelligence.diplomat_label>Diplomat</wils.intelligence.diplomat_label>
+<wils.intelligence.chemist_label>Chemist</wils.intelligence.chemist_label>
 <WFL_Intelligence_AnalystBonus>Research on any project goes 10% faster. Experience comes from operating scanners.</WFL_Intelligence_AnalystBonus>
 <WFL_Intelligence_GeneticistBonus>Research on gene and xenogerm projects goes 15% faster. Experience comes from making xenogerms.</WFL_Intelligence_GeneticistBonus>
 <WFL_Intelligence_DarkScholarBonus>Dark Study (needs Anomaly): Anomaly research goes 15% faster and study efficiency rises 20%.</WFL_Intelligence_DarkScholarBonus>
 <WFL_Intelligence_AuthorBonus>Books you write gain one quality band, up to Excellent.</WFL_Intelligence_AuthorBonus>
+<WFL_Intelligence_MechCommanderBonus>Needs Biotech. A mechanitor with this role has 1 more mech bandwidth. Experience comes from work on mechanoids.</WFL_Intelligence_MechCommanderBonus>
+<WFL_Intelligence_DiplomatBonus>Negotiation ability rises 10% and social impact 5%. Experience comes from talking with guests, visitors and prisoners.</WFL_Intelligence_DiplomatBonus>
+<WFL_Intelligence_ChemistBonus>A 10% chance of one extra unit when a drug or medicine bill finishes. Experience comes from making drugs and medicine.</WFL_Intelligence_ChemistBonus>
+<WFL_Intelligence_Page>Intelligence</WFL_Intelligence_Page>
+<WFL_Intelligence_RoomsTitle>Rooms</WFL_Intelligence_RoomsTitle>
+<WFL_Intelligence_RoomsFound>Recognised: {0} Library, {1} Research Lab, {2} Gene Lab.</WFL_Intelligence_RoomsFound>
+<WFL_Intelligence_RoomsHelp>Rooms are recognised from what is in them, never painted. An enclosed room with gene equipment is a Gene Lab; with a research bench, a Research Lab; with at least two bookshelves and a table, a Library. Work done in a room that suits it earns 25% more experience: research at a bench in a Research Lab, a book in a Library, a xenogerm in a Gene Lab.</WFL_Intelligence_RoomsHelp>
+<WFL_Intelligence_SpecialtiesTitle>Specialties</WFL_Intelligence_SpecialtiesTitle>
 </LanguageData>

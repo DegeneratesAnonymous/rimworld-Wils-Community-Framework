@@ -27,7 +27,7 @@ Weaponsmith, Armorsmith, Couturier and Outfitter improve matching quality by one
 
 ## Intelligence
 
-Inventor: +15% research speed on industrial-era and later projects. Analyst: +10% on any project. Geneticist: +15% on gene projects. Dark Scholar (Dark Study): +15% on Anomaly projects and +20% study efficiency. Author: books gain one quality band up to Excellent. Detail and the activities each is earned from: [INTELLIGENCE-MILITARY.md](INTELLIGENCE-MILITARY.md).
+Analyst: +10% on any project. Geneticist: +15% on gene projects. Dark Scholar (Dark Study): +15% on Anomaly projects and +20% study efficiency. Author: books gain one quality band up to Excellent. Mech Commander: +1 mech bandwidth for a mechanitor (Biotech). Diplomat: +10% negotiation ability and +5% social impact. Chemist: a 10% chance of one extra unit when a drug or medicine bill finishes. Detail and the activities each is earned from: [INTELLIGENCE-MILITARY.md](INTELLIGENCE-MILITARY.md).
 
 ## Military
 

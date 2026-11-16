@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Patch>
   <!-- Most vanilla StatDefs declare no parts list: append when one exists, otherwise create the list with the part in it. Always succeeds, so a stat that is not there (StudyEfficiency
-       exists only with Anomaly) is skipped quietly instead of raising a patch error. -->
+       exists only with Anomaly, MechBandwidth only with Biotech) is skipped quietly instead of raising a patch error. -->
   <Operation Class="PatchOperationConditional">
     <success>Always</success>
     <xpath>Defs/StatDef[defName="ResearchSpeed"]/parts</xpath>
@@ -13,5 +13,23 @@
     <xpath>Defs/StatDef[defName="StudyEfficiency"]/parts</xpath>
     <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="StudyEfficiency"]/parts</xpath><value><li Class="FamilyLife.StatPart_IntelligenceSpecialty" /></value></match>
     <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="StudyEfficiency"]</xpath><value><parts><li Class="FamilyLife.StatPart_IntelligenceSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="NegotiationAbility"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="NegotiationAbility"]/parts</xpath><value><li Class="FamilyLife.StatPart_IntelligenceSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="NegotiationAbility"]</xpath><value><parts><li Class="FamilyLife.StatPart_IntelligenceSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="SocialImpact"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="SocialImpact"]/parts</xpath><value><li Class="FamilyLife.StatPart_IntelligenceSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="SocialImpact"]</xpath><value><parts><li Class="FamilyLife.StatPart_IntelligenceSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="MechBandwidth"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="MechBandwidth"]/parts</xpath><value><li Class="FamilyLife.StatPart_IntelligenceSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="MechBandwidth"]</xpath><value><parts><li Class="FamilyLife.StatPart_IntelligenceSpecialty" /></parts></value></nomatch>
   </Operation>
 </Patch>
