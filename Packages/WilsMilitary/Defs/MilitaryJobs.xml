@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?><Defs>
+  <JobDef><defName>WFL_MilitaryDuty</defName><driverClass>FamilyLife.JobDriver_MilitaryDuty</driverClass><reportString>on duty.</reportString><casualInterruptible>true</casualInterruptible></JobDef>
+</Defs>

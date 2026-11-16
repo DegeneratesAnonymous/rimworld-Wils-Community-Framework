@@ -50,10 +50,11 @@ namespace FamilyLife
                 var plan = PostPlanner.Assign(pending.Select(p => new RedSoldier { Id = p.thingIDNumber, Specialty = MilitaryRoles.Specialty(p), X = p.Position.x, Z = p.Position.z }), posts.All.Where(x => x.Map == map.uniqueID));
                 foreach (var p in pending)
                 {
-                    int id = p.thingIDNumber;
-                    if (!p.Drafted) { p.drafter.Drafted = true; state.Drafted.Add(id); }
+                    int id = p.thingIDNumber; bool alreadyDrafted = p.Drafted;
+                    if (!alreadyDrafted) { p.drafter.Drafted = true; state.Drafted.Add(id); }
                     state.Ordered.Add(id);
-                    if (plan.TryGetValue(id, out var post)) Send(p, map, post);
+                    // someone the player had already drafted is under the player's hand: they are counted but not sent, so an order given a moment ago is never cut across
+                    if (!alreadyDrafted && plan.TryGetValue(id, out var post)) Send(p, map, post);
                 }
             }
         }
@@ -119,6 +120,7 @@ namespace FamilyLife
     public class Designator_MilitaryPost : Designator
     {
         private PostKind kind = PostKind.Overwatch;
+        public Designator_MilitaryPost(PostKind kind) : this() { this.kind = kind; }
 
         public Designator_MilitaryPost()
         {
@@ -257,11 +259,35 @@ namespace FamilyLife
                 TooltipHandler.TipRegion(new Rect(0f, h, s.width, 24f), "WFL_Military_AutoRedTip".Translate()); h += 30f;
                 return CommunityPageLayout.Line(s, h, "WFL_Military_AlertHelp".Translate(), true);
             });
+            y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_DutiesTitle".Translate(), s =>
+            {
+                float h = 0f;
+                bool on = state.DutiesOn; Widgets.CheckboxLabeled(new Rect(0f, h, s.width, 24f), "WFL_Military_DutiesOn".Translate(), ref on); state.DutiesOn = on;
+                TooltipHandler.TipRegion(new Rect(0f, h, s.width, 24f), "WFL_Military_DutiesOnTip".Translate()); h += 28f;
+                bool vol = state.Volunteers; Widgets.CheckboxLabeled(new Rect(0f, h, s.width, 24f), "WFL_Military_Volunteers".Translate(), ref vol); state.Volunteers = vol;
+                TooltipHandler.TipRegion(new Rect(0f, h, s.width, 24f), "WFL_Military_VolunteersTip".Translate()); h += 30f;
+                int yard = 0, onDuty = 0, watch = 0;
+                foreach (var map in Find.Maps)
+                {
+                    if (!map.IsPlayerHome) continue;
+                    yard += map.zoneManager.AllZones.OfType<Zone_TrainingYard>().Sum(z => z.Cells.Count);
+                    foreach (var p in map.mapPawns.FreeColonistsSpawned) if (p.CurJobDef == MilitaryDefOf.WFL_MilitaryDuty) onDuty++;
+                }
+                watch = posts.Count(PostKind.Overwatch) + posts.Count(PostKind.Guard);
+                h = CommunityPageLayout.Line(s, h, "WFL_Military_DutiesStatus".Translate(onDuty, yard));
+                if (yard == 0) h = CommunityPageLayout.Line(s, h, "WFL_Military_NoYard".Translate(), true);
+                if (watch == 0) h = CommunityPageLayout.Line(s, h, "WFL_Military_NoPostsHint".Translate(), true);
+                return CommunityPageLayout.Line(s, h, "WFL_Military_DutiesHelp".Translate(), true);
+            });
             y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_PostsTitle".Translate(posts.All.Count, PostBook.MaxPosts), s =>
             {
                 float h = 0f;
                 h = CommunityPageLayout.Line(s, h, "WFL_Military_PostsHelp".Translate(), true);
-                h = CommunityPageLayout.Button(s, h, "WFL_Military_PlacePost".Translate(), () => Place(new Designator_MilitaryPost()));
+                foreach (PostKind k in Enum.GetValues(typeof(PostKind)))
+                {
+                    var kind = k;
+                    h = CommunityPageLayout.Button(s, h, "WFL_Military_PlaceKind".Translate(("WFL_Military_Post_" + k).Translate()), () => Place(new Designator_MilitaryPost(kind)));
+                }
                 h = CommunityPageLayout.Button(s, h, "WFL_Military_PlaceYard".Translate(), () => Place(new Designator_ZoneAdd_TrainingYard()));
                 int shown = 0;
                 foreach (var p in posts.All.ToList())

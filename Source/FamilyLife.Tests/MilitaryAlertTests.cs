@@ -71,6 +71,8 @@ namespace FamilyLife.Tests
             Assert.Equal(new[] { 3, 5 }, d.Drafted); Assert.Equal(new[] { 3, 5, 9 }, d.Ordered);
             var fresh = AlertState.Decode(new StateReader("")); Assert.True(fresh.AutoRed); Assert.Equal(AlertLevel.Normal, fresh.Set);          // an empty record is the defaults
             var off = AlertState.Decode(new StateReader(new AlertState { AutoRed = false }.Encode())); Assert.False(off.AutoRed);
+            var duty = AlertState.Decode(new StateReader(new AlertState { DutiesOn = false, Volunteers = false }.Encode())); Assert.False(duty.DutiesOn); Assert.False(duty.Volunteers); Assert.True(duty.AutoRed);
+            Assert.True(fresh.DutiesOn); Assert.True(fresh.Volunteers);          // both are on unless switched off
             Assert.Equal(AlertLevel.Normal, AlertState.Decode(new StateReader("set=9")).Set);          // a value from a newer version is read as Normal
         }
 
@@ -193,9 +195,34 @@ namespace FamilyLife.Tests
             string code = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryAlertGame.cs"));
             Assert.Contains("!state.Ordered.Contains(p.thingIDNumber)", code);          // handled once per episode, so a player's order afterwards stands
             Assert.Contains("state.Drafted.Add(id)", code); Assert.Contains("foreach (int id in state.Drafted.ToList())", code);          // only people this drafted are undrafted
-            Assert.Contains("if (!p.Drafted) { p.drafter.Drafted = true;", code);          // someone already drafted is left alone
+            Assert.Contains("if (!alreadyDrafted) { p.drafter.Drafted = true;", code);          // someone already drafted is left alone
+            Assert.Contains("!alreadyDrafted && plan.TryGetValue(id, out var post)", code);          // and is never sent, so an order the player has just given is not cut across
             Assert.Contains("p.Downed", code); Assert.Contains("InMentalState", code); Assert.Contains("WorkTagIsDisabled(WorkTags.Violent)", code);          // never drafts someone who cannot or must not fight
             Assert.Contains("FreeColonistsSpawned", code);          // free colonists only: never prisoners or slaves
+        }
+
+        [Fact]
+        public void The_duty_job_is_defined_and_every_duty_has_its_words()
+        {
+            var jobs = System.Xml.Linq.XDocument.Load(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Defs/MilitaryJobs.xml"));
+            var job = jobs.Descendants("JobDef").Single(); Assert.Equal("WFL_MilitaryDuty", job.Element("defName").Value); Assert.Equal("FamilyLife.JobDriver_MilitaryDuty", job.Element("driverClass").Value);
+            string code = string.Join("\n", System.IO.Directory.GetFiles(System.IO.Path.Combine(Root, "Source/Military"), "*.cs", System.IO.SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")).Select(System.IO.File.ReadAllText));
+            Assert.Matches(@"class\s+JobDriver_MilitaryDuty\s*:\s*JobDriver", code); Assert.Matches(@"public static JobDef WFL_MilitaryDuty\b", code);          // the def and the field that resolves it agree
+            var keys = System.Xml.Linq.XDocument.Load(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Languages/English/Keyed/Military.xml")).Root.Elements().Select(x => x.Name.LocalName).ToHashSet();
+            foreach (DutyKind k in System.Enum.GetValues(typeof(DutyKind))) Assert.Contains("WFL_Military_Duty_" + k, keys);
+        }
+
+        [Fact]
+        public void Duties_are_gentle_by_construction()
+        {
+            string code = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryDutyGame.cs"));
+            Assert.Contains("state.Effective == AlertLevel.Red", code); Assert.Contains("ThreatNow(pawn.Map)", code); Assert.Contains("pawn.Drafted", code);          // never at Red, never with hostiles about, never over a draft
+            Assert.Contains("TimeAssignmentDefOf.Sleep || assignment == TimeAssignmentDefOf.Joy", code);          // soldiers: Work or Anything hours only
+            Assert.Contains("JobTag.Idle", code); Assert.Contains("playerForced", code);          // only the idle, and never over an order
+            Assert.Contains("MaxOnDuty(serving.Count)", code); Assert.Contains("started >= 2", code);          // a cap on how many at once, and how many start per look
+            Assert.Contains("FrameworkServices.Ready(p)", code);          // volunteers: free time only, never work time
+            Assert.Contains("MinTrainingAge", code); Assert.Contains("WorkTagIsDisabled(WorkTags.Violent)", code);
+            Assert.Contains("MilitaryRoles.Serving(pawn)", code);          // only serving soldiers earn career experience; volunteers train their skills
         }
     }
 }

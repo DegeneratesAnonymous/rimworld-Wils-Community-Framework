@@ -22,6 +22,8 @@ namespace FamilyLife.Domain
         public AlertLevel Set = AlertLevel.Normal;
         /// <summary>Raise Red automatically when hostiles appear. On by default: assigning a Military role is the player's consent.</summary>
         public bool AutoRed = true;
+        /// <summary>Daily duties are on, and colonists who are not soldiers may volunteer to join the training. Both default to on (assigning a Military role is the consent); the player can turn either off.</summary>
+        public bool DutiesOn = true, Volunteers = true;
         /// <summary>Red is in force only because of a threat (so it ends by itself); a Red the player set stays until they change it.</summary>
         public bool RaisedByThreat;
         public int LastThreat, Since;
@@ -30,13 +32,13 @@ namespace FamilyLife.Domain
 
         public AlertLevel Effective => RaisedByThreat ? AlertLevel.Red : Set;
 
-        public string Encode() => new StateWriter().Int("set", (int)Set).Bool("noauto", !AutoRed).Bool("threat", RaisedByThreat).Int("last", LastThreat).Int("since", Since).Ints("drafted", Drafted).Ints("ordered", Ordered).ToString();
+        public string Encode() => new StateWriter().Int("set", (int)Set).Bool("noauto", !AutoRed).Bool("noduty", !DutiesOn).Bool("novol", !Volunteers).Bool("threat", RaisedByThreat).Int("last", LastThreat).Int("since", Since).Ints("drafted", Drafted).Ints("ordered", Ordered).ToString();
 
         public static AlertState Decode(StateReader r)
         {
             var s = new AlertState();
             int set = r.Int("set"); s.Set = set >= 0 && set <= 2 ? (AlertLevel)set : AlertLevel.Normal;
-            s.AutoRed = !r.Bool("noauto");
+            s.AutoRed = !r.Bool("noauto"); s.DutiesOn = !r.Bool("noduty"); s.Volunteers = !r.Bool("novol");
             s.RaisedByThreat = r.Bool("threat"); s.LastThreat = r.Int("last"); s.Since = r.Int("since");
             s.Drafted.AddRange(r.Ints("drafted").Distinct()); s.Ordered.AddRange(r.Ints("ordered").Distinct());
             return s;

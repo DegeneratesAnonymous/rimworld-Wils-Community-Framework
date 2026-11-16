@@ -35,6 +35,7 @@
 <WFL_Military_PostsTitle>Posts ({0} of {1})</WFL_Military_PostsTitle>
 <WFL_Military_PostsHelp>Posts are where soldiers stand at Red. You place them. A Guard or Overwatch post holds one soldier; the Rally point is shared. Also under Architect, Zone.</WFL_Military_PostsHelp>
 <WFL_Military_PlacePost>Place a post</WFL_Military_PlacePost>
+<WFL_Military_PlaceKind>Place: {0}</WFL_Military_PlaceKind>
 <WFL_Military_PlacePostDesc>Place an Overwatch post, a Guard post or the Rally point. Soldiers on Red alert go to them.</WFL_Military_PlacePostDesc>
 <WFL_Military_RemovePost>Remove a post</WFL_Military_RemovePost>
 <WFL_Military_RemovePostDesc>Take a Military post away.</WFL_Military_RemovePostDesc>
@@ -52,4 +53,22 @@
 <WFL_Military_TrainingYard>Training Yard</WFL_Military_TrainingYard>
 <WFL_Military_TrainingYardDesc>Paint an area where soldiers drill, spar and practise.</WFL_Military_TrainingYardDesc>
 <WFL_Military_RolesTitle>Roles and doctrine</WFL_Military_RolesTitle>
+<WFL_Military_Duty_Drill>drilling.</WFL_Military_Duty_Drill>
+<WFL_Military_Duty_Spar>sparring.</WFL_Military_Duty_Spar>
+<WFL_Military_Duty_RangePractice>practising at the range.</WFL_Military_Duty_RangePractice>
+<WFL_Military_Duty_FirstAid>standing by with first aid.</WFL_Military_Duty_FirstAid>
+<WFL_Military_Duty_Muster>at muster.</WFL_Military_Duty_Muster>
+<WFL_Military_Duty_Patrol>on patrol.</WFL_Military_Duty_Patrol>
+<WFL_Military_Duty_Lookout>keeping lookout.</WFL_Military_Duty_Lookout>
+<WFL_Military_Duty_GateGuard>guarding the gate.</WFL_Military_Duty_GateGuard>
+<WFL_Military_Duty_None>on duty.</WFL_Military_Duty_None>
+<WFL_Military_DutiesTitle>Daily duties</WFL_Military_DutiesTitle>
+<WFL_Military_DutiesOn>Soldiers carry out daily duties</WFL_Military_DutiesOn>
+<WFL_Military_DutiesOnTip>Serving soldiers who are idle in their Work hours, rested and not needed elsewhere do their duty: drill, spar, range practice, first aid or muster at Normal; patrol, lookout and gate guard at Yellow. Never at Red or while hostiles are about, and no more than half of them at once. Any need or order of yours interrupts a duty.</WFL_Military_DutiesOnTip>
+<WFL_Military_Volunteers>Other colonists may join the training in their free time</WFL_Military_Volunteers>
+<WFL_Military_VolunteersTip>A colonist who is not a soldier may join a drill or range practice that is already running, but only in free time (never work time), and only if they have a passion for Melee or Shooting or a soldier in the family. Combat training opens at 13.</WFL_Military_VolunteersTip>
+<WFL_Military_DutiesStatus>{0} on duty now. Training Yard: {1} cells.</WFL_Military_DutiesStatus>
+<WFL_Military_NoYard>No Training Yard is painted, so there is nowhere to drill, spar or practise. Paint one under Architect, Zone.</WFL_Military_NoYard>
+<WFL_Military_NoPostsHint>No Overwatch or Guard posts are placed, so there is no lookout or gate guard to keep.</WFL_Military_NoPostsHint>
+<WFL_Military_DutiesHelp>Duties earn experience. A specialist earns toward their own specialty. A soldier who has earned a branch practises the specialty their skills and experience put them nearest to, which is how a specialty is earned before it can be assigned. A Recruit builds toward the branch of their better skill.</WFL_Military_DutiesHelp>
 </LanguageData>

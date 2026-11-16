@@ -32,13 +32,16 @@ namespace FamilyLife
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, MilitaryStories.Social);
             FamilyFramework.Pages.Register(new CommunityPage<Func<Rect, FamilyComponent, float>> { Id = Id + ".alert", ModuleId = Id, LabelKey = "WFL_Military_Page", Order = 160, Icon = "UI/Commands/Attack", Render = MilitaryPage.Draw, Status = MilitaryPage.Attention });
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".alert", ModuleId = Id, Interval = 250, Run = MilitaryAlertDriver.Run });
+            FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".duties", ModuleId = Id, Interval = 300, Run = MilitaryDutyGame.Run });
             FamilyFramework.Reconcilers.Add(Id + ".reconcile", Id, MilitaryAlertDriver.Reconcile);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); });
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); MilitaryDutyGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Stand down any Red alert", () => { var state = c.Registry.Alert(); int n = state.Drafted.Count; MilitaryAlertDriver.StandDown(c, state); state.RaisedByThreat = false; state.Set = AlertLevel.Normal; return n + " soldier(s) this drafted were undrafted; posts and the Training Yard are kept"; });
-                report.Step("Clear in-memory combat records", () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); return "careers, experience and memories retained; this module adds no jobs or hediffs"; });
+                report.Step("End every duty in progress", () => ModuleCleanup.EndJobs("WFL_MilitaryDuty") + " soldier(s) released from duty");
+                report.Step("Remove the Training Yard zones", () => { int n = 0; foreach (var map in Find.Maps) foreach (var z in map.zoneManager.AllZones.OfType<Zone_TrainingYard>().ToList()) { z.Delete(); n++; } return n + " zone(s) removed (a saved zone of an absent module cannot load)"; });
+                report.Step("Stand down any Red alert", () => { var state = c.Registry.Alert(); int n = state.Drafted.Count; MilitaryAlertDriver.StandDown(c, state); state.RaisedByThreat = false; state.Set = AlertLevel.Normal; return n + " soldier(s) this drafted were undrafted; posts are kept (they are only saved numbers)"; });
+                report.Step("Clear in-memory combat records", () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); MilitaryDutyGame.Reset(); return "careers, experience and memories retained; the module's one job was ended above and it adds no hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);
@@ -265,6 +268,20 @@ namespace FamilyLife
             string role = MilitaryRoles.ActiveRole(pawn); if (role == null) return;
             string fact = role == "Recruit" ? "FirstBlood" : role == "Soldier" ? "WoundedInAction" : role == "Vanguard" ? "CutDownLeading" : role == "Duelist" ? "StruckDown" : role == "Sniper" ? "ExposedAlone" : role == "Ranger" ? "SpottedPosition" : role == "FieldMedic" ? "HitWhileTending" : null;
             GiveFact(pawn, null, role, fact);
+        }
+
+        /// <summary>A finished block of duty: routine success or pride in the calling, in turn.</summary>
+        public static void Duty(Pawn pawn, string role, int seed)
+        {
+            if (role == null) return;
+            Give(pawn, null, role, MilitaryEvents.Positive, Math.Abs(seed) % 2 == 0 ? 0 : 4);
+        }
+
+        /// <summary>Two soldiers trained together: each remembers the other kindly (praised, helped or shared know-how, in turn).</summary>
+        public static void Together(Pawn a, Pawn b, int seed)
+        {
+            string ra = MilitaryRoles.ActiveRole(a), rb = MilitaryRoles.ActiveRole(b); int index = Math.Abs(seed) % 3;
+            if (ra != null && rb != null) { Give(a, b, ra, MilitaryEvents.Social, index); Give(b, a, rb, MilitaryEvents.Social, index); }
         }
 
         public static void Social(Pawn actor, Pawn other, InteractionDef interaction)

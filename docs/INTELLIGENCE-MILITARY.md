@@ -2,7 +2,7 @@
 
 Two optional role modules, built the way Crafting and Agriculture are: a career tree in the shared career ledger, experience from real game activity, specialty bonuses that apply only to a pawn who is **qualified and assigned to that exact specialty**, and five positive, five negative and five relationship events for every role. Each references only the framework.
 
-**Status: compiles for 1.6 and 1.7, 1,560 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
+**Status: compiles for 1.6 and 1.7, 1,576 offline tests pass, the three new Harmony patches pass the repository's patch check against both reference assemblies. Nothing has run in RimWorld.** Section 7 says exactly what that does and does not prove.
 
 ## 1. Intelligence — `SpacemanWil.WilsIntelligence`
 
@@ -107,9 +107,9 @@ All preliminary: skill and experience thresholds, the 3 and 10 combat points, th
 - Performance in a large fight: the situation and target code runs per stat read and per target scored, and is cached or cheap by design but unmeasured.
 - Balance, and whether the doctrine feels distinct rather than merely numerically distinct.
 
-## 8. Agreed with the owner, not yet built
+## 8. Agreed with the owner
 
-Settled by question and answer; none of it is in the code yet.
+Settled by question and answer. **The Military items are now built (section 9); the Intelligence items are not yet.**
 
 **Military**
 - **Alert levels:** *Normal* (drills, sparring, range practice, muster, first-aid rounds), *Yellow* (patrols, lookout, gate and home guard), *Red* (hold defensive positions). The player sets Normal or Yellow, with an easily reachable toggle; a threat on the map **raises Red automatically** and it drops back to the set level when clear.
@@ -128,18 +128,29 @@ Settled by question and answer; none of it is in the code yet.
 
 1. **Built:** the cross-career rule, the Support branch (Field Medic, Officer) with doctrine, events and strings, the 40% combat share, field tending experience.
 2. **Built:** alert levels, the toggle, posts and the Training Yard (below).
-3. The daily duties and their experience (not built).
+3. **Built:** the daily duties and their experience (below).
 
 ### Slice 2: what it does
 
 - **Alert state** (`AlertState`, saved as `wils.military.alert`): Normal, Yellow or Red. The player sets a level on **Community → Military** (three buttons). With *automatic Red* on (the default), hostiles on a home map raise Red; after an hour (`CalmTicks` = 2,500) with none it drops back to the set level. A Red the player sets stays until they change it. An on-screen alert ("Military alert: Yellow/Red") is shown whenever the level is not Normal, and the Military page carries a badge at Red.
 - **At Red** every *serving* soldier (anyone assigned a Military role) who is a free colonist, able, not in a mental state and not barred from violence is **drafted** if not already, and sent **once** to a post: Sniper and Marksman to an Overwatch post, Guardian, Vanguard and Gunner to a Guard post, everyone else to the Rally point. An Overwatch or Guard post holds one soldier, Rally is shared, and with no suitable post nobody is sent. Each soldier is handled once per Red, so anything the player orders afterwards stands. At stand-down **only the people Red drafted** are undrafted. Assigning a Military role is the consent; there is no other switch beyond *automatic Red*.
 - **Posts** are placed from Architect → Zone ("Place a post", then Overwatch, Guard or Rally; "Remove a post") or from the Military page, are saved per map, shown on the map while placing and at Red, and capped at 60.
-- **Training Yard** is a painted zone (Architect → Zone). It stores nothing and **does nothing yet**: the drills that use it are slice 3.
-- **Normal and Yellow have no effect yet** beyond the level showing: patrols, lookout, guard, drills and the rest are the duties of slice 3.
+- **Training Yard** is a painted zone (Architect → Zone). It stores nothing; it is where the drills, sparring, range practice and first aid happen (slice 3).
 - Not built: a hotkey, and a button on the map itself. The on-screen alert and the Community page are the ways in for now.
 
 **Not verified in the game:** that drafting and the Goto order behave as intended (including pawns that are asleep, carrying someone, or on a job the game protects), that the Architect entries appear, that the on-screen alert shows and the map labels draw, and the zone's behaviour. All of it compiles for 1.6 and 1.7 and its rules are tested, but none of it has run.
+
+### Slice 3: daily duties
+
+- **Who and when.** Serving soldiers (anyone assigned a Military role) who are idle in their Work or Anything hours (never Sleep or Joy), not drafted, not in a mental state, not hungry or tired, not obeying an order, aged 13 or more and able to fight, are given a duty every 300 ticks. At most half the serving soldiers are on duty at once, at most two start per look, each does at most 3 blocks a day (a block is 1,500 ticks) with 4,000 ticks of rest between. **Never at Red, never while the map has hostiles, never with the daily-duties switch off.** A duty is an ordinary job: the game's own needs and any order of the player interrupt it, and a hostile appearing or a draft ends it.
+- **What each does.** At Normal: Vanguard leads a **drill**, Duelist **spars**, Marksman runs **range practice**, Field Medic stands by with **first aid**, Officer holds **muster** (at a Rally point, or in the yard if there is none); Guardian drills, Gunner and Sniper practise at the range; Recruits, Soldiers and Rangers drill or practise. At Yellow: Gunner **patrols** (a route between posts, or around the home area if fewer than two), Sniper **keeps lookout** at an Overwatch post, Guardian **guards the gate** at a Guard post, and everyone else without a specialty patrols; the other specialties carry on. With no yard or no suitable post, that duty simply does not happen, and the Military page says so.
+- **Groups.** A Vanguard, Marksman or Officer who starts a drill, range practice or muster opens a session; other soldiers whose duty is the same join it (up to 5 besides the leader), holding only for what is left of the leader's block. Colonists who are not soldiers may **volunteer** into a drill or range practice already running (up to 3 per session), in their own free time only (Anything or Joy, never Work), if they have a passion for Melee or Shooting or a soldier in the family, and train their skills. Sparring pairs the Duelist with another free soldier, or they practise alone.
+- **What it earns.** Skill experience in the duty's skill each minute (5 points, about 120 a block). Career experience for serving soldiers once a block is done (or at least half of it): 12 for leading or first aid, 10 for watch duty, 8 for taking part; a leader with nobody joining earns half. An assigned specialist earns toward their own specialty. A soldier who has earned only a branch **practises the specialty their skills and experience put them nearest to**: the one they meet the skills for, hold the branch (and the Doctor qualification, for the Field Medic) for, and have the most experience banked in. This is how a specialty is earned before it can be assigned. A Recruit builds toward the branch of their better skill. Volunteers earn skills only.
+- **Memories.** A finished block can leave a routine-success or pride memory; trainers and partners leave each other a kind relationship memory.
+- **Switches** on Community → Military: daily duties, and volunteers. Both default on (assigning a role is the consent).
+- **Removal.** Preparing the module for removal ends every duty in progress, deletes the Training Yard zones (a saved zone of an absent module cannot load), stands down Red, and keeps the posts (only saved numbers).
+
+**Not verified in the game:** that the duty job runs and ends cleanly; that an "idle" soldier is detected often enough in Work hours to ever be given duty; that pawns find and reach yard cells; the patrol route; that the experience arrives and a specialty is in fact earned this way; and the pacing. Training in the yard has no animation or targets, the pawn stands there while their skill improves, which is honest but plain.
 
 ## 10. Open items
 
