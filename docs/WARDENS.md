@@ -83,9 +83,16 @@ Whether the Confessor should need the Chaplain's post or stay independent of it 
 - **Slave families:** at the end of an Overseer's round every pair of slave kin is looked at: the same room is *together*, different rooms *apart* (unknown rooms and repeated pairs are not counted). The slaves get a 3-day memory (+2 together, -3 apart), the Overseer's record keeps the counts (shown on the page), and nothing is moved.
 - **Not verified in the game:** idle detection and job pickup, room recognition for stops and slave beds, the thought values, and whether wardens walk sensibly around a large prison.
 
-## Slice 5 (not designed yet): escorts
+## Slice 5: escorts (design settled in part, not built)
 
-A Warden bringing a prisoner to the Interview Room for persuasion or conversion, and a prisoner's kin to the Visiting Room. Open questions to settle with the owner before any code: how a prisoner is moved at all in the game (and whether that can be done without breaking their needs and the game's own prison logic), which prisoners may be taken (escape risk, resistance, injury, mental state), how a door left open is made safe, who may visit and how often, and what each room then does.
+A Warden brings a prisoner to the Interview Room (for persuasion or conversion) or, if a relative is in the colony, to the Visiting Room. Decided by the owner:
+
+- **Who:** only willing or calm prisoners. Never flight risks, anyone in a mental break, or the injured or downed.
+- **How often:** at most once a day per prisoner, during the Warden's rounds.
+- **How:** the Warden leads and the prisoner follows. The prisoner takes a short "being escorted" job: walks to the room beside the Warden, stays a set time, then walks back to their cell. If the Warden is interrupted or hostiles appear, the prisoner is returned at once and the escort ends. They never leave the enclosed area.
+- **Effect:** a small mood lift and good care on the warden's record; a bigger lift for a visit from kin, and kin hear of it as good treatment; and an interview also eases recruitment or conversion for that day. The recruitment effect changes game balance, so it is the most important thing to verify in play.
+
+Still to settle before code: the exact size of the recruitment and mood effects, how a door or the room's exits are kept safe while a prisoner is out, and what happens if the prisoner's own needs (hunger, sleep) come due mid-escort. Because this reverses "never moves anyone", it will need the strictest guard tests of any slice.
 
 ## What it would not do
 
