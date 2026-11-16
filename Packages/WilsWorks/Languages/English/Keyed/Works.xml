@@ -10,4 +10,7 @@
 <WFL_Works_ProspectorBonus>Mining speed rises 15%. Experience comes from mining.</WFL_Works_ProspectorBonus>
 <WFL_Works_QuarrymanBonus>Mining speed rises 20%. Experience comes from mining.</WFL_Works_QuarrymanBonus>
 <WFL_Works_TunnellerBonus>Mining speed rises 10%. Experience comes from mining.</WFL_Works_TunnellerBonus>
+<WFL_Works_Page>Works</WFL_Works_Page><WFL_Works_PlacesTitle>Places</WFL_Works_PlacesTitle><WFL_Works_SpecialtiesTitle>Specialties</WFL_Works_SpecialtiesTitle>
+<WFL_Works_PlacesFound>Recognised: {0} workshops, {1} mines.</WFL_Works_PlacesFound>
+<WFL_Works_PlacesHelp>Places are recognised from what is in them, never painted. A Workshop is an enclosed room with at least two work benches and no bed; building, repairing and smoothing in one earns a quarter more experience. A Mine is a dug-out room of at least six cells, not outdoors, most of it under thick mountain roof; digging in or beside one earns a quarter more.</WFL_Works_PlacesHelp>
 </LanguageData>

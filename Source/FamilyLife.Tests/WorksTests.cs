@@ -152,5 +152,32 @@ namespace FamilyLife.Tests
             foreach (var forbidden in new[] { ".Destroy(", ".Kill(", "SetFaction", ".jobs.", "StartJob", "Designate" }) Assert.DoesNotContain(forbidden, code);
             Assert.True(WorksCareers.BuildPoints >= WorksCareers.RepairPoints && WorksCareers.RepairPoints >= WorksCareers.SmoothPoints);
         }
+
+        [Fact]
+        public void A_workshop_is_an_enclosed_room_with_two_benches_and_no_bed_and_a_mine_is_a_dug_room_under_thick_roof()
+        {
+            Assert.Equal(WorksPlace.Workshop, WorksRooms.Classify(new WorksRoomFacts { Enclosed = true, Benches = 2 })); Assert.Equal(WorksPlace.None, WorksRooms.Classify(new WorksRoomFacts { Enclosed = true, Benches = 1 }));
+            Assert.Equal(WorksPlace.None, WorksRooms.Classify(new WorksRoomFacts { Enclosed = true, Benches = 3, Beds = 1, Cells = 4 }));          // somebody's bedroom
+            Assert.Equal(WorksPlace.None, WorksRooms.Classify(new WorksRoomFacts { Enclosed = false, Benches = 3 })); Assert.Equal(WorksPlace.None, WorksRooms.Classify(null));
+            Assert.Equal(WorksPlace.Mine, WorksRooms.Classify(new WorksRoomFacts { Cells = 10, ThickRoofCells = 5 })); Assert.Equal(WorksPlace.None, WorksRooms.Classify(new WorksRoomFacts { Cells = 10, ThickRoofCells = 4 }));
+            Assert.Equal(WorksPlace.None, WorksRooms.Classify(new WorksRoomFacts { Cells = 5, ThickRoofCells = 5 })); Assert.Equal(WorksPlace.None, WorksRooms.Classify(new WorksRoomFacts { Cells = 20, ThickRoofCells = 20, Outdoors = true }));
+        }
+
+        [Fact]
+        public void Work_in_a_suiting_place_earns_a_quarter_more_and_never_elsewhere()
+        {
+            Assert.Equal(5, WorksRooms.Points(4, WorksPlace.Workshop, WorksPlace.Workshop)); Assert.Equal(3, WorksRooms.Points(2, WorksPlace.Workshop, WorksPlace.Workshop));          // at least one more point
+            Assert.Equal(4, WorksRooms.Points(4, WorksPlace.Workshop, WorksPlace.Mine)); Assert.Equal(4, WorksRooms.Points(4, WorksPlace.Mine, WorksPlace.None)); Assert.Equal(4, WorksRooms.Points(4, WorksPlace.None, WorksPlace.None));
+            Assert.Equal(WorksPlace.Workshop, WorksRooms.Suits("works.build")); Assert.Equal(WorksPlace.Workshop, WorksRooms.Suits("works.smooth")); Assert.Equal(WorksPlace.Mine, WorksRooms.Suits("works.mine")); Assert.Equal(WorksPlace.None, WorksRooms.Suits("works.round"));
+        }
+
+        [Fact]
+        public void The_page_and_place_recognition_exist_and_describe_themselves()
+        {
+            string code = string.Join("\n", Directory.GetFiles(Path.Combine(RepoPaths.Root(), "Source/Works"), "*.cs", SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")).Select(File.ReadAllText));
+            Assert.Contains("class WorksRoomGame", code); Assert.Contains("WorksPage.Draw", code); Assert.Contains("WorksRoomGame.PlaceOf", code);
+            var lang = XDocument.Load(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Languages/English/Keyed/Works.xml")).Root;
+            foreach (var key in new[] { "WFL_Works_Page", "WFL_Works_PlacesTitle", "WFL_Works_SpecialtiesTitle", "WFL_Works_PlacesFound", "WFL_Works_PlacesHelp" }) Assert.NotNull(lang.Element(key));
+        }
     }
 }

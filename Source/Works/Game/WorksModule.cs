@@ -25,13 +25,14 @@ namespace FamilyLife
             Role(WorksCareers.MinerLabourer, WorksCareers.Miner, 1, null); Role(WorksCareers.MinerJourneyman, WorksCareers.Miner, 2, null);
             foreach (var specialty in WorksCareers.BuilderSpecialties) Role(specialty, WorksCareers.Builder, 3, specialty);
             foreach (var specialty in WorksCareers.MinerSpecialties) Role(specialty, WorksCareers.Miner, 3, specialty);
+            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Works_Page", Order = 170, Render = WorksPage.Draw });
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, WorksWork.Labour);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, WorksStories.Social);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, () => WorksStories.Reset());
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { WorksStories.Reset(); WorksRoomGame.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
-                report.Step("Clear in-memory records", () => { WorksStories.Reset(); return "careers and experience retained; this module adds no jobs or hediffs"; });
+                report.Step("Clear in-memory records", () => { WorksStories.Reset(); WorksRoomGame.Reset(); return "careers and experience retained; this module adds no jobs or hediffs"; });
                 return report;
             });
             CareerService.Registered(Id);
@@ -109,7 +110,8 @@ namespace FamilyLife
         {
             var c = FamilyComponent.Current; if (c == null || r?.Pawn == null) return;
             var track = WorksClassifier.Classify(r.JobDef, Facts(r)); if (track == null) return;
-            CareerService.Report(c, r.Pawn, track.Career, track.Specialty, track.Kind, track.Kind + ":" + r.JobId, track.Points, FrameworkServices.Now);
+            int points = WorksRooms.Points(track.Points, WorksRooms.Suits(track.Kind), WorksRoomGame.PlaceOf(r.Pawn.Map, r.Pawn.CurJob?.targetA.Cell ?? r.Pawn.Position));
+            CareerService.Report(c, r.Pawn, track.Career, track.Specialty, track.Kind, track.Kind + ":" + r.JobId, points, FrameworkServices.Now);
             WorksStories.Worked(r.Pawn, r.JobId);
         }
     }
