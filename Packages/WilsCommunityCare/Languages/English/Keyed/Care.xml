@@ -47,4 +47,8 @@
   <WFL_Care_NoColonists>There are no colonists.</WFL_Care_NoColonists>
   <WFL_Care_OverviewHelp>Each tile is one colonist, worst health first. [D] downed, [+] needs tending, [!] bleeding. Hover for conditions; click to go to them.</WFL_Care_OverviewHelp>
 <WFL_Need_Clinic>A medical bed in an enclosed room for the doctor's clinic</WFL_Need_Clinic>
+<WFL_Health_Care_NoDoctor>{0} hurt or sick and no doctor is assigned</WFL_Health_Care_NoDoctor>
+<WFL_Health_Care_NoDoctorHint>Assign a practitioner on the Professions page.</WFL_Health_Care_NoDoctorHint>
+<WFL_Health_Care_Tending>{0} being treated by {1} care workers</WFL_Health_Care_Tending>
+<WFL_Health_Care_Quiet>Care: {0} care workers, nobody needs treatment</WFL_Health_Care_Quiet>
 </LanguageData>

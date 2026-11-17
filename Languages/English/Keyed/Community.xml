@@ -67,6 +67,34 @@
   <WFL_Need_PlanYard>Place yard</WFL_Need_PlanYard>
   <WFL_Need_Dismiss>Dismiss</WFL_Need_Dismiss>
   <WFL_Need_DismissTip>Stop reminding me until this is met and comes back.</WFL_Need_DismissTip>
+  <WFL_Prof_ViewTree>Career paths</WFL_Prof_ViewTree>
+  <WFL_Prof_ViewPeople>People</WFL_Prof_ViewPeople>
+  <WFL_Prof_ViewRoles>By role</WFL_Prof_ViewRoles>
+  <WFL_Prof_Main>Main</WFL_Prof_Main>
+  <WFL_Prof_NoSide>No side professions</WFL_Prof_NoSide>
+  <WFL_Prof_PeopleKey>Gold box: main profession. Bars show progress toward the next step of that career; a green arrow means experience came in recently. Click a profession to make it main or remove it.</WFL_Prof_PeopleKey>
+  <WFL_Prof_RoleKey>Each role and who holds it. A star marks someone's main profession. Bars show progress; green arrows mean recent experience.</WFL_Prof_RoleKey>
+  <WFL_Prof_NoPeople>Nobody has a profession yet. Use Quick setup, or assign people on the Career paths view.</WFL_Prof_NoPeople>
+  <WFL_Prof_Expertise>Expertise: {0}</WFL_Prof_Expertise>
+  <WFL_Prof_Vacant>Vacant</WFL_Prof_Vacant>
+  <WFL_Prof_MakeMain>Make this their main profession</WFL_Prof_MakeMain>
+  <WFL_Prof_Remove>Remove this assignment</WFL_Prof_Remove>
+  <WFL_Prof_BarTip>Progress toward: {0}</WFL_Prof_BarTip>
+  <WFL_Prof_BarDone>Everything in this career is earned.</WFL_Prof_BarDone>
+  <WFL_Prof_NextStep>the next step</WFL_Prof_NextStep>
+  <WFL_Prof_Learning>Learning now: +{0} experience recently.</WFL_Prof_Learning>
+  <WFL_Health_AllGood>Everything is running well</WFL_Health_AllGood>
+  <WFL_Health_Problems>{0} need attention, {1} to watch</WFL_Health_Problems>
+  <WFL_Health_Watch>{0} to watch</WFL_Health_Watch>
+  <WFL_Health_Help>Green: working well. Amber: worth watching. Red: needs attention. Click a line to open that module's page.</WFL_Health_Help>
+  <WFL_Health_Open>Click to open</WFL_Health_Open>
+  <WFL_Health_Unstaffed>{0}: nobody holds one of its professions</WFL_Health_Unstaffed>
+  <WFL_Health_UnstaffedHint>Assign people on the Professions page, or use Quick setup.</WFL_Health_UnstaffedHint>
+  <WFL_Health_Idle>{0}: {1} people hold roles but nobody has done any of its work lately</WFL_Health_Idle>
+  <WFL_Health_IdleHint>They may have nothing to do, nowhere to do it (see Needs), or other work taking their time.</WFL_Health_IdleHint>
+  <WFL_Health_Working>{0}: {1} assigned, {2} working lately</WFL_Health_Working>
+  <WFL_Health_Need>{0} (open {1} days)</WFL_Health_Need>
+  <WFL_Health_NeedHint>See the Today page for what to build or fix.</WFL_Health_NeedHint>
   <WFL_Ov_Professions>Professions</WFL_Ov_Professions>
   <WFL_Ov_Staffed>posts staffed</WFL_Ov_Staffed>
   <WFL_Ov_Assembly>Next assembly</WFL_Ov_Assembly>

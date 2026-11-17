@@ -21,7 +21,7 @@ namespace FamilyLife
         private readonly FamilyComponent comp;
         private SetupPreset preset = SetupPreset.Balanced;
         private Dictionary<string, ProfessionRole> entry; private List<SetupCandidate> candidates; private Dictionary<int, string> choice = new Dictionary<int, string>();
-        private Vector2 scroll; private string note;
+        private Vector2 scroll; private string note; private List<SetupCandidate> sorted = new List<SetupCandidate>();
 
         public override Vector2 InitialSize => new Vector2(640f, 620f);
 
@@ -77,6 +77,7 @@ namespace FamilyLife
                 }
                 candidates.Add(cand);
             }
+            sorted = candidates.OrderBy(q => comp.TryGetPawn(q.Person)?.LabelShort).ToList();
         }
 
         private void Replan()
@@ -113,7 +114,7 @@ namespace FamilyLife
             var view = new Rect(0f, 0f, inRect.width - 16f, viewH);
             Widgets.BeginScrollView(outer, ref scroll, view);
             int idx = 0;
-            foreach (var cand in candidates.OrderBy(c => comp.TryGetPawn(c.Person)?.LabelShort))
+            foreach (var cand in sorted)
             {
                 var pawn = comp.TryGetPawn(cand.Person); if (pawn == null) continue;
                 var row = CommunityWidgets.Row(view, idx * rowH, idx); idx++;

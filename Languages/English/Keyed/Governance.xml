@@ -236,6 +236,8 @@
   <WFL_S_ClassesTip>The colony's chosen teacher holds a class for the children every few days. The class waits if nobody is free to teach or to learn.</WFL_S_ClassesTip>
   <WFL_S_ClassEvery>A class every {0} day(s)</WFL_S_ClassEvery>
   <WFL_S_ClassEveryTip>How often the teacher holds a class.</WFL_S_ClassEveryTip>
+  <WFL_S_ProfTitle>Show the main profession instead of the adulthood backstory title</WFL_S_ProfTitle>
+  <WFL_S_ProfTitleTip>Adults with a profession show it under their name on the colonist bar and on their character card. The backstory itself is unchanged.</WFL_S_ProfTitleTip>
   <WFL_S_Together>How the modules work together</WFL_S_Together>
   <WFL_S_AlertEffects>Other modules react to the colony alert</WFL_S_AlertEffects>
   <WFL_S_AlertEffectsTip>At Yellow, doctors pause specialist rounds. At Red, routine classes, check-ups and rounds wait and builders keep repairing. Turn off to let the alert affect only Military.</WFL_S_AlertEffectsTip>

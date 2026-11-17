@@ -37,7 +37,7 @@ namespace FamilyLife
             lastDraw = Time.frameCount;
             float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Military_MenuTitle".Translate(), s =>
             {
-                var tabs = Enum.GetValues(typeof(Tab)).Cast<Tab>().Where(x => x != Tab.Groups || GroupOrgBridge.Available).ToList(); if (!tabs.Contains(tab)) tab = Tab.Alert;
+                var tabs = Enum.GetValues(typeof(Tab)).Cast<Tab>().ToList(); if (!tabs.Contains(tab)) tab = Tab.Alert;
                 float bw = (s.width - 6f * (tabs.Count - 1)) / tabs.Count;
                 for (int i = 0; i < tabs.Count; i++)
                 {
@@ -52,7 +52,7 @@ namespace FamilyLife
                 case Tab.Positions: return DrawPositions(r, y, c);
                 case Tab.Facilities: return DrawFacilities(r, y, c);
                 case Tab.Soldiers: return DrawSoldiers(r, y, c);
-                case Tab.Groups: return MilitaryGroupsTab.Draw(r, y, c);
+                case Tab.Groups: return MilitarySquadsTab.Draw(r, y, c);
                 default: return DrawAlert(r, y, c);
             }
         }

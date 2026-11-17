@@ -40,6 +40,8 @@ namespace FamilyLife
                 return report;
             });
             FamilyFramework.CrossTraining.Add(Id + ".cross.military", Id, new CrossTrainingRule { From = WardenCareers.Career, To = "wils.military.military", KindPrefix = null, Share = .25f });
+            FamilyFramework.HealthChecks.Add(Id + ".health", Id, c => WardensHealth.Check(c, Id));
+            FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".release", ModuleId = Id, Interval = 600, Run = WardenReleaseGame.Run });
             CareerService.Registered(Id);
         }
     }
