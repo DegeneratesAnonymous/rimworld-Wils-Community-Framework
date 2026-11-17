@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FamilyLife.Domain;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace FamilyLife
 {
@@ -28,6 +30,103 @@ namespace FamilyLife
                 long absolute=Find.TickManager.TicksAbs;
                 return GenDate.Year(absolute,longitude)*60+GenDate.DayOfYear(absolute,longitude);
             }
+        }
+
+        /// <summary>
+        /// A module reports something the colony needs ("no classroom"). Shown on the Today page with where it is; the player is told once when it first appears. Post it each time the need is seen; resolve it
+        /// (<see cref="ResolveNeed"/>) when it is met. <paramref name="key"/> must start with the module id and is unique per need; <paramref name="labelKey"/> is a translation key in the module's own language file.
+        /// </summary>
+        public static void PostNeed(string moduleId, string key, string labelKey, string detail = "", Map map = null, IntVec3 cell = default(IntVec3))
+        {
+            var c = FamilyComponent.Current; if (c == null || string.IsNullOrEmpty(moduleId) || string.IsNullOrEmpty(key) || !key.StartsWith(moduleId + ".", StringComparison.Ordinal)) return;
+            bool isNew = c.Registry.Needs().Post(moduleId, key, labelKey, detail ?? "", Now, map?.uniqueID ?? -1, cell.x, cell.z);
+            if (isNew) Messages.Message("WFL_Need_Posted".Translate(labelKey.Translate()), MessageTypeDefOf.SilentInput, false);
+        }
+
+        /// <summary>The need is met (or gone). Only the module that posted it closes it.</summary>
+        public static void ResolveNeed(string moduleId, string key) { var c = FamilyComponent.Current; if (c != null) c.Registry.Needs().Resolve(moduleId, key); }
+
+        private static readonly CompanionBook companions = new CompanionBook();
+        /// <summary>
+        /// Joint duty: asks a free colleague holding a role in another career (by career id) to come along with <paramref name="leader"/> for a while. The colleague is claimed for <paramref name="claimModule"/>, follows the
+        /// leader, and is returned (or null when nobody suitable is free, or the player has turned team duties off). The leader's module then gives both a bonus when the duty finishes.
+        /// </summary>
+        public static Pawn AttachCompanion(FamilyComponent c, Pawn leader, string companionCareer, string claimModule, int ticks, float maxDistance = 40f)
+        {
+            if (c == null || leader == null || !leader.Spawned || leader.Map == null || (FamilyLifeMod.Settings?.teamBonus ?? .25f) <= 0f || companions.InPair(leader.thingIDNumber, Now)) return null;
+            var book = c.Registry.Assignments(); Pawn best = null; float bestD = float.MaxValue;
+            foreach (var role in CareerService.Professions.All.Where(r => r.Career == companionCareer && FamilyFramework.Catalog.IsEnabled(r.ModuleId)))
+                foreach (int id in book.Holders(role.Id).Distinct())
+                {
+                    var p = c.TryGetPawn(id); if (p == null || p == leader || p.Map != leader.Map || !FreeForDuty(p, claimModule) || companions.InPair(id, Now)) continue;
+                    float d = p.Position.DistanceTo(leader.Position); if (d > maxDistance || d >= bestD || !p.CanReach(leader, PathEndMode.Touch, Danger.Deadly)) continue;
+                    best = p; bestD = d;
+                }
+            if (best == null || !TryClaimDuty(best, claimModule, ticks) || !companions.TryPair(leader.thingIDNumber, best.thingIDNumber, Now, ticks)) return null;
+            var job = JobMaker.MakeJob(JobDefOf.FollowClose, leader); job.followRadius = 5f; job.expiryInterval = ticks; job.checkOverrideOnExpire = true;
+            best.jobs.StartJob(job, JobCondition.InterruptForced, null, false, tag: JobTag.Misc);
+            return best;
+        }
+
+        /// <summary>The colleague working with this leader on a joint duty right now, or null.</summary>
+        public static Pawn CompanionOf(Pawn leader) { if (leader == null) return null; int id = companions.CompanionOf(leader.thingIDNumber, Now); return id == 0 ? null : FamilyComponent.Current?.TryGetPawn(id); }
+        /// <summary>The leader this colleague is working with, or null.</summary>
+        public static Pawn LeaderOf(Pawn companion) { if (companion == null) return null; int id = companions.LeaderOf(companion.thingIDNumber, Now); return id == 0 ? null : FamilyComponent.Current?.TryGetPawn(id); }
+        /// <summary>The joint duty is finished: frees the colleague (and their claim) at once.</summary>
+        public static void EndCompanion(Pawn leader, string claimModule)
+        {
+            var other = CompanionOf(leader); companions.End(leader.thingIDNumber);
+            if (other != null) { ReleaseDuty(other, claimModule); if (other.CurJobDef == JobDefOf.FollowClose) other.jobs.EndCurrentJob(JobCondition.Succeeded); }
+        }
+        /// <summary>Points for a duty done as a team: the player's team bonus added on.</summary>
+        public static int TeamPoints(int points) => TeamBonus.Apply(points, FamilyLifeMod.Settings?.teamBonus ?? .25f);
+
+        private static readonly Dictionary<string, KeyValuePair<string, Action>> needActions = new Dictionary<string, KeyValuePair<string, Action>>();
+        /// <summary>What the player can do about a need: a button on the Today page that starts the fix (opens the right build tool, say). <paramref name="labelKey"/> names the button; registered once at start-up.</summary>
+        public static void RegisterNeedAction(string moduleId, string needKey, string labelKey, Action action)
+        {
+            if (string.IsNullOrEmpty(needKey) || !needKey.StartsWith(moduleId + ".", StringComparison.Ordinal) || action == null) return;
+            needActions[needKey] = new KeyValuePair<string, Action>(labelKey, action);
+        }
+        internal static bool TryNeedAction(string needKey, out string labelKey, out Action action)
+        {
+            if (needActions.TryGetValue(needKey, out var kv)) { labelKey = kv.Key; action = kv.Value; return true; }
+            labelKey = null; action = null; return false;
+        }
+
+        private static readonly ColonyAlertBoard alertBoard = new ColonyAlertBoard();
+        /// <summary>How alert the colony is as a whole (the highest level any running module has published). Modules read this to adapt: pause routine work at Red, stand by, and so on.</summary>
+        public static ColonyAlertLevel ColonyAlert => FamilyLifeMod.Settings != null && !FamilyLifeMod.Settings.alertEffects ? ColonyAlertLevel.Normal : alertBoard.Level(id => FamilyFramework.Catalog.IsEnabled(id));
+        /// <summary>The alert as published, whether or not the player has turned its effects on other modules off (for display).</summary>
+        public static ColonyAlertLevel ColonyAlertPublished => alertBoard.Level(id => FamilyFramework.Catalog.IsEnabled(id));
+        /// <summary>The module that raised the colony to its current level, or null at Normal.</summary>
+        public static string ColonyAlertRaisedBy => alertBoard.RaisedBy(id => FamilyFramework.Catalog.IsEnabled(id));
+        /// <summary>A module publishes its own alert level (republished each pass; a stopped module is ignored).</summary>
+        public static void PublishColonyAlert(string moduleId, ColonyAlertLevel level) => alertBoard.Publish(moduleId, level);
+
+        private static readonly DutyClaimBook dutyClaims = new DutyClaimBook();
+        /// <summary>Takes a pawn for a module's duty for a while. False when another module already has them: leave that pawn alone. A pawn can hold roles in several modules; this keeps them from being sent to two duties at once.</summary>
+        public static bool TryClaimDuty(Pawn p, string moduleId, int ticks = 1500) => p != null && dutyClaims.TryClaim(p.thingIDNumber, moduleId, Now, ticks);
+        /// <summary>True when another module has this pawn on a duty.</summary>
+        public static bool ClaimedByOther(Pawn p, string moduleId) => p != null && dutyClaims.HeldByOther(p.thingIDNumber, moduleId, Now);
+        /// <summary>The module that has this pawn on a duty now, or null.</summary>
+        public static string DutyHolder(Pawn p) => p == null ? null : dutyClaims.HolderOf(p.thingIDNumber, Now);
+        /// <summary>Ends the module's claim on a pawn (a duty finished or was never started).</summary>
+        public static void ReleaseDuty(Pawn p, string moduleId) { if (p != null) dutyClaims.Release(p.thingIDNumber, moduleId); }
+
+        /// <summary>
+        /// The one check for "has nothing to do and can be given a duty": awake, able, free of a mental state, not asleep or on recreation by the timetable, last job idle and not ordered by the player, no urgent
+        /// need, not resting for health, fed and rested enough, and not already on another module's duty. Modules add their own extra conditions after this.
+        /// </summary>
+        public static bool FreeForDuty(Pawn p, string moduleId)
+        {
+            if (p == null || !p.Spawned || p.Dead || p.Downed || p.Drafted || p.InMentalState || p.IsPrisoner || p.IsSlave || !p.RaceProps.Humanlike || p.DevelopmentalStage.Baby() || !p.Awake()) return false;
+            if (ClaimedByOther(p, moduleId)) return false;
+            var assignment = p.timetable?.CurrentAssignment;
+            if (assignment == TimeAssignmentDefOf.Sleep || assignment == TimeAssignmentDefOf.Joy) return false;
+            if (p.mindState?.lastJobTag != JobTag.Idle || p.CurJob?.playerForced == true) return false;
+            if (NeedsReason(p) != null || HealthAIUtility.ShouldSeekMedicalRest(p)) return false;
+            return !(p.needs?.food != null && p.needs.food.CurLevel < .2f) && !(p.needs?.rest != null && p.needs.rest.CurLevel < .15f);
         }
 
         /// <summary>The pawn the player is currently playing as (Perspective Shift), or 0.</summary>

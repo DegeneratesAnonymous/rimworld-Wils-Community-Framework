@@ -146,5 +146,24 @@ namespace FamilyLife.Tests
             Assert.Contains("FamilyLife",crafting.References);Assert.DoesNotContain("WilsHospitality",crafting.References);Assert.DoesNotContain("WilsTreasury",crafting.References);Assert.Empty(crafting.Types.Intersect(framework.Types));
             var dlls=Directory.GetFiles(Path.GetDirectoryName(crafting.Path),"*.dll").Select(Path.GetFileName).ToList();Assert.Equal(new[]{"WilsCrafting.dll"},dlls);
         }
+        [Theory]
+        [InlineData("1.6", "WilsIntelligence")]
+        [InlineData("1.7", "WilsIntelligence")]
+        [InlineData("1.6", "WilsMilitary")]
+        [InlineData("1.7", "WilsMilitary")]
+        [InlineData("1.6", "WilsWardens")]
+        [InlineData("1.7", "WilsWardens")]
+        [InlineData("1.6", "WilsWorks")]
+        [InlineData("1.7", "WilsWorks")]
+        [InlineData("1.6", "WilsAgriculture")]
+        [InlineData("1.7", "WilsAgriculture")]
+        public void Intelligence_and_Military_use_only_the_framework_contract_and_ship_only_their_assembly(string version, string name)
+        {
+            var module = Read(Module(version, name, name)); var framework = Read(Framework(version));
+            Assert.Contains("FamilyLife", module.References);
+            foreach (var other in new[] { "WilsEducation", "WilsCommunityCare", "WilsTreasury", "WilsHospitality", "WilsCrafting", "WilsIntelligence", "WilsMilitary", "WilsWardens", "WilsWorks", "WilsAgriculture" }.Where(o => o != name)) Assert.DoesNotContain(other, module.References);
+            Assert.Empty(module.Types.Intersect(framework.Types));
+            var dlls = Directory.GetFiles(Path.GetDirectoryName(module.Path), "*.dll").Select(Path.GetFileName).ToList(); Assert.Equal(new[] { name + ".dll" }, dlls);
+        }
     }
 }

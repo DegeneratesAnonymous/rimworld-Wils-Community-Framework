@@ -19,6 +19,9 @@ namespace FamilyLife
 
         public void Register()
         {
+            // Keep Community beside Architect even when a game version changes the vanilla tab orders.
+            if (CommunityDefOf.WFL_Community != null && MainButtonDefOf.Architect != null)
+                CommunityDefOf.WFL_Community.order = MainButtonDefOf.Architect.order + 1;
             FamilyFramework.Catalog.Register(new ModuleInfo { Id = Id, Name = "Wil's Community Framework", ApiVersion = FamilyFramework.ApiVersion, Requires = new[] { ModuleCatalog.FrameworkId } });
             FamilyFramework.Catalog.Provide(Id, "wils.familylife.meals");
             FamilyFramework.Offices.Register(new OfficeDefinition { Id = "wils.familylife.chaplain", ModuleId = Id, Kind = OfficeKind.Chaplain, LabelKey = "WFL_OfficeKind_Chaplain" });

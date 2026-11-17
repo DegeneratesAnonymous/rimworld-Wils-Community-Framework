@@ -45,6 +45,10 @@ namespace FamilyLife
         public static readonly ContributionList<Func<Verse.AI.Group.Lord,bool>> TimedDepartureAllowed = new ContributionList<Func<Verse.AI.Group.Lord,bool>>(Catalog);
         public static readonly ContributionList<Func<Pawn,Thing,string,bool>> ExternalCommerceAllowed = new ContributionList<Func<Pawn,Thing,string,bool>>(Catalog);
         public static readonly ContributionList<Action<PropertyDamageReport>> PropertyDamaged = new ContributionList<Action<PropertyDamageReport>>(Catalog);
+        /// <summary>Icons a module adds to the bottom-right icon cluster (beside the game's own show/hide toggles). Called each frame the cluster is drawn, on the map view only.</summary>
+        public static readonly ContributionList<Action<WidgetRow>> PlayControls = new ContributionList<Action<WidgetRow>>(Catalog);
+        /// <summary>Optional modules may reserve only the automatic hunt targets they own. Forced player orders are never filtered.</summary>
+        public static readonly ContributionList<Func<Pawn,Thing,bool>> HuntWorkAllowed = new ContributionList<Func<Pawn,Thing,bool>>(Catalog);
         public static readonly CommerceCatalog Commerce = new CommerceCatalog(id => Catalog.IsEnabled(id));
         public static readonly ContributionList<Func<Pawn, string, bool>> PrivateWork = new ContributionList<Func<Pawn, string, bool>>(Catalog);
         public static readonly ContributionList<Func<Pawn, string, string, bool>> PrivateWorkEvent = new ContributionList<Func<Pawn, string, string, bool>>(Catalog);
@@ -62,8 +66,12 @@ namespace FamilyLife
         public static readonly ContributionList<Action<TradeReport>> TradeCompleted;          // a vanilla trade was completed (read-only; the framework owns the patch)
         public static readonly ContributionList<Action<int, string>> SilverReceived;          // silver arrived from a quest reward: (amount, idempotency key)
         public static readonly ContributionList<Action<LabourReport>> LabourDone;          // a vanilla job ended successfully (read-only)
+        public static readonly ContributionList<Action<CombatReport>> CombatEvents;          // a hostile blow or kill involving the player's faction (read-only; the framework owns the patch)
+        public static readonly ContributionList<Func<Pawn, Thing, float>> TargetBias;          // a shooter's preference between enemies: (shooter, candidate) -> a bounded nudge added to the game's own shooting score
         public static readonly ContributionList<Action<Pawn, float>> ResearchDone;          // research work was performed: (researcher, points)
         public static readonly ContributionList<Action<FamilyComponent, IList<FamilyEvent>, int>> FamilyEventsApplied;          // after each reconciliation of the family records: (component, the events it produced, now)
+        /// <summary>Related-career learning: finished activity in one career gives a share of its points to another (by career id), without wages. Declared by the module that owns the activity.</summary>
+        public static readonly ContributionList<CrossTrainingRule> CrossTraining;
         public static readonly ContributionList<Action<Pawn, string, string, string, string, int>> WorkReported;          // a module reported finished professional work: (pawn, career, specialty, kind, activity key, tick)
         public static readonly ContributionList<Action<CommunityOffice>> DueNow;          // developer menu: brings a module's timers on a post due
         public static readonly ContributionList<Func<FamilyComponent, CleanupReport>> Removal;          // "prepare for removal": one per module
@@ -94,8 +102,11 @@ namespace FamilyLife
             SilverReceived = new ContributionList<Action<int, string>>(Catalog);
             LabourDone = new ContributionList<Action<LabourReport>>(Catalog);
             ResearchDone = new ContributionList<Action<Pawn, float>>(Catalog);
+            CombatEvents = new ContributionList<Action<CombatReport>>(Catalog);
+            TargetBias = new ContributionList<Func<Pawn, Thing, float>>(Catalog);
             FamilyEventsApplied = new ContributionList<Action<FamilyComponent, IList<FamilyEvent>, int>>(Catalog);
             WorkReported = new ContributionList<Action<Pawn, string, string, string, string, int>>(Catalog);
+            CrossTraining = new ContributionList<CrossTrainingRule>(Catalog);
             Resets = new ContributionList<Action>(Catalog);
             Removal = new ContributionList<Func<FamilyComponent, CleanupReport>>(Catalog);
             DueNow = new ContributionList<Action<CommunityOffice>>(Catalog);

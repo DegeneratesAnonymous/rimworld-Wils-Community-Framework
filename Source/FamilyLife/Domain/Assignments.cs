@@ -15,6 +15,8 @@ namespace FamilyLife.Domain
     public sealed class ProfessionRole
     {
         public string Id, ModuleId, Career, Specialty, BonusKey;
+        /// <summary>Optional visual/progression path for an entry role. Unlike Specialty, this grants no qualification or gameplay bonus.</summary>
+        public string Path;
         public int Level = 1;
         /// <summary>Optional: the label key to show now (a role can be titled differently as the community changes, without its id changing).</summary>
         public Func<FamilyRegistry, string> TitleKey;

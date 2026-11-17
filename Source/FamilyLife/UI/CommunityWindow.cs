@@ -9,6 +9,12 @@ using Verse;
 
 namespace FamilyLife
 {
+    /// <summary>The longer Community label gets a little more breathing room than a stock bottom-bar button.</summary>
+    public sealed class CommunityMainButtonWorker : MainButtonWorker_ToggleTab
+    {
+        public override float ButtonBarPercent => 1.12f;
+    }
+
     /// <summary>
     /// The one Community window. The framework owns the navigation, which page is selected, scrolling and the layout conventions; each page (the core ones below, and those a module registers
     /// in <see cref="FamilyFramework.Pages"/>) draws only its own content. It lists only the pages of modules that are enabled, and a page that throws shows a message instead of breaking the window.
@@ -56,7 +62,7 @@ namespace FamilyLife
                 if (on) Widgets.DrawBoxSolid(row, new Color(0.25f, 0.22f, 0.12f, 0.9f)); else if (Mouse.IsOver(row)) Widgets.DrawHighlight(row);
                 var icon = string.IsNullOrEmpty(p.Icon) ? null : ContentFinder<Texture2D>.Get(p.Icon, false);
                 float x = row.x + 6f;
-                if (icon != null) { GUI.DrawTexture(new Rect(x, row.center.y - 10f, 20f, 20f), icon); }
+                if (icon != null) { GUI.DrawTexture(new Rect(x, row.center.y - 11f, 22f, 22f), icon, ScaleMode.ScaleToFit); }
                 x += 26f;
                 int status = statuses[index - 1];
                 Text.Anchor = TextAnchor.MiddleLeft;

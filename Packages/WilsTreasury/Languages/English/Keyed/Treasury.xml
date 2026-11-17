@@ -106,4 +106,16 @@
   <WFL_Tr_Event_fair_treatment>The collector's even-handedness has been noticed.</WFL_Tr_Event_fair_treatment>
   <WFL_Tr_Event_returns_money>The collector returned money that should not have been taken.</WFL_Tr_Event_returns_money>
   <WFL_Tr_Event_community_petition>A petition about the collection is going round.</WFL_Tr_Event_community_petition>
+<WFL_Need_Wages>Silver to pay wages: the last payday fell short</WFL_Need_Wages>
+<WFL_Tr_Budget>Budget</WFL_Tr_Budget>
+<WFL_Tr_BudgetFunds>Community funds: {0} silver. The most the wages could cost in a day: {1}.</WFL_Tr_BudgetFunds>
+<WFL_Tr_BudgetRunway>At that rate the funds last about {0} days.</WFL_Tr_BudgetRunway>
+<WFL_Tr_BudgetOwed>Wages already owed: {0} silver.</WFL_Tr_BudgetOwed>
+<WFL_Tr_BudgetHelp>The wage bill by module. Staff is how many people hold a role from that module; Earned is what they have earned and not yet been paid; Daily max is the most their roles could cost per day if everyone worked to the limit. Nothing here moves silver.</WFL_Tr_BudgetHelp>
+<WFL_Tr_BudgetModule>Module</WFL_Tr_BudgetModule>
+<WFL_Tr_BudgetStaff>Staff</WFL_Tr_BudgetStaff>
+<WFL_Tr_BudgetPending>Earned, unpaid</WFL_Tr_BudgetPending>
+<WFL_Tr_BudgetMax>Daily max</WFL_Tr_BudgetMax>
+<WFL_Tr_BudgetOrdinary>Ordinary labour</WFL_Tr_BudgetOrdinary>
+<WFL_Tr_BudgetNone>Nobody is on the payroll yet.</WFL_Tr_BudgetNone>
 </LanguageData>

@@ -14,7 +14,13 @@ namespace FamilyLife.Domain
         public Dictionary<string, int> Skills = new Dictionary<string, int>();
         /// <summary>For an advanced specialty, at least one named branch/specialty must already be qualified. Empty keeps the original unrestricted behavior.</summary>
         public List<string> RequiresAny = new List<string>();
+        /// <summary>
+        /// Qualifications of <b>other</b> careers that must all be held, by their ledger id: a career id ("wils.care.practice") or "career:specialty". This is how a hybrid role asks for two professions
+        /// without either module referencing the other: the ledger is shared and the ids are plain strings. If the other module is absent nobody holds its qualification, so the role is simply unavailable.
+        /// </summary>
+        public List<string> RequiresAll = new List<string>();
         public int GeneralXp, SpecialtyXp;
+        public CareerRule Needs(params string[] qualifications) { RequiresAll.AddRange(qualifications.Where(q => !string.IsNullOrEmpty(q))); return this; }
         public CareerRule Skill(string skill, int min) { Skills[skill] = min; return this; }
         public CareerRule After(params string[] qualifications) { RequiresAny.AddRange(qualifications.Where(q => !string.IsNullOrEmpty(q))); return this; }
     }
@@ -96,6 +102,8 @@ namespace FamilyLife.Domain
 
         public int GeneralXp(int person, string career) => people.TryGetValue(person, out var e) && e.Xp.TryGetValue(career, out var v) ? v : 0;
         public int SpecialtyXp(int person, string career, string specialty) => people.TryGetValue(person, out var e) && e.Xp.TryGetValue(Special(career, specialty), out var v) ? v : 0;
+        /// <summary>Whether the person holds a qualification by its ledger id (a career id, or "career:specialty"). Used for requirements that cross careers.</summary>
+        public bool Holds(int person, string qualification) => people.TryGetValue(person, out var e) && e.Quals.Contains(qualification);
         public bool IsQualified(int person, string career) => people.TryGetValue(person, out var e) && e.Quals.Contains(career);
         public bool IsSpecialist(int person, string career, string specialty) => people.TryGetValue(person, out var e) && e.Quals.Contains(Special(career, specialty));
         public IEnumerable<string> Specialties(int person, string career) => people.TryGetValue(person, out var e)
@@ -173,6 +181,7 @@ namespace FamilyLife.Domain
                 {
                     string q = Special(def.Id, s.Key);
                     bool prerequisite = s.Value.RequiresAny.Count == 0 || s.Value.RequiresAny.Any(required => e.Quals.Contains(Special(def.Id, required)));
+                    prerequisite = prerequisite && s.Value.RequiresAll.All(e.Quals.Contains);
                     if (!e.Quals.Contains(q) && prerequisite && GeneralXp(person, def.Id) >= s.Value.GeneralXp && SpecialtyXp(person, def.Id, s.Key) >= s.Value.SpecialtyXp && Meets(s.Value, skill)) { e.Quals.Add(q); gained.Add(q); }
                 }
             return gained;
@@ -189,7 +198,7 @@ namespace FamilyLife.Domain
             else foreach (var branch in def.Level2Branches.OrderBy(x => x.Key, StringComparer.Ordinal))
                 rows.Add(Row(person, def, branch.Key, branch.Value, IsSpecialist(person, def.Id, branch.Key), true, skill));
             foreach (var s in def.Specialties.OrderBy(x => x.Key, StringComparer.Ordinal))
-                rows.Add(Row(person, def, s.Key, s.Value, IsSpecialist(person, def.Id, s.Key), IsQualified(person, def.Id) && (s.Value.RequiresAny.Count == 0 || s.Value.RequiresAny.Any(required => IsSpecialist(person, def.Id, required))), skill));
+                rows.Add(Row(person, def, s.Key, s.Value, IsSpecialist(person, def.Id, s.Key), IsQualified(person, def.Id) && (s.Value.RequiresAny.Count == 0 || s.Value.RequiresAny.Any(required => IsSpecialist(person, def.Id, required))) && s.Value.RequiresAll.All(q => Holds(person, q)), skill));
             return rows;
         }
 
@@ -204,6 +213,7 @@ namespace FamilyLife.Domain
         public List<string> Missing(int person, string career, string specialty, CareerRule rule, Func<string, int> skill)
         {
             var list = rule.Skills.Where(s => skill(s.Key) < s.Value).Select(s => s.Key + " " + s.Value).ToList();
+            foreach (var needed in rule.RequiresAll) if (!Holds(person, needed)) list.Add("qualification " + needed);
             int g = GeneralXp(person, career); if (g < rule.GeneralXp) list.Add("experience " + g + "/" + rule.GeneralXp);
             if (specialty != null) { int x = SpecialtyXp(person, career, specialty); if (x < rule.SpecialtyXp) list.Add(specialty + " experience " + x + "/" + rule.SpecialtyXp); }
             return list;

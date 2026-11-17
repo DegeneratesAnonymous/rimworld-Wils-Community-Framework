@@ -23,7 +23,7 @@
   <WFL_Care_SurgeonBonus>Post-operation and implant follow-ups gain one quality band, capped at Excellent.</WFL_Care_SurgeonBonus>
   <WFL_Care_MidwifeBonus>Pregnancy and childbirth follow-ups gain one quality band, capped at Excellent; attended births leave a positive memory.</WFL_Care_MidwifeBonus>
   <WFL_Care_VeterinarianBonus>Animal examinations gain one quality band, capped at Excellent, and animal tending builds veterinary experience.</WFL_Care_VeterinarianBonus>
-  <WFL_Care_Page>Community Care</WFL_Care_Page>
+  <WFL_Care_Page>Health and Patients</WFL_Care_Page>
   <WFL_Care_Practitioners>Care workers</WFL_Care_Practitioners>
   <WFL_Care_None>Nobody is assigned to care work yet. Assign a Healer or Doctor on the Professions page.</WFL_Care_None>
   <WFL_Care_Capacity>Routine visits the community can give in a day: {0} (up to {1} while an outbreak round is on).</WFL_Care_Capacity>
@@ -31,4 +31,20 @@
   <WFL_Care_NoSeat>No care worker holds the working seat, so no round can run.</WFL_Care_NoSeat>
   <WFL_Care_RoutineRound>A routine check-up round.</WFL_Care_RoutineRound>
   <WFL_Care_OutbreakRound>An outbreak round is under way: the sick are seen first.</WFL_Care_OutbreakRound>
+  <WFL_Care_PatientsTitle>Patients</WFL_Care_PatientsTitle>
+  <WFL_Care_OverviewTitle>Colony health at a glance</WFL_Care_OverviewTitle>
+  <WFL_Care_PatientSummary>{0} colonists: {1} are patients, {2} need tending, {3} are down.</WFL_Care_PatientSummary>
+  <WFL_Care_NoPatients>Nobody needs care right now.</WFL_Care_NoPatients>
+  <WFL_Care_PatientsHelp>Worst first. Care level is the game's own medical care setting for that colonist. Click a name to go to them.</WFL_Care_PatientsHelp>
+  <WFL_Care_Conditions>Conditions</WFL_Care_Conditions>
+  <WFL_Care_Bed>Bed</WFL_Care_Bed>
+  <WFL_Care_Level>Medical care</WFL_Care_Level>
+  <WFL_Care_Downed>Downed</WFL_Care_Downed>
+  <WFL_Care_Bleeding>Bleeding</WFL_Care_Bleeding>
+  <WFL_Care_MedicalBed>Medical bed</WFL_Care_MedicalBed>
+  <WFL_Care_OrdinaryBed>Ordinary bed</WFL_Care_OrdinaryBed>
+  <WFL_Care_Floor>On the floor</WFL_Care_Floor>
+  <WFL_Care_NoColonists>There are no colonists.</WFL_Care_NoColonists>
+  <WFL_Care_OverviewHelp>Each tile is one colonist, worst health first. [D] downed, [+] needs tending, [!] bleeding. Hover for conditions; click to go to them.</WFL_Care_OverviewHelp>
+<WFL_Need_Clinic>A medical bed in an enclosed room for the doctor's clinic</WFL_Need_Clinic>
 </LanguageData>

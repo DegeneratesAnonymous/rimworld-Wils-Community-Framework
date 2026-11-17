@@ -89,11 +89,15 @@ namespace FamilyLife
         internal static bool TryOpen(Pawn doctor)
         {
             if (doctor == null || Running(doctor)) return true;
-            if (!Spot(doctor, out var bed, out var cell)) { FrameworkServices.Trace("clinic: no medical bed in an enclosed room for " + doctor.LabelShort); return false; }
+            if (!Spot(doctor, out var bed, out var cell)) { FrameworkServices.Trace("clinic: no medical bed in an enclosed room for " + doctor.LabelShort); FrameworkServices.PostNeed("wils.care", "wils.care.clinic", "WFL_Need_Clinic", doctor.LabelShort, doctor.Map, doctor.Position); return false; }
+            FrameworkServices.ResolveNeed("wils.care", "wils.care.clinic");
             int now = FrameworkServices.Now;
             if (CareDemand.DoctorShouldTend(doctor, now) || PawnReadinessApi.StopReason(doctor, now) != null) return true;          // tending and the doctor's own needs come first
+            if (FrameworkServices.ColonyAlert == ColonyAlertLevel.Red) return true;          // at Red, doctors stay free for the wounded
             if (!FrameworkServices.Ready(doctor) || doctor.CurJob?.playerForced == true || (Find.Selector.IsSelected(doctor) && !FrameworkServices.Forced) || FrameworkServices.IsAvatar(doctor)) return true;       // there is a clinic: wait until the doctor is free
+            if (FrameworkServices.ClaimedByOther(doctor, "wils.care")) return true;          // on another module's duty just now
             if (!CareDriver.Claims.TryClaimPlace("b" + bed.thingIDNumber, doctor.thingIDNumber, now)) return true;          // another care worker has just taken this bed
+            if (!FrameworkServices.TryClaimDuty(doctor, "wils.care", 2500)) return true;
             FrameworkServices.Trace("clinic: " + doctor.LabelShort + " goes to " + cell + " beside " + bed.LabelCap);
             byDoctor[doctor.thingIDNumber] = new ClinicSession { DoctorId = doctor.thingIDNumber, Bed = bed, DoctorCell = cell };
             var open = JobMaker.MakeJob(CareDefOf.WFL_ClinicDoctor, bed, cell);

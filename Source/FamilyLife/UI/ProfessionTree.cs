@@ -22,6 +22,13 @@ namespace FamilyLife
             if (def != null && !string.IsNullOrEmpty(role.Specialty)) { if (!def.Level2Branches.TryGetValue(role.Specialty, out rule)) def.Specialties.TryGetValue(role.Specialty, out rule); }
             var named = rule == null ? new List<ProfessionRole>() : rule.RequiresAny.SelectMany(q => roles.Where(x => x != role && x.Specialty == q)).Distinct().ToList();
             if (named.Count > 0) return named;
+            // A branched career may pair each entry role with one skilled branch. This keeps, for example,
+            // Forager -> Farmer separate from Tracker -> Hunter instead of drawing every entry into one trunk.
+            if (role.Level == 2 && !string.IsNullOrEmpty(role.Specialty))
+            {
+                var paired = roles.Where(x => x.Level == 1 && x.Path == role.Specialty).ToList();
+                if (paired.Count > 0) return paired;
+            }
             var below = roles.Where(x => x.Level == role.Level - 1).ToList();
             if (below.Count == 0) below = roles.Where(x => x.Level < role.Level).ToList();
             return below;
@@ -45,6 +52,7 @@ namespace FamilyLife
         public static float Draw(Rect r, float y, FamilyComponent c, string career, List<ProfessionRole> roles, string search)
         {
             var reg = c.Registry; var book = reg.Assignments(); var ledger = reg.Careers(); var def = CareerService.Career(career);
+            if (UsesSkillLanes(def, roles)) return DrawSkillLanes(r, y, c, roles, search, reg, book, ledger, def);
             var depth = Depths(def, roles); int cols = depth.Values.DefaultIfEmpty(0).Max() + 1;
             float nodeW = Mathf.Clamp((r.width - GapX * (cols - 1)) / cols, 110f, 210f), top = y + 26f;
             var residents = reg.Persons.Where(p => p.InColony && !p.Juvenile).OrderBy(p => CommunityCorePages.NameOf(c, p.Id)).ToList();
@@ -111,6 +119,74 @@ namespace FamilyLife
             return bottom + 8f;
         }
 
+        private static bool UsesSkillLanes(CareerDefinition def, List<ProfessionRole> roles)
+        {
+            if (def == null) return false;
+            var skilled = roles.Where(x => x.Level == 2 && !string.IsNullOrEmpty(x.Specialty)).ToList();
+            return skilled.Count > 1 && skilled.All(s => roles.Any(e => e.Level == 1 && e.Path == s.Specialty));
+        }
+
+        /// <summary>Draws a multi-discipline career as separate horizontal bands, with the gate skills visible before any role is opened.</summary>
+        private static float DrawSkillLanes(Rect r, float y, FamilyComponent c, List<ProfessionRole> roles, string search, FamilyRegistry reg, AssignmentBook book, CareerLedger ledger, CareerDefinition def)
+        {
+            const float laneLabelH = 28f, laneGap = 16f;
+            const int cols = 3;
+            float nodeW = Mathf.Clamp((r.width - GapX * (cols - 1)) / cols, 110f, 210f);
+            var residents = reg.Persons.Where(p => p.InColony && !p.Juvenile).OrderBy(p => CommunityCorePages.NameOf(c, p.Id)).ToList();
+            var skilled = roles.Where(x => x.Level == 2).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
+            var palette = new[] { new Color(.45f, .72f, .38f), new Color(.38f, .64f, .9f), new Color(.86f, .62f, .3f), new Color(.78f, .45f, .8f) };
+            Lanes = new Dictionary<ProfessionRole, Color>();
+
+            for (int col = 0; col < cols; col++)
+            {
+                string key = col == 0 ? "WFL_Tree_Entry" : col == 1 ? "WFL_Tree_Skilled" : "WFL_Tree_Specialist";
+                Text.Font = GameFont.Tiny; GUI.color = new Color(FamilyKit.Gold.r, FamilyKit.Gold.g, FamilyKit.Gold.b, .8f);
+                Widgets.Label(new Rect(col * (nodeW + GapX) + 4f, y + 4f, nodeW, 18f), key.Translate().ToString().ToUpperInvariant());
+            }
+            GUI.color = Color.white; Text.Font = GameFont.Small;
+            float cursor = y + 26f;
+            for (int laneIndex = 0; laneIndex < skilled.Count; laneIndex++)
+            {
+                var root = skilled[laneIndex]; var colour = palette[laneIndex % palette.Length]; Lanes[root] = colour;
+                var entries = roles.Where(x => x.Level == 1 && x.Path == root.Specialty).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
+                var specialists = roles.Where(x => x.Level >= 3 && ParentsOf(def, roles, x).Contains(root)).OrderBy(x => x.Id, StringComparer.Ordinal).ToList();
+                int rows = Math.Max(1, Math.Max(entries.Count, specialists.Count)); float nodesH = rows * NodeH + (rows - 1) * GapY;
+                var band = new Rect(0f, cursor, r.width, laneLabelH + nodesH + 12f);
+                Widgets.DrawBoxSolid(band, new Color(colour.r, colour.g, colour.b, .055f));
+                Widgets.DrawBoxSolid(new Rect(band.x, band.y, 4f, band.height), new Color(colour.r, colour.g, colour.b, .75f));
+
+                string requirements = string.Join("  •  ", RuleOf(def, root).Skills.Select(s => SkillName(s.Key) + " " + s.Value));
+                Text.Font = GameFont.Tiny; GUI.color = colour;
+                Widgets.Label(new Rect(12f, cursor + 5f, r.width - 24f, 18f), (CareerService.TitleOf(root, reg) + " path" + (requirements.Length > 0 ? "  —  " + requirements : "")).ToUpperInvariant());
+                GUI.color = Color.white; Text.Font = GameFont.Small;
+
+                float nodesTop = cursor + laneLabelH, centreY = nodesTop + nodesH / 2f;
+                var positions = new Dictionary<ProfessionRole, Rect>();
+                PositionColumn(entries, 0, nodeW, nodesTop, nodesH, positions);
+                positions[root] = new Rect(nodeW + GapX, centreY - NodeH / 2f, nodeW, NodeH);
+                PositionColumn(specialists, 2, nodeW, nodesTop, nodesH, positions);
+
+                foreach (var entry in entries) Curve(new Vector2(positions[entry].xMax, positions[entry].center.y), new Vector2(positions[root].x, positions[root].center.y), colour);
+                foreach (var specialist in specialists) Curve(new Vector2(positions[root].xMax, positions[root].center.y), new Vector2(positions[specialist].x, positions[specialist].center.y), colour);
+                foreach (var role in entries.Concat(new[] { root }).Concat(specialists)) Node(positions[role], c, reg, book, ledger, def, role, residents, search, roles);
+                cursor = band.yMax + laneGap;
+            }
+            return cursor;
+        }
+
+        private static void PositionColumn(List<ProfessionRole> roles, int col, float nodeW, float top, float totalH, Dictionary<ProfessionRole, Rect> positions)
+        {
+            float used = roles.Count * NodeH + Math.Max(0, roles.Count - 1) * GapY;
+            float yy = top + (totalH - used) / 2f;
+            foreach (var role in roles) { positions[role] = new Rect(col * (nodeW + GapX), yy, nodeW, NodeH); yy += NodeH + GapY; }
+        }
+
+        private static string SkillName(string defName)
+        {
+            var def = DefDatabase<SkillDef>.GetNamedSilentFail(defName);
+            return (def?.skillLabel ?? defName).CapitalizeFirst();
+        }
+
         private static void Curve(Vector2 a, Vector2 b, Color col)
         {
             const int steps = 14; Vector2 prev = a;
@@ -152,7 +228,8 @@ namespace FamilyLife
 
         private static CareerRule RuleOf(CareerDefinition def, ProfessionRole role)
         {
-            if (!string.IsNullOrEmpty(role.Specialty)) { if (def.Level2Branches.TryGetValue(role.Specialty, out var b)) return b; if (def.Specialties.TryGetValue(role.Specialty, out var s)) return s; }
+            string route = role.Level == 1 ? role.Path : role.Specialty;
+            if (!string.IsNullOrEmpty(route)) { if (def.Level2Branches.TryGetValue(route, out var b)) return b; if (def.Specialties.TryGetValue(route, out var s)) return s; }
             return def.Level2;
         }
 
@@ -160,7 +237,7 @@ namespace FamilyLife
         internal static List<string> RelevantSkills(CareerDefinition def, ProfessionRole role)
         {
             if (def == null) return new List<string>();
-            var own = RuleOf(def, role).Skills.Keys.ToList(); if (own.Count > 0 && role.Level > 1) return own;
+            var own = RuleOf(def, role).Skills.Keys.ToList(); if (own.Count > 0 && (role.Level > 1 || !string.IsNullOrEmpty(role.Path))) return own;
             return new[] { def.Level2 }.Concat(def.Level2Branches.Values).Concat(def.Specialties.Values).SelectMany(q => q.Skills.Keys).Distinct().ToList();
         }
 

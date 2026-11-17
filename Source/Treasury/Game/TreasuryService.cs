@@ -138,7 +138,8 @@ namespace FamilyLife
                 if (rep.TotalDue <= 0) continue;
                 Messages.Message("WFL_Tr_Payday".Translate(rep.TotalDue, rep.TotalPaid, rep.Shortfall > 0 ? (string)"WFL_Tr_ShortBy".Translate(rep.Shortfall) : ""), MessageTypeDefOf.NeutralEvent, false);
                 TreasuryOffice.Add(c, "payday|" + rep.Payday, FinancialOp.Payday, true);
-                if (rep.Shortfall > 0) WageStrain(c, r, rep);
+                if (rep.Shortfall > 0) { WageStrain(c, r, rep); FrameworkServices.PostNeed("wils.treasury", "wils.treasury.wages", "WFL_Need_Wages", rep.Shortfall.ToString()); }
+                else FrameworkServices.ResolveNeed("wils.treasury", "wils.treasury.wages");
             }
             Estates(r, l, today);
             l.Prune(today);

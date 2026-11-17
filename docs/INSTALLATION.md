@@ -10,6 +10,10 @@ Wil's Community Framework and its optional role modules are six packages. **This
 | Wil's Role Modules : Treasury | `WilsTreasury` | `SpacemanWil.WilsTreasury` | Accounts, physical silver backing, wages, debts and taxation |
 | Wil's Role Modules : Cooking & Hospitality | `WilsHospitality` | `SpacemanWil.WilsHospitality` | Cooking careers, establishments, service, shops and inns; paid operations use Treasury's optional commerce capability |
 | Wil's Role Modules : Crafting | `WilsCrafting` | `SpacemanWil.WilsCrafting` | Crafting careers, specialties, commercial workshops and specialty product bonuses |
+| Wil's Role Modules : Intelligence | `WilsIntelligence` | `SpacemanWil.WilsIntelligence` | Assistant, Researcher, and Analyst, Geneticist, Dark Scholar (Dark Study), Author, Mech Commander, Diplomat and Chemist specialties, with Library, Research Lab and Gene Lab recognition |
+| Wil's Role Modules : Military | `WilsMilitary` | `SpacemanWil.WilsMilitary` | Recruit, Soldier and Ranger, and six combat specialties with their own battlefield doctrines |
+| Wil's Role Modules : Wardens | `WilsWardens` | `SpacemanWil.WilsWardens` | Guard and Warden, and Confessor, Overseer and Containment Keeper specialties (first slice: the career, events and bonuses) |
+| Wil's Role Modules : Works | `WilsWorks` | `SpacemanWil.WilsWorks` | Builder and Miner careers: Mason, Carpenter, Engineer; Prospector, Quarryman, Tunneller (first slice: the careers and events) |
 
 Education and Community Care each need only Wil's Community Framework (and Harmony). They never need each other: any of the four combinations is valid.
 

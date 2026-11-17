@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?><LanguageData>
+<WFL_Works_Builder>Builder</WFL_Works_Builder><WFL_Works_Miner>Miner</WFL_Works_Miner>
+<wils.works.builderlabourer_label>Labourer</wils.works.builderlabourer_label><wils.works.builderjourneyman_label>Journeyman</wils.works.builderjourneyman_label>
+<wils.works.minerlabourer_label>Labourer</wils.works.minerlabourer_label><wils.works.minerjourneyman_label>Journeyman</wils.works.minerjourneyman_label>
+<wils.works.mason_label>Mason</wils.works.mason_label><wils.works.carpenter_label>Carpenter</wils.works.carpenter_label><wils.works.engineer_label>Engineer</wils.works.engineer_label>
+<wils.works.prospector_label>Prospector</wils.works.prospector_label><wils.works.quarryman_label>Quarryman</wils.works.quarryman_label><wils.works.tunneller_label>Tunneller</wils.works.tunneller_label>
+<WFL_Works_MasonBonus>Construction speed rises 15% and construction success 10%. Experience comes from building.</WFL_Works_MasonBonus>
+<WFL_Works_CarpenterBonus>Smoothing speed rises 15% and construction success 10%. Experience comes from building and smoothing.</WFL_Works_CarpenterBonus>
+<WFL_Works_EngineerBonus>Construction speed rises 15% and success at fixing broken-down buildings 15%. Experience comes from building and repair.</WFL_Works_EngineerBonus>
+<WFL_Works_ProspectorBonus>Mining speed rises 15%. Experience comes from mining.</WFL_Works_ProspectorBonus>
+<WFL_Works_QuarrymanBonus>Mining speed rises 20%. Experience comes from mining.</WFL_Works_QuarrymanBonus>
+<WFL_Works_TunnellerBonus>Mining speed rises 10%. Experience comes from mining.</WFL_Works_TunnellerBonus>
+<WFL_Works_Page>Works</WFL_Works_Page><WFL_Works_PlacesTitle>Places</WFL_Works_PlacesTitle><WFL_Works_SpecialtiesTitle>Specialties</WFL_Works_SpecialtiesTitle>
+<WFL_Works_PlacesFound>Recognised: {0} workshops, {1} mines.</WFL_Works_PlacesFound>
+<WFL_Works_PlacesHelp>Places are recognised from what is in them, never painted. A Workshop is an enclosed room with at least two work benches and no bed; building, repairing and smoothing in one earns a quarter more experience. A Mine is a dug-out room of at least six cells, not outdoors, most of it under thick mountain roof; digging in or beside one earns a quarter more.</WFL_Works_PlacesHelp>
+<WFL_Works_Round>looking over the workings.</WFL_Works_Round><WFL_Works_RoundsTitle>Rounds</WFL_Works_RoundsTitle><WFL_Works_RoundsOn>Workers make their maintenance rounds when idle</WFL_Works_RoundsOn>
+<WFL_Works_RoundsHelp>An idle Builder takes the game's own repair job on the most damaged building (below three quarters of its hit points). An idle Miner walks the dug-out rooms looking at supports and roofs, and nothing is changed. A few times a day at most, never with hostiles about, never more than half the workers at once, and any need or order ends it.</WFL_Works_RoundsHelp>
+</LanguageData>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <!-- Most vanilla StatDefs declare no parts list: append when one exists, otherwise create the list with the part in it. Always succeeds, so a stat that is not there is skipped quietly. -->
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="ConstructionSpeed"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="ConstructionSpeed"]/parts</xpath><value><li Class="FamilyLife.StatPart_WorksSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="ConstructionSpeed"]</xpath><value><parts><li Class="FamilyLife.StatPart_WorksSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="ConstructSuccessChance"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="ConstructSuccessChance"]/parts</xpath><value><li Class="FamilyLife.StatPart_WorksSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="ConstructSuccessChance"]</xpath><value><parts><li Class="FamilyLife.StatPart_WorksSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="SmoothingSpeed"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="SmoothingSpeed"]/parts</xpath><value><li Class="FamilyLife.StatPart_WorksSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="SmoothingSpeed"]</xpath><value><parts><li Class="FamilyLife.StatPart_WorksSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="FixBrokenDownBuildingSuccessChance"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="FixBrokenDownBuildingSuccessChance"]/parts</xpath><value><li Class="FamilyLife.StatPart_WorksSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="FixBrokenDownBuildingSuccessChance"]</xpath><value><parts><li Class="FamilyLife.StatPart_WorksSpecialty" /></parts></value></nomatch>
+  </Operation>
+  <Operation Class="PatchOperationConditional">
+    <success>Always</success>
+    <xpath>Defs/StatDef[defName="MiningSpeed"]/parts</xpath>
+    <match Class="PatchOperationAdd"><xpath>Defs/StatDef[defName="MiningSpeed"]/parts</xpath><value><li Class="FamilyLife.StatPart_WorksSpecialty" /></value></match>
+    <nomatch Class="PatchOperationAdd"><success>Always</success><xpath>Defs/StatDef[defName="MiningSpeed"]</xpath><value><parts><li Class="FamilyLife.StatPart_WorksSpecialty" /></parts></value></nomatch>
+  </Operation>
+</Patch>

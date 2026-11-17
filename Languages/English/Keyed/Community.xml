@@ -14,6 +14,59 @@
   <WFL_Ov_Residents>Residents</WFL_Ov_Residents>
   <WFL_Ov_Children>{0} children</WFL_Ov_Children>
   <WFL_Ov_Families>Families</WFL_Ov_Families>
+  <WFL_Quick_Title>Quick setup</WFL_Quick_Title>
+  <WFL_Quick_Intro>Suggests an entry-level profession for each adult from their skills and passions. Change any row, then apply. Nothing about posts, pay or the treasury is touched.</WFL_Quick_Intro>
+  <WFL_Quick_Offer>New to this colony? Quick setup suggests a profession for each colonist from what they are good at.</WFL_Quick_Offer>
+  <WFL_Quick_Open>Quick setup</WFL_Quick_Open>
+  <WFL_Quick_OpenTip>Suggest professions for everyone who has none, from their skills.</WFL_Quick_OpenTip>
+  <WFL_Quick_Dismiss>Not now</WFL_Quick_Dismiss>
+  <WFL_Quick_Preset_Light>Few</WFL_Quick_Preset_Light>
+  <WFL_Quick_Preset_Balanced>Balanced</WFL_Quick_Preset_Balanced>
+  <WFL_Quick_Preset_Broad>Many</WFL_Quick_Preset_Broad>
+  <WFL_Quick_PresetTip_Light>Only clear fits, and few people in each profession.</WFL_Quick_PresetTip_Light>
+  <WFL_Quick_PresetTip_Balanced>A fair share of the colony in each profession.</WFL_Quick_PresetTip_Balanced>
+  <WFL_Quick_PresetTip_Broad>As many people as suit each profession.</WFL_Quick_PresetTip_Broad>
+  <WFL_Quick_None>No profession</WFL_Quick_None>
+  <WFL_Quick_Role>Profession</WFL_Quick_Role>
+  <WFL_Quick_Fit>Fit</WFL_Quick_Fit>
+  <WFL_Quick_Nobody>Everyone already has a profession, or no adult colonists were found.</WFL_Quick_Nobody>
+  <WFL_Quick_Apply>Apply ({0})</WFL_Quick_Apply>
+  <WFL_Quick_ApplyTip>Assign every row shown. You can change assignments later on the Professions page.</WFL_Quick_ApplyTip>
+  <WFL_Quick_Undo>Undo last</WFL_Quick_Undo>
+  <WFL_Quick_UndoTip>Remove the assignments made by the last Apply.</WFL_Quick_UndoTip>
+  <WFL_Quick_Close>Close</WFL_Quick_Close>
+  <WFL_Quick_Applied>Assigned {0} people.</WFL_Quick_Applied>
+  <WFL_Quick_Undone>Removed {0} assignments.</WFL_Quick_Undone>
+  <WFL_Hub_Today>Today</WFL_Hub_Today>
+  <WFL_Today_Status>Colony</WFL_Today_Status>
+  <WFL_Today_People>Who is doing what</WFL_Today_People>
+  <WFL_Today_Level_Normal>Calm</WFL_Today_Level_Normal>
+  <WFL_Today_Level_Yellow>Yellow alert</WFL_Today_Level_Yellow>
+  <WFL_Today_Level_Red>Red alert</WFL_Today_Level_Red>
+  <WFL_Today_LevelTip_Normal>Routine work goes on in every module.</WFL_Today_LevelTip_Normal>
+  <WFL_Today_LevelTip_Yellow>Raised by {0}. Modules stay ready; routine work continues.</WFL_Today_LevelTip_Yellow>
+  <WFL_Today_LevelTip_Red>Raised by {0}. Routine classes, rounds and check-ups wait; doctors stay free for the wounded and builders keep repairing.</WFL_Today_LevelTip_Red>
+  <WFL_Today_Counts>{0} with a role, {1} on a duty now, {2} free</WFL_Today_Counts>
+  <WFL_Today_Help>The colony alert is published by the Military module and every other module adapts to it. A person on one module's duty is not sent to another's until it ends. People with roles in three or more modules are marked Busy.</WFL_Today_Help>
+  <WFL_Today_Overbooked>{0} people hold roles in {1} or more modules and may be stretched thin.</WFL_Today_Overbooked>
+  <WFL_Today_With>with {0}</WFL_Today_With>
+  <WFL_Today_Joining>helping {0}</WFL_Today_Joining>
+  <WFL_Today_Roles>Roles</WFL_Today_Roles>
+  <WFL_Today_Doing>Doing now</WFL_Today_Doing>
+  <WFL_Today_Idle>Idle</WFL_Today_Idle>
+  <WFL_Today_OnDuty>On duty</WFL_Today_OnDuty>
+  <WFL_Today_Busy>Busy</WFL_Today_Busy>
+  <WFL_Today_BusyTip>Holds roles in {0} modules. Consider removing one on the Professions page.</WFL_Today_BusyTip>
+  <WFL_Today_Nobody>Nobody has a profession yet. Use Quick setup on the Professions page.</WFL_Today_Nobody>
+  <WFL_Need_Posted>New need: {0}. See the Today page.</WFL_Need_Posted>
+  <WFL_Need_Title>Needs ({0})</WFL_Need_Title>
+  <WFL_Need_Help>Things modules noticed the colony is missing. Each clears itself once it is met. Dismiss hides one you do not want to be reminded of until it has been met and comes back.</WFL_Need_Help>
+  <WFL_Need_Age>{0} days</WFL_Need_Age>
+  <WFL_Need_Go>Go</WFL_Need_Go>
+  <WFL_Need_PlanBuild>Build</WFL_Need_PlanBuild>
+  <WFL_Need_PlanYard>Place yard</WFL_Need_PlanYard>
+  <WFL_Need_Dismiss>Dismiss</WFL_Need_Dismiss>
+  <WFL_Need_DismissTip>Stop reminding me until this is met and comes back.</WFL_Need_DismissTip>
   <WFL_Ov_Professions>Professions</WFL_Ov_Professions>
   <WFL_Ov_Staffed>posts staffed</WFL_Ov_Staffed>
   <WFL_Ov_Assembly>Next assembly</WFL_Ov_Assembly>

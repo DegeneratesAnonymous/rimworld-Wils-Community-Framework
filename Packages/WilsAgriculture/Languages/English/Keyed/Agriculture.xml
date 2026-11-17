@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?><LanguageData>
+<WFL_Agriculture_Career>Agriculture</WFL_Agriculture_Career>
+<WFL_Agriculture_Page>Agriculture</WFL_Agriculture_Page>
+<wils.agriculture.forager_label>Forager</wils.agriculture.forager_label><wils.agriculture.tracker_label>Tracker</wils.agriculture.tracker_label><wils.agriculture.handler_label>Handler</wils.agriculture.handler_label>
+<wils.agriculture.farmer_label>Farmer</wils.agriculture.farmer_label><wils.agriculture.hunter_label>Hunter</wils.agriculture.hunter_label><wils.agriculture.rancher_label>Rancher</wils.agriculture.rancher_label>
+<wils.agriculture.horticulturist_label>Horticulturist</wils.agriculture.horticulturist_label><wils.agriculture.herbalist_label>Herbalist</wils.agriculture.herbalist_label><wils.agriculture.arborist_label>Arborist</wils.agriculture.arborist_label>
+<wils.agriculture.stalker_label>Stalker</wils.agriculture.stalker_label><wils.agriculture.gamekeeper_label>Gamekeeper</wils.agriculture.gamekeeper_label><wils.agriculture.biggamehunter_label>Big-Game Hunter</wils.agriculture.biggamehunter_label>
+<wils.agriculture.shepherd_label>Shepherd</wils.agriculture.shepherd_label><wils.agriculture.breeder_label>Breeder</wils.agriculture.breeder_label><wils.agriculture.beastmaster_label>Beastmaster</wils.agriculture.beastmaster_label>
+<WFL_Agriculture_HorticulturistBonus>15% greater harvest yield while working cultivated food crops.</WFL_Agriculture_HorticulturistBonus>
+<WFL_Agriculture_HerbalistBonus>20% greater harvest yield while gathering healroot and medicinal plants.</WFL_Agriculture_HerbalistBonus>
+<WFL_Agriculture_ArboristBonus>20% faster plant work while tending or cutting trees.</WFL_Agriculture_ArboristBonus>
+<WFL_Agriculture_StalkerBonus>Automatic hunting can reach 25 tiles farther and favors difficult distant prey.</WFL_Agriculture_StalkerBonus>
+<WFL_Agriculture_GamekeeperBonus>Automatic hunting favors healthy populations and enforces the colony's population floor.</WFL_Agriculture_GamekeeperBonus>
+<WFL_Agriculture_BigGameHunterBonus>Unlocks authorized automatic hunting of large, dangerous and predatory game.</WFL_Agriculture_BigGameHunterBonus>
+<WFL_Agriculture_ShepherdBonus>20% faster gathering of milk, wool and other livestock products.</WFL_Agriculture_ShepherdBonus>
+<WFL_Agriculture_BreederBonus>15% greater livestock product yield from managed breeding stock.</WFL_Agriculture_BreederBonus>
+<WFL_Agriculture_BeastmasterBonus>15% better taming and training chances.</WFL_Agriculture_BeastmasterBonus>
+</LanguageData>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?><LanguageData>
+<WFL_Wardens_Career>Wardens</WFL_Wardens_Career>
+<wils.wardens.guard_label>Guard</wils.wardens.guard_label><wils.wardens.warden_label>Warden</wils.wardens.warden_label>
+<wils.wardens.confessor_label>Confessor</wils.wardens.confessor_label><wils.wardens.overseer_label>Overseer</wils.wardens.overseer_label><wils.wardens.containmentkeeper_label>Containment Keeper</wils.wardens.containmentkeeper_label>
+<WFL_Wardens_ConfessorBonus>Needs Ideology. Conversion power rises 15%. Experience comes from converting prisoners.</WFL_Wardens_ConfessorBonus>
+<WFL_Wardens_OverseerBonus>Needs Ideology (slaves). Slave suppression power rises 15%. Experience comes from overseeing slaves.</WFL_Wardens_OverseerBonus>
+<WFL_Wardens_ContainmentKeeperBonus>Needs Anomaly. Study efficiency rises 10%. Experience comes from containment work.</WFL_Wardens_ContainmentKeeperBonus>
+<WFL_Wardens_Page>Prisoners</WFL_Wardens_Page>
+<WFL_Wardens_RoomsTitle>Rooms</WFL_Wardens_RoomsTitle>
+<WFL_Wardens_RoomsFound>Recognised: {0} prison cells ({1} humane), {2} Interview Rooms, {3} Visiting Rooms.</WFL_Wardens_RoomsFound>
+<WFL_Wardens_RoomsHelp>Rooms are recognised from what is in them, never painted. A prison cell is whatever the game says is one, and is humane with at least two of: a bed, six cells of room for each bed, and a clean floor. An enclosed room with no bed and a table is an Interview Room with at least two chairs and a Visiting Room with at least four. An idle Warden may lead a calm, willing prisoner (awake, unhurt, fed, rested, in a decent mood) to the Interview Room if they are being recruited or converted, or to the Visiting Room if a relative is free to come, at most once a day each. An interview eases resistance a little; a visit lifts mood more. The prisoner always walks home, and the turn is called off if hostiles appear.</WFL_Wardens_RoomsHelp>
+<WFL_Wardens_RecordTitle>Treatment record</WFL_Wardens_RecordTitle>
+<WFL_Wardens_RecordHelp>For each warden: how often prisoners in their care were looked at in good, fair and poor condition (and how often good care was for a relative's prisoner out of all such looks), then what became of their prisoners: recruited, released, enslaved, executed, died in custody. A warden whose care for kin differs from the rest by 40 points or more is noticed by colleagues.</WFL_Wardens_RecordHelp>
+<WFL_Wardens_RecordLine>{0}: care good {1}, fair {2}, poor {3} (kin good {4} of {5}). Prisoners: recruited {6}, released {7}, enslaved {8}, executed {9}, died {10}.</WFL_Wardens_RecordLine>
+<WFL_Wardens_RecordNone>Nobody has looked after a prisoner yet.</WFL_Wardens_RecordNone>
+<WFL_Wardens_SpecialtiesTitle>Specialties</WFL_Wardens_SpecialtiesTitle>
+<WFL_Wardens_Round>making the rounds.</WFL_Wardens_Round>
+<WFL_Wardens_RoundsTitle>Rounds</WFL_Wardens_RoundsTitle>
+<WFL_Wardens_RoundsOn>Wardens make their rounds when idle</WFL_Wardens_RoundsOn>
+<WFL_Wardens_RoundsHelp>An idle Warden walks past the cells, pausing at each; whoever they see becomes theirs to answer for. Never with hostiles about, never more than half the wardens at once, and any need or order ends it. An Overseer also looks in on the slave quarters and notes whether slave families sleep together. Nobody is ever moved.</WFL_Wardens_RoundsHelp>
+<WFL_Wardens_FamilyLine>{0}: slave families together {1}, apart {2}</WFL_Wardens_FamilyLine>
+<WFL_Wardens_Escort>on an escort.</WFL_Wardens_Escort>
+  <WFL_Wardens_PrisonersTitle>Prisoners and slaves</WFL_Wardens_PrisonersTitle>
+  <WFL_Wardens_PrisonersSummary>{0} prisoners, {1} slaves. {2} need tending or are down.</WFL_Wardens_PrisonersSummary>
+  <WFL_Wardens_PrisonersNone>Nobody is held at the moment.</WFL_Wardens_PrisonersNone>
+  <WFL_Wardens_PrisonersHelp>Click a name to go to them. Handling is the game's own prisoner setting (the same one on the prisoner tab): choose how each prisoner is dealt with. Resistance is what a recruiter must wear down; 0 means they are ready to join.</WFL_Wardens_PrisonersHelp>
+  <WFL_Wardens_Resistance>Resistance</WFL_Wardens_Resistance>
+  <WFL_Wardens_Handling>Handling</WFL_Wardens_Handling>
+  <WFL_Wardens_SlavesHeading>Slaves</WFL_Wardens_SlavesHeading>
+  <WFL_Wardens_Suppression>Suppression</WFL_Wardens_Suppression>
+</LanguageData>

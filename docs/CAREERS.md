@@ -42,6 +42,7 @@ The old Teacher/Healer office records still carry shared working state (the comm
   - Surgeon (Medicine 10): experience from completed operations, plus a follow-up visit to someone with an implant or missing part. Performs no operation: surgery stays the game's own.
   - Midwife (Medicine 8, Biotech): stays with someone in labour (the birth itself stays the game's own; the mother remembers being attended) and visits the pregnant and postpartum. Without Biotech nobody is eligible.
   - Veterinarian (Medicine 6, Animals 6): experience from tending and operating on animals, plus examinations of tamed animals.
+  - **Geneticist: now built, in the Intelligence module, not here** (see [INTELLIGENCE-MILITARY.md](INTELLIGENCE-MILITARY.md); "Doctor first" is replaced by Medicine 10 because modules never depend on one another). The note below is the original plan.
   - **Geneticist: deferred.** Planned: Medicine 10 and Intellectual 10, Doctor first. Biotech opportunities to investigate (none built, none assumed): xenogerm and gene-extraction work and the genes a pawn carries (the Gene Extractor and Xenogerm Forge are vanilla buildings and bills), and the gene-related health conditions. Any activity must wrap an existing vanilla bill or condition, as Surgeon wraps operations; a role with no such activity will not ship.
 
 ## Assembly

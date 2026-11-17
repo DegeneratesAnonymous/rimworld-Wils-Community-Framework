@@ -11,13 +11,15 @@ namespace FamilyLife
     {
         public const string PageId = "wils.care.care";
         public static void Register(string moduleId) =>
-            FamilyFramework.Pages.Register(new Framework.CommunityPage<Func<Rect, FamilyComponent, float>> { Id = PageId, ModuleId = moduleId, LabelKey = "WFL_Care_Page", Order = 120, Render = Draw, Status = Attention, Icon = "WilsFamilyLife/Roles/healer" });
+            FamilyFramework.Pages.Register(new Framework.CommunityPage<Func<Rect, FamilyComponent, float>> { Id = PageId, ModuleId = moduleId, LabelKey = "WFL_Care_Page", Order = 120, Render = Draw, Status = Attention, Icon = "WilsFamilyLife/Pages/care" });
         private static int Attention() { var c = FamilyComponent.Current; return c == null ? 0 : CareEvents.IsSickCount(c); }
 
         public static float Draw(Rect r, FamilyComponent c)
         {
             var reg = c.Registry; float w = CommunityPageLayout.ColumnWidth(r);
-            float left = CommunityPageLayout.Section(r, 0f, 0f, w, "WFL_Care_Practitioners".Translate(), a =>
+            float top = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Care_PatientsTitle".Translate(), a => CarePatients.Patients(a));
+            top = CommunityPageLayout.Section(r, 0f, top, r.width, "WFL_Care_OverviewTitle".Translate(), a => CarePatients.Overview(a));
+            float left = CommunityPageLayout.Section(r, 0f, top, w, "WFL_Care_Practitioners".Translate(), a =>
             {
                 float y = 0f; var staff = CareCareers.Practitioners(reg).Where(id => reg.GetPerson(id)?.InColony == true).ToList();
                 if (staff.Count == 0) y = CommunityPageLayout.Line(a, y, "WFL_Care_None".Translate(), true);
@@ -25,7 +27,7 @@ namespace FamilyLife
                 return CommunityPageLayout.Line(a, y, "WFL_Care_Capacity".Translate(CheckupWorkload.CommunityLimit(false), CheckupWorkload.CommunityLimit(true)));
             });
             bool columns = CommunityPageLayout.TwoColumns(r);
-            float right = CommunityPageLayout.Section(r, columns ? w + CommunityPageLayout.Gap : 0f, columns ? 0f : left, w, "WFL_Care_Rounds".Translate(), a =>
+            float right = CommunityPageLayout.Section(r, columns ? w + CommunityPageLayout.Gap : 0f, columns ? top : left, w, "WFL_Care_Rounds".Translate(), a =>
             {
                 var seat = reg.OfficeFor(OfficeKind.Healer);
                 if (seat == null || !seat.Held) return CommunityPageLayout.Line(a, 0f, "WFL_Care_NoSeat".Translate(), true);

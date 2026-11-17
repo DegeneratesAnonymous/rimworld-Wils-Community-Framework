@@ -16,6 +16,11 @@
     <Compile Include="..\Treasury\Domain\**\*.cs" LinkBase="Treasury\Domain" />
     <Compile Include="..\Hospitality\Domain\**\*.cs" LinkBase="Hospitality\Domain" />
     <Compile Include="..\Crafting\Domain\**\*.cs" LinkBase="Crafting\Domain" />
+    <Compile Include="..\Intelligence\Domain\**\*.cs" LinkBase="Intelligence\Domain" />
+    <Compile Include="..\Military\Domain\**\*.cs" LinkBase="Military\Domain" />
+    <Compile Include="..\Wardens\Domain\**\*.cs" LinkBase="Wardens\Domain" />
+    <Compile Include="..\Works\Domain\**\*.cs" LinkBase="Works\Domain" />
+    <Compile Include="..\Agriculture\Domain\**\*.cs" LinkBase="Agriculture\Domain" />
     <Compile Remove="obj/**" />
   </ItemGroup>
   <ItemGroup>
