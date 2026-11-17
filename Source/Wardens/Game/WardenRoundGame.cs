@@ -37,15 +37,7 @@ namespace FamilyLife
             var c = FamilyComponent.Current; return c == null || !c.Registry.Wardens().RoundsOn || p.Drafted || p.InMentalState || HostilesAbout(p.Map);
         }
 
-        internal static bool Free(Pawn p)
-        {
-            if (p == null || !p.Spawned || p.Dead || p.Downed || p.Drafted || p.InMentalState || p.IsPrisoner || p.IsSlave || !p.RaceProps.Humanlike || p.DevelopmentalStage.Baby() || !p.Awake()) return false;
-            var assignment = p.timetable?.CurrentAssignment;
-            if (assignment == TimeAssignmentDefOf.Sleep || assignment == TimeAssignmentDefOf.Joy) return false;
-            if (p.mindState?.lastJobTag != JobTag.Idle || p.CurJob?.playerForced == true) return false;
-            if (FrameworkServices.NeedsReason(p) != null || HealthAIUtility.ShouldSeekMedicalRest(p)) return false;
-            return !(p.needs?.food != null && p.needs.food.CurLevel < .2f) && !(p.needs?.rest != null && p.needs.rest.CurLevel < .15f);
-        }
+        internal static bool Free(Pawn p) => FrameworkServices.FreeForDuty(p, WardenCareers.Module);
 
         private static long Key(Map map, Room room) => ((long)map.uniqueID << 32) | (uint)room.ID;
         internal static Room RoomOf(Pawn p) => (p.ownership?.OwnedBed?.GetRoom()) ?? p.GetRoom();
@@ -75,12 +67,12 @@ namespace FamilyLife
                 int cap = WardenRounds.MaxOnRound(wardens.Count), on = wardens.Count(OnRound), started = 0;
                 foreach (var p in wardens)
                 {
-                    if (on >= cap || started >= 1) break;
+                    if (on >= cap || started >= 1 || FrameworkServices.ColonyAlert == ColonyAlertLevel.Red) break;          // routine rounds wait at Red
                     if (OnRound(p) || !Free(p) || !Rested(p, now)) continue;
                     bool overseer = WardenStories.ActiveRole(p) == "Overseer"; var stops = WardenRounds.Plan(Stops(map, overseer), p.Position.x, p.Position.z); if (stops.Count == 0) continue;
                     var job = JobMaker.MakeJob(WardenDefOf.WFL_WardenRound); job.targetQueueA = new List<LocalTargetInfo>(); job.locomotionUrgency = LocomotionUrgency.Walk;
                     foreach (var s in stops) job.targetQueueA.Add(new IntVec3(s.X, 0, s.Z));
-                    job.count = stops.Count; p.jobs.StartJob(job, JobCondition.InterruptForced, null, false, tag: JobTag.Misc); on++; started++;
+                    job.count = stops.Count; if (!FrameworkServices.TryClaimDuty(p, WardenCareers.Module)) continue; p.jobs.StartJob(job, JobCondition.InterruptForced, null, false, tag: JobTag.Misc); on++; started++;
                 }
             }
         }

@@ -45,13 +45,14 @@ namespace FamilyLife
             foreach (int id in CareCareers.Practitioners(r))
             {
                 if (r.GetPerson(id)?.InColony != true || !(c.TryGetPawn(id) is Pawn doc) || !doc.Spawned || doc.Dead) continue;
-                if (!FrameworkServices.Ready(doc) || FrameworkServices.NeedsReason(doc) != null || ClinicVisits.Running(doc) || CareDemand.DoctorShouldTend(doc, now)) continue;
+                if (FrameworkServices.ColonyAlert >= ColonyAlertLevel.Yellow || !FrameworkServices.Ready(doc) || FrameworkServices.ClaimedByOther(doc, "wils.care") || FrameworkServices.NeedsReason(doc) != null || ClinicVisits.Running(doc) || CareDemand.DoctorShouldTend(doc, now)) continue;
                 if (TryAttendBirth(c, r, doc, id, now)) continue;
                 var spec = ChooseSpecialty(r, doc, id);
                 if (spec == null || last.TryGetValue("w" + id, out int w) && now >= w && now - w < Every) continue;
                 last["w" + id] = now;
                 var target = FindTarget(c, doc, spec, now);
                 if (target == null || !CareDriver.Claims.TryClaim(target.thingIDNumber, id, now)) continue;
+                if (!FrameworkServices.TryClaimDuty(doc, "wils.care", 2500)) { CareDriver.Claims.Release(target.thingIDNumber); continue; }
                 bool started = spec.Key == "Veterinarian" ? StartExam(doc, target) : FrameworkServices.StartMeeting(doc, target, CareDefOf.WFL_SpecialistVisit, spec.Index);
                 if (!started) CareDriver.Claims.Release(target.thingIDNumber); else last["t" + target.thingIDNumber + "|" + spec.Key] = now;
             }

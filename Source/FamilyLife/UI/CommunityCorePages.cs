@@ -22,10 +22,11 @@ namespace FamilyLife
         public static void Register(string moduleId)
         {
             coreModule = moduleId;
-            Add(moduleId, "overview", "WFL_Hub_Overview", 0, Overview, null);
-            Add(moduleId, "families", "WFL_Hub_Families", 10, Families, null);
-            Add(moduleId, "professions", "WFL_Hub_Professions", 20, Professions, null);
-            Add(moduleId, "assembly", "WFL_Hub_Assembly", 30, Assembly, null);
+            Add(moduleId, "overview", "WFL_Hub_Overview", 0, Overview, "WilsFamilyLife/Pages/overview");
+            Add(moduleId, "today", "WFL_Hub_Today", 5, TodayPage.Draw, "WilsFamilyLife/Pages/today");
+            Add(moduleId, "families", "WFL_Hub_Families", 10, Families, "WilsFamilyLife/Pages/families");
+            Add(moduleId, "professions", "WFL_Hub_Professions", 20, Professions, "WilsFamilyLife/Pages/professions");
+            Add(moduleId, "assembly", "WFL_Hub_Assembly", 30, Assembly, "WilsFamilyLife/Pages/assembly");
             Add(moduleId, "settings", "WFL_Hub_Settings", 90, Settings, null);
         }
 
@@ -95,6 +96,16 @@ namespace FamilyLife
             };
             for (int i = 0; i < tiles.Length; i++) DrawTile(new Rect(i % perRow * (tw + gap), y + i / perRow * (th + gap), tw, th), tiles[i]);
             y += ((tiles.Length + perRow - 1) / perRow) * (th + gap) + 8f;
+
+            // --- first-time offer: set up professions from what people are good at
+            if (Window_QuickSetup.Offered(reg))
+            {
+                var offer = new Rect(0f, y, w, 64f); Widgets.DrawBoxSolid(offer, new Color(.2f, .18f, .12f)); Widgets.DrawBoxSolid(new Rect(0f, y, 5f, offer.height), FamilyKit.Gold);
+                Text.Anchor = TextAnchor.MiddleLeft; Widgets.Label(new Rect(16f, y, w - 330f, offer.height), "WFL_Quick_Offer".Translate()); Text.Anchor = TextAnchor.UpperLeft;
+                if (Widgets.ButtonText(new Rect(w - 300f, y + 16f, 190f, 32f), "WFL_Quick_Open".Translate())) Find.WindowStack.Add(new Window_QuickSetup(c));
+                if (Widgets.ButtonText(new Rect(w - 104f, y + 16f, 94f, 32f), "WFL_Quick_Dismiss".Translate())) Window_QuickSetup.Dismiss(reg);
+                y += offer.height + 10f;
+            }
 
             // --- the two public seats
             y = Rule(w, y, "WFL_Ov_Leadership".Translate());
@@ -209,7 +220,7 @@ namespace FamilyLife
             var reg = c.Registry; var book = reg.Assignments(); var ledger = reg.Careers();
             var roles = CareerService.Professions.All.Where(x => FamilyFramework.Catalog.IsEnabled(x.ModuleId)).OrderBy(x => x.Career, StringComparer.Ordinal).ThenBy(x => x.Level).ThenBy(x => x.Id, StringComparer.Ordinal).ToList();
             if (roles.Count == 0) return Line(r, 0f, "WFL_Hub_NoProfessions".Translate(), true);
-            GUI.color = Color.gray; float y = Line(r, 0f, "WFL_Hub_ProfessionsHelp".Translate(), true); GUI.color = Color.white;
+            GUI.color = Color.gray; float y = CommunityPageLayout.Help(r, 0f, "WFL_Hub_ProfessionsHelp".Translate()); GUI.color = Color.white;
             var careers = roles.Select(x => x.Career).Distinct().ToList();
             if (!careers.Contains(selectedCareer)) selectedCareer = careers[0];
             Func<string, string> careerName = id => CareerService.Career(id) != null ? CareerService.CareerName(CareerService.Career(id), reg) : id;
@@ -227,7 +238,11 @@ namespace FamilyLife
             if (tx < r.width - searchW) professionSearch = Widgets.TextField(new Rect(r.width - searchW, y + 2f, searchW, 28f), professionSearch);
             y += 44f;
             var mine = roles.Where(x => x.Career == selectedCareer).ToList(); int held = mine.Count(x => book.Holders(x.Id).Any(id => reg.GetPerson(id)?.InColony == true));
-            GUI.color = Color.gray; Widgets.Label(new Rect(0f, y, r.width, 22f), "WFL_Ov_Staffed2".Translate(held, mine.Count).ToString()); GUI.color = Color.white; y += 30f;
+            GUI.color = Color.gray; Widgets.Label(new Rect(0f, y, r.width, 22f), "WFL_Ov_Staffed2".Translate(held, mine.Count).ToString()); GUI.color = Color.white; 
+            var qs = new Rect(r.width - 170f, y - 4f, 170f, 28f);
+            if (Widgets.ButtonText(qs, "WFL_Quick_Open".Translate())) Find.WindowStack.Add(new Window_QuickSetup(c));
+            TooltipHandler.TipRegion(qs, "WFL_Quick_OpenTip".Translate());
+            y += 30f;
             var shown = roles.Where(role => role.Career == selectedCareer && (professionSearch.Length == 0 || CareerService.TitleOf(role, reg).IndexOf(professionSearch, StringComparison.OrdinalIgnoreCase) >= 0)).ToList();
             if (shown.Count == 0) return Line(r, y, "WFL_Hub_NoMatches".Translate(), true);
             return ProfessionTree.Draw(r, y, c, selectedCareer, roles.Where(role => role.Career == selectedCareer).ToList(), professionSearch);

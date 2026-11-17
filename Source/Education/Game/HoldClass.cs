@@ -66,10 +66,10 @@ namespace FamilyLife
         }
 
         /// <summary>Starts the class if the teacher can. Later means the teacher is not able just now (the caller may queue it); Cannot means it is not possible at all.</summary>
-        private static BeginResult Attempt(Building lectern, int now, bool announce)
+        private static BeginResult Attempt(Building lectern, int now, bool announce, Pawn only = null)
         {
             var c = FamilyComponent.Current; var r = c?.Registry; if (r == null) return BeginResult.Cannot;
-            var teacher = ChooseTeacher(c, r, lectern);
+            var teacher = only ?? ChooseTeacher(c, r, lectern);
             if (teacher == null || !teacher.Spawned || lectern != null && teacher.Map != lectern.Map) { if (announce) Messages.Message("WFL_HoldClass_NoTeacher".Translate(), MessageTypeDefOf.RejectInput, false); return BeginResult.Cannot; }
             if (ClassSessions.Running(teacher)) { if (announce) Messages.Message("WFL_HoldClass_Running".Translate(teacher.LabelShort), MessageTypeDefOf.RejectInput, false); return BeginResult.Cannot; }
             bool adults = FamilyLifeMod.Settings != null && FamilyLifeMod.Settings.adultStudents;
@@ -81,6 +81,9 @@ namespace FamilyLife
             Messages.Message("WFL_HoldClass_Started".Translate(teacher.LabelShort, ids.Count), teacher, MessageTypeDefOf.PositiveEvent, false);
             return result;
         }
+
+        /// <summary>The Education page's "Hold class now" for one named teacher: tries now and says why if it cannot.</summary>
+        internal static void StartTeacher(Pawn teacher, int now) { if (teacher != null) Attempt(null, now, true, teacher); }
 
         private static void Start(Building lectern)
         {

@@ -257,6 +257,7 @@ namespace FamilyLife.Tests
         [InlineData("WilsMilitary", "Wil's Role Modules : Military")]
         [InlineData("WilsWardens", "Wil's Role Modules : Wardens")]
         [InlineData("WilsWorks", "Wil's Role Modules : Works")]
+        [InlineData("WilsAgriculture", "Wil's Role Modules : Agriculture")]
         public void Optional_packages_follow_the_role_module_naming_convention(string folder, string title)
         {
             string xml = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Packages", folder, "About", "About.xml"));

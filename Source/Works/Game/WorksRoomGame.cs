@@ -65,18 +65,18 @@ namespace FamilyLife
                     foreach (var room in map.regionGrid.AllRooms) { var kind = WorksRoomGame.KindOf(room); if (kind == WorksPlace.Workshop) workshops++; else if (kind == WorksPlace.Mine) mines++; }
                 }
                 float h = CommunityPageLayout.Line(s, 0f, "WFL_Works_PlacesFound".Translate(workshops, mines));
-                return CommunityPageLayout.Line(s, h, "WFL_Works_PlacesHelp".Translate(), true);
+                return CommunityPageLayout.Help(s, h, "WFL_Works_PlacesHelp".Translate());
             });
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Works_RoundsTitle".Translate(), s =>
             {
                 var ledger = c.Registry.Works(); bool on = ledger.RoundsOn; Widgets.CheckboxLabeled(new Rect(0f, 0f, s.width, 24f), "WFL_Works_RoundsOn".Translate(), ref on); ledger.RoundsOn = on;
-                return CommunityPageLayout.Line(s, 28f, "WFL_Works_RoundsHelp".Translate(), true);
+                return CommunityPageLayout.Help(s, 28f, "WFL_Works_RoundsHelp".Translate());
             });
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Works_SpecialtiesTitle".Translate(), s =>
             {
                 float h = 0f;
                 foreach (var specialty in WorksCareers.BuilderSpecialties.Concat(WorksCareers.MinerSpecialties))
-                    h = CommunityPageLayout.Line(s, h, WorksCareers.Role(specialty).Translate() + ": " + ("WFL_Works_" + specialty + "Bonus").Translate(), true);
+                    h = CommunityPageLayout.Help(s, h, (WorksCareers.Role(specialty) + "_label").Translate() + ": " + ("WFL_Works_" + specialty + "Bonus").Translate());
                 return h;
             });
             return y;

@@ -218,7 +218,7 @@ namespace FamilyLife.Tests
         {
             string code = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/Game/WorksRoundGame.cs"));
             foreach (var forbidden in new[] { ".Destroy(", ".Kill(", "SetFaction", "Designate", "TakeDamage", ".HitPoints =", "HitPoints +=", "Teleport", "TryTakeOrderedJob", "roofGrid.SetRoof" }) Assert.DoesNotContain(forbidden, code);
-            Assert.Contains("JobDefOf.Repair", code); Assert.Contains("lastJobTag != JobTag.Idle", code); Assert.Contains("playerForced", code); Assert.Contains("Sleep", code); Assert.Contains("HostilesAbout", code); Assert.Contains("RoundsOn", code); Assert.Contains("CanReserveAndReach", code);
+            Assert.Contains("JobDefOf.Repair", code); string shared = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/FamilyLife/Game/FrameworkServices.cs")); Assert.Contains("lastJobTag != JobTag.Idle", shared); Assert.Contains("playerForced", shared); Assert.Contains("Sleep", shared); Assert.Contains("FrameworkServices.FreeForDuty(p, ", code); Assert.Contains("HostilesAbout", code); Assert.Contains("RoundsOn", code); Assert.Contains("CanReserveAndReach", code);
             string module = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Works/Game/WorksModule.cs")); Assert.Contains("WorksRoundGame.Run", module); Assert.Contains("WorksRoundGame.Reset()", module);
             Assert.Contains("WFL_WorksRound", File.ReadAllText(Path.Combine(RepoPaths.Root(), "Packages/WilsWorks/Defs/WorksJobs.xml")));
         }

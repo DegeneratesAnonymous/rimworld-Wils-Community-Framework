@@ -14,9 +14,35 @@
 <WFL_Intelligence_MechCommanderBonus>Needs Biotech. A mechanitor with this role has 1 more mech bandwidth. Experience comes from work on mechanoids.</WFL_Intelligence_MechCommanderBonus>
 <WFL_Intelligence_DiplomatBonus>Negotiation ability rises 10% and social impact 5%. Experience comes from talking with guests, visitors and prisoners.</WFL_Intelligence_DiplomatBonus>
 <WFL_Intelligence_ChemistBonus>A 10% chance of one extra unit when a drug or medicine bill finishes. Experience comes from making drugs and medicine.</WFL_Intelligence_ChemistBonus>
-<WFL_Intelligence_Page>Intelligence</WFL_Intelligence_Page>
+<WFL_Intelligence_Page>Sciences</WFL_Intelligence_Page>
 <WFL_Intelligence_RoomsTitle>Rooms</WFL_Intelligence_RoomsTitle>
 <WFL_Intelligence_RoomsFound>Recognised: {0} Library, {1} Research Lab, {2} Gene Lab.</WFL_Intelligence_RoomsFound>
 <WFL_Intelligence_RoomsHelp>Rooms are recognised from what is in them, never painted. An enclosed room with gene equipment is a Gene Lab; with a research bench, a Research Lab; with at least two bookshelves and a table, a Library. Work done in a room that suits it earns 25% more experience: research at a bench in a Research Lab, a book in a Library, a xenogerm in a Gene Lab.</WFL_Intelligence_RoomsHelp>
 <WFL_Intelligence_SpecialtiesTitle>Specialties</WFL_Intelligence_SpecialtiesTitle>
+  <WFL_Sciences_FocusTitle>Research focus</WFL_Sciences_FocusTitle>
+  <WFL_Sciences_NoProject>No project is being researched. Choose one in the research tab.</WFL_Sciences_NoProject>
+  <WFL_Sciences_Finished>{0} of {1} projects finished.</WFL_Sciences_Finished>
+  <WFL_Sciences_OpenResearch>Open the research tab</WFL_Sciences_OpenResearch>
+  <WFL_Sciences_LeadTitle>Lead researcher</WFL_Sciences_LeadTitle>
+  <WFL_Sciences_NoLead>No lead researcher is chosen.</WFL_Sciences_NoLead>
+  <WFL_Sciences_LeadIs>{0} leads the research (Intellectual {1}).</WFL_Sciences_LeadIs>
+  <WFL_Sciences_ChooseLead>Choose lead researcher...</WFL_Sciences_ChooseLead>
+  <WFL_Sciences_ClearLead>Remove the lead researcher</WFL_Sciences_ClearLead>
+  <WFL_Sciences_LeadHelp>The lead researcher is a record of your choice, shown here and in the list below. It does not change research speed or anything else in the game.</WFL_Sciences_LeadHelp>
+  <WFL_Sciences_Intellectual>Intellectual</WFL_Sciences_Intellectual>
+  <WFL_Sciences_PlacesTitle>Laboratories and libraries</WFL_Sciences_PlacesTitle>
+  <WFL_Sciences_Library>Library</WFL_Sciences_Library>
+  <WFL_Sciences_GeneLab>Gene Lab</WFL_Sciences_GeneLab>
+  <WFL_Sciences_ResearchLab>Research Lab</WFL_Sciences_ResearchLab>
+  <WFL_Sciences_Totals>In all: {0} research benches in labs, {1} bookshelves in libraries, {2} pieces of gene equipment.</WFL_Sciences_Totals>
+  <WFL_Sciences_BenchCount>{0} research benches</WFL_Sciences_BenchCount>
+  <WFL_Sciences_ShelfCount>{0} bookshelves</WFL_Sciences_ShelfCount>
+  <WFL_Sciences_EquipCount>{0} pieces of gene equipment</WFL_Sciences_EquipCount>
+  <WFL_Sciences_CellCount>{0} cells</WFL_Sciences_CellCount>
+  <WFL_Sciences_Go>Go</WFL_Sciences_Go>
+  <WFL_Sciences_ResearchersTitle>Researchers</WFL_Sciences_ResearchersTitle>
+  <WFL_Sciences_NoResearchers>Nobody can do research.</WFL_Sciences_NoResearchers>
+  <WFL_Sciences_Doing>Doing</WFL_Sciences_Doing>
+  <WFL_Sciences_LeadMark>Lead researcher</WFL_Sciences_LeadMark>
+  <WFL_Sciences_Researching>Researching</WFL_Sciences_Researching>
 </LanguageData>

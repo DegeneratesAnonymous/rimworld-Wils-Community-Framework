@@ -101,6 +101,7 @@ namespace FamilyLife
                 Begin(warden, escort, escort.Visiting ? LeaderVisit : LeaderLead, prisoner, warden, dest);
                 Begin(prisoner, escort, PrisonerFollow, prisoner, warden, dest);
                 if (escort.Visiting) Begin(kin, escort, Visitor, prisoner, warden, dest);
+                FrameworkServices.AttachCompanion(FamilyComponent.Current, warden, "wils.military.military", WardenCareers.Module, 3000);          // a soldier escorts the escort
                 return true;
             }
             return false;
@@ -147,7 +148,14 @@ namespace FamilyLife
                     if (prisoner.ideo != null && (guest?.ExclusiveInteractionMode?.defName ?? "") == "Convert") prisoner.ideo.OffsetCertainty(-WardenEscorts.CertaintyDrop(prisoner.ideo.Certainty));
                 }
                 WardenTreatmentGame.Escorted(prisoner, warden);
-                CareerService.Report(c, warden, WardenCareers.Career, null, "ward.escort", "escort:" + job.loadID, WardenEscorts.ReturnPoints, now);
+                int escortPoints = WardenEscorts.ReturnPoints;
+                if (FrameworkServices.CompanionOf(warden) is Pawn guard)
+                {
+                    escortPoints = FrameworkServices.TeamPoints(escortPoints);          // an escort with a soldier earns more, and the soldier practises guard work
+                    CareerService.Report(c, guard, "wils.military.military", null, "mil.escort", "escort|" + job.loadID, 4, now);
+                    FrameworkServices.EndCompanion(warden, WardenCareers.Module);
+                }
+                CareerService.Report(c, warden, WardenCareers.Career, null, "ward.escort", "escort:" + job.loadID, escortPoints, now);
             }
             catch (Exception ex) { Log.Warning("[Wil's Role Modules: Wardens] An escort could not be recorded: " + ex.Message); }
         }

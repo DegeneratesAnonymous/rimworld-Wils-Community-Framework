@@ -57,4 +57,19 @@
   <WFL_Edu_AssessmentsDue>Assessments are due for: {0}.</WFL_Edu_AssessmentsDue>
   <WFL_Edu_Postpone>Put off a week</WFL_Edu_Postpone>
   <WFL_Edu_Skip>Skip this period</WFL_Edu_Skip>
+  <WFL_Edu_Focus>Subject</WFL_Edu_Focus>
+  <WFL_Edu_Status>Status</WFL_Edu_Status>
+  <WFL_Edu_AnySubject>Any</WFL_Edu_AnySubject>
+  <WFL_Edu_Free>Free</WFL_Edu_Free>
+  <WFL_Edu_EndClass>End class</WFL_Edu_EndClass>
+  <WFL_Edu_HoldNow>Hold class now</WFL_Edu_HoldNow>
+  <WFL_Edu_TeachersHelp>A teacher's subject comes from their specialist post (assign it on the Professions page). Hold class now starts a class with whoever is free, or tells you why it cannot.</WFL_Edu_TeachersHelp>
+  <WFL_Edu_Pupils>Pupils</WFL_Edu_Pupils>
+  <WFL_Edu_NoPupils>There are no pupils.</WFL_Edu_NoPupils>
+  <WFL_Edu_Learning>Recent lessons</WFL_Edu_Learning>
+  <WFL_Edu_NoLessons>None yet</WFL_Edu_NoLessons>
+  <WFL_Edu_InClass>In class</WFL_Edu_InClass>
+  <WFL_Edu_Sitting>Sitting an assessment</WFL_Edu_Sitting>
+  <WFL_Edu_PupilsHelp>Children are pupils by default; turn on adult students above to include adults. Lessons are classes attended recently, by subject.</WFL_Edu_PupilsHelp>
+<WFL_Need_Classroom>A classroom: a teacher has nowhere to hold a class</WFL_Need_Classroom>
 </LanguageData>

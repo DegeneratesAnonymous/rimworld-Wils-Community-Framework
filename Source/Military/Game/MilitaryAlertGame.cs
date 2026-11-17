@@ -32,6 +32,7 @@ namespace FamilyLife
         /// <summary>Carries out the current level: musters at Red, stands down otherwise. Also called straight after the player chooses a level.</summary>
         public static void Apply(FamilyComponent c, AlertState state)
         {
+            FrameworkServices.PublishColonyAlert(MilitaryCareers.Module, (ColonyAlertLevel)(byte)state.Effective);          // every other module reads the colony level from here
             if (state.Effective == AlertLevel.Red) Muster(c, state);
             else if (state.Drafted.Count > 0 || state.Ordered.Count > 0) StandDown(c, state);
         }
@@ -119,7 +120,8 @@ namespace FamilyLife
         {
             var c = FamilyComponent.Current; if (c == null || !FamilyFramework.Catalog.IsEnabled(MilitaryCareers.Module)) return false;
             var d = Find.DesignatorManager.SelectedDesignator;
-            return d is Designator_MilitaryPost || d is Designator_PatrolSpot || d is Designator_RemoveMilitaryPost || MilitaryPage.IsOpen || c.Registry.Alert().Effective == AlertLevel.Red;
+            if (d is Designator_MilitaryPost || d is Designator_PatrolSpot || d is Designator_RemoveMilitaryPost || MilitaryPage.IsOpen) return true;
+            return MilitaryView.ShowPositions && c.Registry.Alert().Effective == AlertLevel.Red;
         }
 
         private static string Letter(PostKind k) => k == PostKind.Melee ? "M" : k == PostKind.Ranged ? "R" : k == PostKind.Mixed ? "X" : "";

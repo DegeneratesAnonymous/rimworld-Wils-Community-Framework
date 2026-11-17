@@ -126,11 +126,14 @@ namespace FamilyLife
         internal static BeginResult TryBegin(FamilyComponent c, Pawn teacher, List<int> roster, int now, Building lectern = null, bool byPlayer = false, string onlySubject = null)
         {
             if (teacher == null || Running(teacher) || Board.IsBusy(teacher.thingIDNumber)) return BeginResult.Cannot;
+            if (!byPlayer && FrameworkServices.ColonyAlert == ColonyAlertLevel.Red) return BeginResult.Later;          // routine classes wait while the colony is at Red
+            if (FrameworkServices.ClaimedByOther(teacher, "wils.education")) return BeginResult.Later;          // on another module's duty just now
             roster = roster.Where(id => !Board.IsBusy(id)).ToList();          // someone already in another class stays there
             if (roster.Count == 0) return BeginResult.Cannot;
             IntVec3 cell = IntVec3.Invalid; Room room = null; Thing front = lectern;
             bool found = lectern != null ? ClassRooms.SpotAt(lectern, teacher, out cell, out room) : ClassRooms.TeachingSpot(teacher, out cell, out room, out front);
-            if (!found) { FrameworkServices.Trace("class: nowhere to hold a class for " + teacher.LabelShort); return BeginResult.Cannot; }
+            if (!found) { FrameworkServices.Trace("class: nowhere to hold a class for " + teacher.LabelShort); FrameworkServices.PostNeed("wils.education", "wils.education.classroom", "WFL_Need_Classroom", teacher.LabelShort, teacher.Map, teacher.Position); return BeginResult.Cannot; }
+            FrameworkServices.ResolveNeed("wils.education", "wils.education.classroom");
             string stop = PawnReadinessApi.StopReason(teacher, now);
             if (byPlayer) { if (!FrameworkServices.Available(teacher) || stop != null) { FrameworkServices.Trace("class: " + teacher.LabelShort + " cannot start yet (" + (stop ?? "not available") + ")"); return BeginResult.Later; } }
             else if (!FrameworkServices.Ready(teacher) || stop != null || teacher.CurJob?.playerForced == true || (Find.Selector.IsSelected(teacher) && !FrameworkServices.Forced) || FrameworkServices.IsAvatar(teacher))
@@ -166,6 +169,7 @@ namespace FamilyLife
             var job = JobMaker.MakeJob(EducationDefOf.WFL_ClassTeacher, front != null ? (LocalTargetInfo)front : (LocalTargetInfo)cell, cell);
             if (book != null) job.targetC = book;
             job.playerForced = true;
+            FrameworkServices.TryClaimDuty(teacher, "wils.education", 3000);
             teacher.jobs.StartJob(job, JobCondition.InterruptForced, null, false, tag: JobTag.Misc);
             return BeginResult.Started;
         }

@@ -73,6 +73,7 @@ namespace FamilyLife
             if (p.ageTracker.AgeBiologicalYears < MilitaryDuties.MinTrainingAge || p.WorkTagIsDisabled(WorkTags.Violent)) return false;
             var assignment = p.timetable?.CurrentAssignment;
             if (assignment == TimeAssignmentDefOf.Sleep || assignment == TimeAssignmentDefOf.Joy) return false;
+            if (FrameworkServices.ClaimedByOther(p, MilitaryCareers.Module)) return false;
             if (p.mindState?.lastJobTag != JobTag.Idle || p.CurJob?.playerForced == true) return false;
             if (FrameworkServices.NeedsReason(p) != null || HealthAIUtility.ShouldSeekMedicalRest(p)) return false;
             return !(p.needs?.food != null && p.needs.food.CurLevel < .2f) && !(p.needs?.rest != null && p.needs.rest.CurLevel < .15f);
@@ -102,12 +103,14 @@ namespace FamilyLife
             var serving = map.mapPawns.FreeColonistsSpawned.Where(MilitaryRoles.Serving).OrderBy(p => p.thingIDNumber).ToList(); if (serving.Count == 0) return;
             int onDuty = serving.Count(OnDuty), cap = MilitaryDuties.MaxOnDuty(serving.Count), started = 0;
             var yard = YardCells(map); var posts = c.Registry.Posts().All.Where(p => p.Map == map.uniqueID).ToList();
+            if (yard.Count == 0) FrameworkServices.PostNeed(MilitaryCareers.Module, MilitaryCareers.Module + ".yard", "WFL_Need_Yard", serving.Count.ToString(), map, serving[0].Position); else FrameworkServices.ResolveNeed(MilitaryCareers.Module, MilitaryCareers.Module + ".yard");
             foreach (var p in serving)
             {
                 if (onDuty >= cap || started >= 2) break;
                 if (OnDuty(p) || !SoldierFree(p) || !Rested(p, now)) continue;
                 string role = MilitaryRoles.ActiveRole(p); var kind = MilitaryDuties.For(role, level); if (kind == DutyKind.None) continue;
-                if (Start(c, map, p, role, kind, yard, posts, serving, now)) { onDuty++; started++; }
+                if (!FrameworkServices.TryClaimDuty(p, MilitaryCareers.Module)) continue;
+                if (Start(c, map, p, role, kind, yard, posts, serving, now)) { onDuty++; started++; } else FrameworkServices.ReleaseDuty(p, MilitaryCareers.Module);
             }
             if (state.Volunteers && yard.Count > 0) JoinVolunteers(map, serving, yard, now);
         }
@@ -247,7 +250,7 @@ namespace FamilyLife
                     {
                         var job = Make(DutyKind.Patrol, cells[0]); job.targetQueueA = cells.Select(x => new LocalTargetInfo(x)).ToList();
                         walks[id] = new Walk { Route = route.Id, Start = ((route.Cursor % ordered.Count) + ordered.Count) % ordered.Count, Count = ordered.Count };
-                        Begin(p, job, IntVec3.Invalid, route.Name); return true;
+                        Begin(p, job, IntVec3.Invalid, route.Name); FrameworkServices.AttachCompanion(c, p, "wils.care.practice", MilitaryCareers.Module, MilitaryDuties.BlockTicks); return true;
                     }
                 }
             }
@@ -262,7 +265,7 @@ namespace FamilyLife
                 if (points.Count < 2) return false;
             }
             var walk = Make(DutyKind.Patrol, points[0]); walk.targetQueueA = points.Select(x => new LocalTargetInfo(x)).ToList();
-            Begin(p, walk, IntVec3.Invalid, "WFL_Military_Where_Home".Translate().ToString()); return true;
+            Begin(p, walk, IntVec3.Invalid, "WFL_Military_Where_Home".Translate().ToString()); FrameworkServices.AttachCompanion(c, p, "wils.care.practice", MilitaryCareers.Module, MilitaryDuties.BlockTicks); return true;
         }
 
         // ------------------------------------------------------------------ volunteers
@@ -365,6 +368,12 @@ namespace FamilyLife
             int points = MilitaryDuties.Points(role, kind);
             var session = sessions.FirstOrDefault(s => s.Leader == id);
             if (session != null && session.Members == 0 && MilitaryDuties.IsGroup(kind)) points = Math.Max(1, points / 2);          // leading nobody earns half
+            if (kind == DutyKind.Patrol && FrameworkServices.CompanionOf(pawn) is Pawn medic)
+            {
+                points = FrameworkServices.TeamPoints(points);          // a patrol with a medic earns more, and the medic learns field work
+                CareerService.Report(c, medic, "wils.care.practice", null, "care.patrolmedic", "patrolmedic|" + id + "|" + jobId, 4, now);
+                FrameworkServices.EndCompanion(pawn, MilitaryCareers.Module);
+            }
             CareerService.Report(c, pawn, MilitaryCareers.Career, credit, "mil.duty." + kind, "duty:" + kind + ":" + jobId, points, now);
         }
     }

@@ -206,7 +206,7 @@ namespace FamilyLife.Tests
         public void The_room_and_page_code_exists_and_the_page_is_registered()
         {
             string code = string.Join("\n", Directory.GetFiles(Path.Combine(RepoPaths.Root(), "Source/Intelligence"), "*.cs", SearchOption.AllDirectories).Where(f => !f.Replace('\\', '/').Contains("/obj/")).Select(File.ReadAllText));
-            Assert.Contains("class IntelligenceRoomGame", code); Assert.Contains("IntelligencePage.Draw", code); Assert.Contains("IntelligenceWork.Talked", code);
+            Assert.Contains("class IntelligenceRoomGame", code); Assert.Contains("SciencesPage.Draw", code); Assert.Contains("IntelligenceWork.Talked", code);
             Assert.Contains("pawn.mechanitor == null", code);          // bandwidth means something only to a mechanitor
         }
 

@@ -116,15 +116,29 @@ namespace FamilyLife
                 int given = ledger.Award(pawn.thingIDNumber, careerId, specialty, kind, activityKey, points, day);
                 if (given <= 0) return 0;
                 Event(pawn.LabelShort + " +" + given + " " + careerId + (specialty != null ? ":" + specialty : "") + " (" + kind + ")");
-                foreach (var gained in ledger.Evaluate(pawn.thingIDNumber, def, SkillsOf(pawn)))
+                Qualify(ledger, pawn, def, now);
+                // related careers learn a little too (once per activity, no wages, and a cross credit never starts another)
+                float scale = FamilyLifeMod.Settings?.crossTrainingScale ?? 1f;
+                foreach (var credit in scale <= 0f ? new List<KeyValuePair<string, int>>() : CrossTraining.Credits(FamilyFramework.CrossTraining.Enabled(), careerId, kind, given))
                 {
-                    ledger.NoteQualified(pawn.thingIDNumber, gained, now);
-                    Note(pawn.LabelShort + " qualified: " + gained);
-                    Messages.Message("WFL_Career_Qualified".Translate(pawn.LabelShort, Describe(gained)), pawn, MessageTypeDefOf.PositiveEvent, false);
+                    int scaled = Math.Max(1, (int)Math.Round(credit.Value * scale));
+                    var other = Career(credit.Key); if (other == null || !FamilyFramework.Catalog.IsEnabled(other.ModuleId)) continue;
+                    int extra = ledger.Award(pawn.thingIDNumber, credit.Key, null, "cross." + kind, "xt|" + credit.Key + "|" + activityKey, scaled, day);
+                    if (extra > 0) { Event(pawn.LabelShort + " +" + extra + " " + credit.Key + " (cross-training from " + kind + ")"); Qualify(ledger, pawn, other, now); }
                 }
                 return given;
             }
             catch (Exception ex) { Log.Warning("[Wil's Family Life] A career report was skipped: " + ex.Message); return 0; }
+        }
+
+        private static void Qualify(CareerLedger ledger, Pawn pawn, CareerDefinition def, int now)
+        {
+            foreach (var gained in ledger.Evaluate(pawn.thingIDNumber, def, SkillsOf(pawn)))
+            {
+                ledger.NoteQualified(pawn.thingIDNumber, gained, now);
+                Note(pawn.LabelShort + " qualified: " + gained);
+                Messages.Message("WFL_Career_Qualified".Translate(pawn.LabelShort, Describe(gained)), pawn, MessageTypeDefOf.PositiveEvent, false);
+            }
         }
 
         public static string TitleOf(ProfessionRole role, FamilyRegistry r) => (role.TitleKey?.Invoke(r) ?? role.Id + "_label").Translate().ToString();

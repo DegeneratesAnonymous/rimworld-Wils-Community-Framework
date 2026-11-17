@@ -16,7 +16,7 @@ namespace FamilyLife
     {
         private static int sub;
         private static string transferFrom, transferTo; private static string amountText = "10"; private static int amount = 10;
-        private static readonly string[] Tabs = { "WFL_Tr_Overview", "WFL_Tr_Accounts", "WFL_Tr_Payroll", "WFL_Tr_Taxation", "WFL_Tr_Debts", "WFL_Tr_Transactions" };
+        private static readonly string[] Tabs = { "WFL_Tr_Overview", "WFL_Tr_Accounts", "WFL_Tr_Payroll", "WFL_Tr_Taxation", "WFL_Tr_Debts", "WFL_Tr_Transactions", "WFL_Tr_Budget" };
 
         /// <summary>The number shown on the page's navigation entry: wages owed plus overdue tax, so something needing the player's eye is visible without opening it.</summary>
         public static int Attention()
@@ -65,6 +65,7 @@ namespace FamilyLife
                 case 2: return Payroll(r, c, y);
                 case 3: return Taxation(r, c, y);
                 case 4: return Debts(r, c, y);
+                case 6: return Budget(r, c, y);
                 default: return Transactions(r, c, y);
             }
         }
@@ -131,13 +132,41 @@ namespace FamilyLife
             return y + 32f;
         }
 
+        /// <summary>The wage bill by module: who is paid for each module's professions, what is owed, and how long the community funds would last. Read-only.</summary>
+        private static float Budget(Rect r, FamilyComponent c, float y)
+        {
+            var reg = c.Registry; var pay = reg.Payroll(); var book = reg.Assignments(); var l = reg.Ledger();
+            Func<string, string> moduleOf = role => CareerService.Professions.ById(role)?.ModuleId;
+            var assigned = book.AllPeople().Distinct().Where(id => reg.GetPerson(id)?.InColony == true).SelectMany(id => book.RolesOf(id).Select(role => new KeyValuePair<int, string>(id, role))).Where(a => { var m = moduleOf(a.Value); return m == null || FamilyFramework.Catalog.IsEnabled(m); }).ToList();
+            var lines = PayrollBudget.ByModule(pay.Earned, assigned, moduleOf, pay.Policy);
+            int funds = l.Balance(Ledger.CommunityId), perDay = lines.Sum(x => x.MaxPerDay), pending = lines.Sum(x => x.Pending), owed = l.Debts.Where(d => d.Active && d.Kind == DebtKind.Wage).Sum(d => d.Outstanding);
+            y = Line(r, y, "WFL_Tr_BudgetFunds".Translate(funds, perDay));
+            int days = PayrollBudget.RunwayDays(funds, lines);
+            if (days >= 0) y = Line(r, y, "WFL_Tr_BudgetRunway".Translate(days), days < 3);
+            if (owed > 0) y = Line(r, y, "WFL_Tr_BudgetOwed".Translate(owed));
+            y = CommunityPageLayout.Help(r, y, "WFL_Tr_BudgetHelp".Translate()) + 4f;
+            float w = r.width, nameW = Mathf.Max(140f, w * .34f), colW = (w - nameW) / 3f; Text.Font = GameFont.Tiny; GUI.color = new Color(0.90f, 0.74f, 0.28f);
+            Widgets.Label(new Rect(4f, y, nameW, 18f), "WFL_Tr_BudgetModule".Translate()); Widgets.Label(new Rect(nameW, y, colW, 18f), "WFL_Tr_BudgetStaff".Translate()); Widgets.Label(new Rect(nameW + colW, y, colW, 18f), "WFL_Tr_BudgetPending".Translate()); Widgets.Label(new Rect(nameW + colW * 2f, y, colW, 18f), "WFL_Tr_BudgetMax".Translate());
+            GUI.color = Color.white; Text.Font = GameFont.Small; y += 22f; int i = 0;
+            foreach (var line in lines)
+            {
+                var row = new Rect(0f, y, w, 24f); if (i++ % 2 == 0) Widgets.DrawBoxSolid(row, new Color(1f, 1f, 1f, .04f));
+                string name = line.Module == null ? "WFL_Tr_BudgetOrdinary".Translate().ToString() : (FamilyFramework.Catalog.Modules.FirstOrDefault(m => m.Id == line.Module)?.Name ?? line.Module).Replace("Wil's Role Modules : ", "");
+                Text.Anchor = TextAnchor.MiddleLeft; Widgets.Label(new Rect(4f, y, nameW, 24f), name);
+                Widgets.Label(new Rect(nameW, y, colW, 24f), line.Staff.ToString()); Widgets.Label(new Rect(nameW + colW, y, colW, 24f), line.Pending.ToString()); Widgets.Label(new Rect(nameW + colW * 2f, y, colW, 24f), line.MaxPerDay.ToString());
+                Text.Anchor = TextAnchor.UpperLeft; y += 24f;
+            }
+            if (lines.Count == 0) y = Line(r, y, "WFL_Tr_BudgetNone".Translate(), true);
+            return y + 8f;
+        }
+
         private static float Payroll(Rect r, FamilyComponent c, float y)
         {
             var reg = c.Registry; var pay = reg.Payroll(); var pol = pay.Policy;
-            y = Line(r, y, "WFL_Tr_PayrollHelp".Translate(), true) + 4f;
+            y = CommunityPageLayout.Help(r, y, "WFL_Tr_PayrollHelp".Translate()) + 4f;
             y = Heading(r, y + 4f, "WFL_Tr_FundingTitle".Translate());
             foreach (PayrollFunding f in Enum.GetValues(typeof(PayrollFunding))) { if (Widgets.RadioButtonLabeled(new Rect(4f, y, r.width - 16f, 24f), ("WFL_Tr_Funding_" + f).Translate(), pol.Funding == f)) pol.Funding = f; y += 26f; }
-            y = Line(r, y, "WFL_Tr_FundingNote".Translate(), true);
+            y = CommunityPageLayout.Help(r, y, "WFL_Tr_FundingNote".Translate());
             var roles = CareerService.Professions.All.Where(x => FamilyFramework.Catalog.IsEnabled(x.ModuleId)).OrderBy(x => x.Career, StringComparer.Ordinal).ThenBy(x => x.Level).ThenBy(x => x.Id, StringComparer.Ordinal).ToList();
             if (pol.Funding == PayrollFunding.EssentialFirst)
                 foreach (var role in roles) { bool ess = pol.Essential.Contains(role.Id); Widgets.CheckboxLabeled(new Rect(24f, y, 360f, 24f), "WFL_Tr_Essential".Translate() + ": " + CareerService.TitleOf(role, reg), ref ess); if (ess) pol.Essential.Add(role.Id); else pol.Essential.Remove(role.Id); y += 26f; }
@@ -155,7 +184,7 @@ namespace FamilyLife
             if (pay.WorkersMissing(2).Count > 0)
             {
                 if (Widgets.ButtonText(new Rect(4f, y, 320f, 24f), "WFL_Tr_Renegotiate".Translate())) foreach (var k in pol.Rates.Keys.ToList()) pol.Rates[k] = Math.Max(1, pol.Rates[k] * 3 / 4);
-                y = Line(r, y + 26f, "WFL_Tr_RenegotiateNote".Translate(), true);
+                y = CommunityPageLayout.Help(r, y + 26f, "WFL_Tr_RenegotiateNote".Translate());
             }
             foreach (var role in CareerService.Professions.All.Where(x => FamilyFramework.Catalog.IsEnabled(x.ModuleId)).OrderBy(x => x.Career, StringComparer.Ordinal).ThenBy(x => x.Level).ThenBy(x => x.Id, StringComparer.Ordinal))
                 y = RateRow(r, y, role.Id, CareerService.TitleOf(role, reg));

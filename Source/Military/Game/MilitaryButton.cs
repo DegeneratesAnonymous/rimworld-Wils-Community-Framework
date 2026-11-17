@@ -7,25 +7,27 @@ using Verse;
 
 namespace FamilyLife
 {
+    /// <summary>Whether the placed positions and patrol routes are drawn on the map outside of placing and the Military menu. A view choice only; it changes nothing in the game.</summary>
+    public static class MilitaryView { public static bool ShowPositions = true; }
+
     /// <summary>
-    /// The Military alert button in the bottom bar. It is tinted by the current level (nothing at Normal, yellow, red). Left-click steps the level you set (Normal, Yellow, Red, back to Normal); right-click
-    /// opens a menu to pick a level or open the Military menu. A Red that a threat raised stands down by itself whatever you click.
+    /// The Military icons in the bottom-right icon cluster: the alert (tinted by the current level; left-click steps Normal, Yellow, Red, back to Normal; right-click picks a level or opens the Military menu)
+    /// and a toggle that hides the placed positions and routes for a cleaner map. A Red that a threat raised stands down by itself whatever you click.
     /// </summary>
-    public class MainButtonWorker_MilitaryAlert : MainButtonWorker
+    public static class MilitaryPlayControls
     {
-        private static readonly Color YellowTint = new Color(0.95f, 0.8f, 0.2f, 0.40f), RedTint = new Color(0.85f, 0.2f, 0.2f, 0.50f);
+        private static readonly Color YellowTint = new Color(0.95f, 0.8f, 0.2f, 0.55f), RedTint = new Color(0.85f, 0.2f, 0.2f, 0.65f);
+        private static Texture2D alertIcon, postsIcon;
+        private static Texture2D AlertIcon => alertIcon ?? (alertIcon = ContentFinder<Texture2D>.Get("WilsFamilyLife/Pages/military", false) ?? BaseContent.BadTex);
+        private static Texture2D PostsIcon => postsIcon ?? (postsIcon = ContentFinder<Texture2D>.Get("WilsFamilyLife/Pages/posts", false) ?? TexButton.ShowZones);
 
         private static FamilyComponent Colony => FamilyComponent.Current != null && FamilyFramework.Catalog.IsEnabled(MilitaryCareers.Module) ? FamilyComponent.Current : null;
-
-        public override bool Visible => Colony != null && Find.CurrentMap != null;
 
         private static void Set(FamilyComponent c, AlertLevel level)
         {
             MilitaryPage.Choose(c, level);
             Messages.Message("WFL_Military_AlertSet".Translate(AlertRules.Label(level)), MessageTypeDefOf.SilentInput, false);
         }
-
-        public override void Activate() { var c = Colony; if (c != null) Set(c, AlertRules.Next(c.Registry.Alert().Set)); }
 
         private static void Menu(FamilyComponent c)
         {
@@ -38,14 +40,16 @@ namespace FamilyLife
             Find.WindowStack.Add(new FloatMenu(options));
         }
 
-        public override void DoButton(Rect rect)
+        public static void Draw(WidgetRow row)
         {
             var c = Colony; if (c == null) return;
             var state = c.Registry.Alert(); var level = state.Effective;
-            if (level != AlertLevel.Normal) Widgets.DrawBoxSolid(rect, level == AlertLevel.Red ? RedTint : YellowTint);
-            if (Widgets.ButtonTextSubtle(rect, def.LabelCap)) Activate();
+            string tip = "WFL_Military_ButtonTip".Translate(AlertRules.Label(level), state.RaisedByThreat ? "WFL_Military_ByThreat".Translate().ToString() : "", AlertRules.Label(AlertRules.Next(state.Set)));
+            var rect = row.ButtonIconRect(24f);
+            Color? back = level == AlertLevel.Red ? RedTint : level == AlertLevel.Yellow ? YellowTint : (Color?)null;
+            if (row.ButtonIcon(AlertIcon, tip, null, back)) Set(c, AlertRules.Next(state.Set));
             if (Event.current.type == EventType.MouseDown && Event.current.button == 1 && Mouse.IsOver(rect)) { Event.current.Use(); Menu(c); }
-            TooltipHandler.TipRegion(rect, "WFL_Military_ButtonTip".Translate(AlertRules.Label(level), state.RaisedByThreat ? "WFL_Military_ByThreat".Translate().ToString() : "", AlertRules.Label(AlertRules.Next(state.Set))));
+            row.ToggleableIcon(ref MilitaryView.ShowPositions, PostsIcon, "WFL_Military_ShowPositionsTip".Translate(), SoundDefOf.Mouseover_ButtonToggle);
         }
     }
 }

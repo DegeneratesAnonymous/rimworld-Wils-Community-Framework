@@ -21,6 +21,7 @@ namespace FamilyLife
                 CareerService.RegisterRole(new ProfessionRole { Id = spec.RoleId, ModuleId = moduleId, Career = CareRoles.Career, Level = 3, Specialty = spec.Key, BonusKey="WFL_Care_"+spec.Key+"Bonus" });
             }
             CareSpecialistWork.Register(moduleId);
+            FrameworkServices.RegisterNeedAction(moduleId, moduleId + ".clinic", "WFL_Need_PlanBuild", () => Verse.Find.MainTabsRoot.SetCurrentTab(RimWorld.MainButtonDefOf.Architect));
             CareerService.Registered(moduleId);
             FamilyFramework.OperationCompleted.Add(moduleId + ".surgery", moduleId, CareSpecialistWork.OnSurgery);
             FamilyFramework.Tended.Add(moduleId + ".tend", moduleId, CareSpecialistWork.OnTend);

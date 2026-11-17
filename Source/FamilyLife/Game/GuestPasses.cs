@@ -428,6 +428,7 @@ namespace FamilyLife
             bool before = FamilyZoneView.Show;
             row.ToggleableIcon(ref FamilyZoneView.Show, FamilyZoneView.Icon, "WFL_ZoneToggle".Translate(), SoundDefOf.Mouseover_ButtonToggle);
             if (before != FamilyZoneView.Show) FamilyZoneView.Sync();
+            foreach (var control in FamilyFramework.PlayControls.Enabled()) { try { control(row); } catch (System.Exception e) { Log.ErrorOnce("[Wil's Family Life] A play-controls icon failed: " + e.Message, 7710211); } }
         }
     }
 }

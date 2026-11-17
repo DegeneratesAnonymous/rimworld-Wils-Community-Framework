@@ -35,15 +35,7 @@ namespace FamilyLife
             var c = FamilyComponent.Current; return c == null || !c.Registry.Works().RoundsOn || p.Drafted || p.InMentalState || HostilesAbout(p.Map);
         }
 
-        private static bool Free(Pawn p)
-        {
-            if (p == null || !p.Spawned || p.Dead || p.Downed || p.Drafted || p.InMentalState || p.IsPrisoner || p.IsSlave || !p.RaceProps.Humanlike || p.DevelopmentalStage.Baby() || !p.Awake()) return false;
-            var assignment = p.timetable?.CurrentAssignment;
-            if (assignment == TimeAssignmentDefOf.Sleep || assignment == TimeAssignmentDefOf.Joy) return false;
-            if (p.mindState?.lastJobTag != JobTag.Idle || p.CurJob?.playerForced == true) return false;
-            if (FrameworkServices.NeedsReason(p) != null || HealthAIUtility.ShouldSeekMedicalRest(p)) return false;
-            return !(p.needs?.food != null && p.needs.food.CurLevel < .2f) && !(p.needs?.rest != null && p.needs.rest.CurLevel < .15f);
-        }
+        private static bool Free(Pawn p) => FrameworkServices.FreeForDuty(p, WorksCareers.Module);
 
         private static bool Rested(Pawn p, int now)
         {
@@ -66,7 +58,10 @@ namespace FamilyLife
                     if (on >= cap) break;
                     if (OnRound(p) || !Free(p) || !Rested(p, now)) continue;
                     string role = WorksStories.ActiveRole(p); bool builder = role == WorksCareers.BuilderLabourer || role == WorksCareers.BuilderJourneyman || WorksCareers.CareerOf(role) == WorksCareers.Builder;
-                    if (builder ? StartRepair(map, p) : StartWalk(map, p)) { on++; break; }          // one round begun per look per map
+                    if (FrameworkServices.ColonyAlert == ColonyAlertLevel.Red && !builder) continue;          // at Red only repairs go on; routine walks wait
+                    if (!FrameworkServices.TryClaimDuty(p, WorksCareers.Module)) continue;
+                    if (builder ? StartRepair(map, p) : StartWalk(map, p)) { on++; break; }
+                    FrameworkServices.ReleaseDuty(p, WorksCareers.Module);          // one round begun per look per map
                 }
             }
         }

@@ -9,7 +9,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGES = {"WilsFamilyLife": "FamilyLife", "WilsEducation": "WilsEducation", "WilsCommunityCare": "WilsCommunityCare", "WilsTreasury": "WilsTreasury", "WilsHospitality": "WilsHospitality", "WilsCrafting": "WilsCrafting", "WilsIntelligence": "WilsIntelligence", "WilsMilitary": "WilsMilitary", "WilsWardens": "WilsWardens", "WilsWorks": "WilsWorks"}
+PACKAGES = {"WilsFamilyLife": "FamilyLife", "WilsEducation": "WilsEducation", "WilsCommunityCare": "WilsCommunityCare", "WilsTreasury": "WilsTreasury", "WilsHospitality": "WilsHospitality", "WilsCrafting": "WilsCrafting", "WilsIntelligence": "WilsIntelligence", "WilsMilitary": "WilsMilitary", "WilsWardens": "WilsWardens", "WilsWorks": "WilsWorks", "WilsAgriculture": "WilsAgriculture"}
 
 def main():
     dest = ROOT / "dist" / "community-modules-test"

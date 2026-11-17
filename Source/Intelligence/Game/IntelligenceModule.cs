@@ -24,19 +24,20 @@ namespace FamilyLife
             CareerService.RegisterRole(new ProfessionRole { Id = IntelligenceCareers.Researcher, ModuleId = Id, Career = IntelligenceCareers.Career, Level = 2 });
             foreach (var specialty in IntelligenceCareers.Specialties)
                 CareerService.RegisterRole(new ProfessionRole { Id = IntelligenceCareers.Role(specialty), ModuleId = Id, Career = IntelligenceCareers.Career, Level = 3, Specialty = specialty, BonusKey = "WFL_Intelligence_" + specialty + "Bonus" });
-            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Intelligence_Page", Order = 155, Render = IntelligencePage.Draw });
+            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Intelligence_Page", Order = 155, Icon = "WilsFamilyLife/Pages/sciences", Render = SciencesPage.Draw });
             FamilyFramework.ResearchDone.Add(Id + ".research", Id, IntelligenceWork.Researched);
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, IntelligenceWork.Labour);
             FamilyFramework.ProductMade.Add(Id + ".products", Id, IntelligenceWork.Made);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, IntelligenceStories.Social);
             FamilyFramework.SocialInteraction.Add(Id + ".talks", Id, IntelligenceWork.Talked);
-            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { IntelligenceWork.Reset(); IntelligenceStories.Reset(); IntelligenceRoomGame.Reset(); });
+            FamilyFramework.Resets.Add(Id + ".reset", Id, () => { IntelligenceWork.Reset(); IntelligenceStories.Reset(); IntelligenceRoomGame.Reset(); SciencesPage.Reset(); });
             FamilyFramework.Removal.Add(Id + ".removal", Id, c =>
             {
                 var report = new CleanupReport(Id);
                 report.Step("Clear in-memory research tallies", () => { IntelligenceWork.Reset(); IntelligenceStories.Reset(); IntelligenceRoomGame.Reset(); return "careers, experience and memories retained; this module adds no jobs or hediffs"; });
                 return report;
             });
+            FamilyFramework.CrossTraining.Add(Id + ".cross.teaching", Id, new CrossTrainingRule { From = IntelligenceCareers.Career, To = "wils.education.teaching", KindPrefix = null, Share = .2f });
             CareerService.Registered(Id);
         }
     }
@@ -243,37 +244,6 @@ namespace FamilyLife
         {
             float f = Factor(req, out string who), a = Add(req);
             return f != 1f ? who + ": x" + f.ToString("0.##") : a != 0f ? "Mech Commander: +" + a.ToString("0.##") : null;
-        }
-    }
-}
-
-namespace FamilyLife
-{
-    /// <summary>Community: Intelligence. Shows the rooms the game has recognised and what each specialty does, so the recognition is never a secret.</summary>
-    public static class IntelligencePage
-    {
-        public static float Draw(UnityEngine.Rect r, FamilyComponent c)
-        {
-            float y = 0f;
-            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Intelligence_RoomsTitle".Translate(), s =>
-            {
-                var counts = new int[4];
-                foreach (var map in Find.Maps)
-                {
-                    if (!map.IsPlayerHome) continue;
-                    foreach (var room in map.regionGrid.AllRooms) { var kind = IntelligenceRoomGame.KindOf(room); if (kind != IntelligenceRoom.None) counts[(int)kind]++; }
-                }
-                float h = CommunityPageLayout.Line(s, 0f, "WFL_Intelligence_RoomsFound".Translate(counts[(int)IntelligenceRoom.Library], counts[(int)IntelligenceRoom.ResearchLab], counts[(int)IntelligenceRoom.GeneLab]));
-                return CommunityPageLayout.Line(s, h, "WFL_Intelligence_RoomsHelp".Translate(), true);
-            });
-            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Intelligence_SpecialtiesTitle".Translate(), s =>
-            {
-                float h = 0f;
-                foreach (var specialty in IntelligenceCareers.Specialties)
-                    h = CommunityPageLayout.Line(s, h, ("wils.intelligence." + specialty.ToLowerInvariant() + "_label").Translate() + ": " + ("WFL_Intelligence_" + specialty + "Bonus").Translate(), true);
-                return h;
-            });
-            return y;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace FamilyLife
     public static class MilitaryPage
     {
         public static readonly Color Gold = new Color(0.95f, 0.8f, 0.3f);
-        private enum Tab { Alert, Positions, Facilities, Soldiers }
+        private enum Tab { Alert, Positions, Facilities, Soldiers, Groups }
         private static Tab tab = Tab.Alert;
         private static int lastDraw = -10;
 
@@ -37,10 +37,11 @@ namespace FamilyLife
             lastDraw = Time.frameCount;
             float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Military_MenuTitle".Translate(), s =>
             {
-                float bw = (s.width - 18f) / 4f;
-                foreach (Tab t in Enum.GetValues(typeof(Tab)))
+                var tabs = Enum.GetValues(typeof(Tab)).Cast<Tab>().Where(x => x != Tab.Groups || GroupOrgBridge.Available).ToList(); if (!tabs.Contains(tab)) tab = Tab.Alert;
+                float bw = (s.width - 6f * (tabs.Count - 1)) / tabs.Count;
+                for (int i = 0; i < tabs.Count; i++)
                 {
-                    var rect = new Rect((int)t * (bw + 6f), 0f, bw, 30f); GUI.color = t == tab ? Gold : Color.white;
+                    var t = tabs[i]; var rect = new Rect(i * (bw + 6f), 0f, bw, 30f); GUI.color = t == tab ? Gold : Color.white;
                     if (Widgets.ButtonText(rect, ("WFL_Military_Tab_" + t).Translate())) tab = t;
                     GUI.color = Color.white;
                 }
@@ -51,6 +52,7 @@ namespace FamilyLife
                 case Tab.Positions: return DrawPositions(r, y, c);
                 case Tab.Facilities: return DrawFacilities(r, y, c);
                 case Tab.Soldiers: return DrawSoldiers(r, y, c);
+                case Tab.Groups: return MilitaryGroupsTab.Draw(r, y, c);
                 default: return DrawAlert(r, y, c);
             }
         }
@@ -74,7 +76,7 @@ namespace FamilyLife
                 h += 38f;
                 bool auto = state.AutoRed; Widgets.CheckboxLabeled(new Rect(0f, h, s.width, 24f), "WFL_Military_AutoRed".Translate(), ref auto); state.AutoRed = auto;
                 TooltipHandler.TipRegion(new Rect(0f, h, s.width, 24f), "WFL_Military_AutoRedTip".Translate()); h += 30f;
-                return CommunityPageLayout.Line(s, h, "WFL_Military_AlertHelp".Translate(), true);
+                return CommunityPageLayout.Help(s, h, "WFL_Military_AlertHelp".Translate());
             });
             y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_DutiesTitle".Translate(), s =>
             {
@@ -92,8 +94,8 @@ namespace FamilyLife
                 }
                 h = CommunityPageLayout.Line(s, h, "WFL_Military_DutiesStatus".Translate(onDuty, yard));
                 if (yard == 0) h = CommunityPageLayout.Line(s, h, "WFL_Military_NoYard".Translate(), true);
-                if (posts.All.Count == 0 && c.Registry.Patrols().Spots.Count == 0) h = CommunityPageLayout.Line(s, h, "WFL_Military_NoPostsHint".Translate(), true);
-                return CommunityPageLayout.Line(s, h, "WFL_Military_DutiesHelp".Translate(), true);
+                if (posts.All.Count == 0 && c.Registry.Patrols().Spots.Count == 0) h = CommunityPageLayout.Help(s, h, "WFL_Military_NoPostsHint".Translate());
+                return CommunityPageLayout.Help(s, h, "WFL_Military_DutiesHelp".Translate());
             });
             return y;
         }
@@ -109,7 +111,7 @@ namespace FamilyLife
             var posts = c.Registry.Posts(); var patrols = c.Registry.Patrols(); var postings = c.Registry.Postings(); float width = r.width;
             y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_PositionsTitle".Translate(posts.All.Count, PostBook.MaxPosts), s =>
             {
-                float h = CommunityPageLayout.Line(s, 0f, "WFL_Military_PositionsHelp".Translate(), true);
+                float h = CommunityPageLayout.Help(s, 0f, "WFL_Military_PositionsHelp".Translate());
                 float bw = (s.width - 18f) / 4f; int i = 0;
                 foreach (var k in new[] { PostKind.Melee, PostKind.Ranged, PostKind.Mixed, PostKind.Rally })
                 {
@@ -132,7 +134,7 @@ namespace FamilyLife
             });
             y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_RoutesTitle".Translate(patrols.Routes.Count, PatrolBook.MaxRoutes, patrols.Spots.Count, PatrolBook.MaxSpots), s =>
             {
-                float h = CommunityPageLayout.Line(s, 0f, "WFL_Military_RoutesHelp".Translate(), true);
+                float h = CommunityPageLayout.Help(s, 0f, "WFL_Military_RoutesHelp".Translate());
                 if (patrols.Routes.Count < PatrolBook.MaxRoutes) h = CommunityPageLayout.Button(s, h, "WFL_Military_AddRoute".Translate(), () => patrols.AddRoute());
                 if (patrols.Routes.Count == 0) return CommunityPageLayout.Line(s, h, "WFL_Military_NoRoutes".Translate(), true);
                 foreach (var route in patrols.Routes.ToList())
@@ -178,7 +180,7 @@ namespace FamilyLife
                 int yard = 0, zones = 0;
                 foreach (var map in Find.Maps) if (map.IsPlayerHome) { var z = map.zoneManager.AllZones.OfType<Zone_TrainingYard>().ToList(); zones += z.Count; yard += z.Sum(x => x.Cells.Count); }
                 float h = CommunityPageLayout.Line(s, 0f, "WFL_Military_YardStatus".Translate(zones, yard));
-                h = CommunityPageLayout.Line(s, h, "WFL_Military_YardHelp".Translate(), true);
+                h = CommunityPageLayout.Help(s, h, "WFL_Military_YardHelp".Translate());
                 return CommunityPageLayout.Button(s, h, "WFL_Military_PlaceYard".Translate(), () => Place(new Designator_ZoneAdd_TrainingYard()));
             });
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Military_ArmoryTitle".Translate(), s =>
@@ -193,7 +195,7 @@ namespace FamilyLife
                 }
                 float h = CommunityPageLayout.Line(s, 0f, "WFL_Military_ArmoryStatus".Translate(zones, melee, ranged));
                 h = CommunityPageLayout.Line(s, h, "WFL_Military_ArmoryNeeding".Translate(needing));
-                h = CommunityPageLayout.Line(s, h, "WFL_Military_ArmoryHelp".Translate(), true);
+                h = CommunityPageLayout.Help(s, h, "WFL_Military_ArmoryHelp".Translate());
                 return CommunityPageLayout.Button(s, h, "WFL_Military_PlaceArmory".Translate(), () => Place(new Designator_ZoneAddStockpile_Armory()));
             });
             return y;
@@ -230,7 +232,7 @@ namespace FamilyLife
             var soldiers = Soldiers().ToList();
             return CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Military_SoldiersTitle".Translate(soldiers.Count), s =>
             {
-                float h = CommunityPageLayout.Line(s, 0f, "WFL_Military_SoldiersHelp".Translate(), true);
+                float h = CommunityPageLayout.Help(s, 0f, "WFL_Military_SoldiersHelp".Translate());
                 if (soldiers.Count == 0) return CommunityPageLayout.Line(s, h, "WFL_Military_NoSoldiers".Translate());
                 Text.Font = GameFont.Tiny;
                 float wName = s.width * .20f, wRole = s.width * .14f, wProg = s.width * .22f, wDuty = s.width * .26f, wPost = s.width - wName - wRole - wProg - wDuty;

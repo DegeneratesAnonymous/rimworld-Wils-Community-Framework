@@ -334,17 +334,15 @@ namespace FamilyLife.Tests
         }
 
         [Fact]
-        public void The_bottom_bar_button_is_defined_and_its_click_and_menu_are_wired()
+        public void The_alert_icon_is_in_the_play_controls_cluster_with_a_hide_toggle()
         {
-            var def = System.Xml.Linq.XDocument.Load(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Defs/MilitaryUI.xml")).Descendants("MainButtonDef").Single();
-            Assert.Equal("WFL_MilitaryAlert", def.Element("defName").Value); Assert.Equal("FamilyLife.MainButtonWorker_MilitaryAlert", def.Element("workerClass").Value);
-            Assert.Null(def.Element("tabWindowClass"));          // it opens no window of its own: a click changes the alert
+            Assert.False(System.IO.File.Exists(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Defs/MilitaryUI.xml")));          // no longer a bottom-bar button
             string code = System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryButton.cs"));
-            Assert.Matches(@"class\s+MainButtonWorker_MilitaryAlert\s*:\s*MainButtonWorker", code);
             Assert.Contains("AlertRules.Next(", code); Assert.Contains("Event.current.button == 1", code); Assert.Contains("Open(MilitaryCareers.Module + \".alert\")", code);          // left-click cycles, right-click menu, which can open the Military page
-            Assert.Contains("FamilyFramework.Catalog.IsEnabled(MilitaryCareers.Module)", code);          // nothing is shown when the module is stopped
+            Assert.Contains("FamilyFramework.Catalog.IsEnabled(MilitaryCareers.Module)", code); Assert.Contains("ToggleableIcon(ref MilitaryView.ShowPositions", code);
+            Assert.Contains("PlayControls.Add(", System.IO.File.ReadAllText(System.IO.Path.Combine(Root, "Source/Military/Game/MilitaryModule.cs")));
             var keys = System.Xml.Linq.XDocument.Load(System.IO.Path.Combine(Root, "Packages/WilsMilitary/Languages/English/Keyed/Military.xml")).Root.Elements().Select(x => x.Name.LocalName).ToHashSet();
-            foreach (var key in new[] { "WFL_Military_AlertSet", "WFL_Military_OpenMenu", "WFL_Military_ButtonTip" }) Assert.Contains(key, keys);
+            foreach (var key in new[] { "WFL_Military_AlertSet", "WFL_Military_OpenMenu", "WFL_Military_ButtonTip", "WFL_Military_ShowPositionsTip" }) Assert.Contains(key, keys);
         }
     }
 }

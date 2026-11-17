@@ -30,6 +30,8 @@ namespace FamilyLife
         public bool holdClasses=true;
         public int classEveryDays=3;
         public bool adultStudents=false;
+        // How the modules work together. Alert effects: other modules react to the colony alert. Cross-training: the share of related-career credit (1 = as designed). Busy: how many modules a person may hold roles in before the Today page marks them Busy.
+        public bool alertEffects=true; public float crossTrainingScale=1f; public int overbookedAt=3; public float teamBonus=.25f;
         public bool healthChecks=true;
         public bool holdHallMeals=true;
         public bool mindComfort=true;
@@ -83,6 +85,7 @@ namespace FamilyLife
             Scribe_Values.Look(ref holdClasses,"holdClasses",true);
             Scribe_Values.Look(ref classEveryDays,"classEveryDays",3);
             Scribe_Values.Look(ref adultStudents,"adultStudents",false);
+            Scribe_Values.Look(ref alertEffects,"alertEffects",true); Scribe_Values.Look(ref crossTrainingScale,"crossTrainingScale",1f); Scribe_Values.Look(ref overbookedAt,"overbookedAt",3); Scribe_Values.Look(ref teamBonus,"teamBonus",.25f);
             Scribe_Values.Look(ref healthChecks,"healthChecks",true);
             Scribe_Values.Look(ref holdHallMeals,"holdHallMeals",true);
             Scribe_Values.Look(ref mindComfort,"mindComfort",true);
@@ -172,6 +175,18 @@ namespace FamilyLife
                 Settings.classEveryDays=Mathf.RoundToInt(list.Slider(Settings.classEveryDays,1f,10f));
                 list.CheckboxLabeled("WFL_S_AdultStudents".Translate(),ref Settings.adultStudents,"WFL_S_AdultStudentsTip".Translate());
             }
+            list.GapLine(); list.Label("WFL_S_Together".Translate());
+            list.CheckboxLabeled("WFL_S_AlertEffects".Translate(),ref Settings.alertEffects,"WFL_S_AlertEffectsTip".Translate());
+            list.Label("WFL_S_CrossTraining".Translate(Settings.crossTrainingScale.ToString("P0")),tooltip:"WFL_S_CrossTrainingTip".Translate());
+            Settings.crossTrainingScale=Mathf.Round(list.Slider(Settings.crossTrainingScale,0f,2f)*20f)/20f;
+            list.Label("WFL_S_TeamBonus".Translate(Settings.teamBonus.ToString("P0")),tooltip:"WFL_S_TeamBonusTip".Translate());
+            Settings.teamBonus=Mathf.Round(list.Slider(Settings.teamBonus,0f,.5f)*20f)/20f;
+            list.Label("WFL_S_Busy".Translate(Settings.overbookedAt),tooltip:"WFL_S_BusyTip".Translate());
+            Settings.overbookedAt=Mathf.RoundToInt(list.Slider(Settings.overbookedAt,2f,6f));
+            if(list.ButtonText("WFL_S_PresetRelaxed".Translate())){Settings.alertEffects=false;Settings.crossTrainingScale=1.5f;Settings.overbookedAt=4;Settings.teamBonus=.5f;}
+            if(list.ButtonText("WFL_S_PresetDefault".Translate())){Settings.alertEffects=true;Settings.crossTrainingScale=1f;Settings.overbookedAt=3;Settings.teamBonus=.25f;}
+            if(list.ButtonText("WFL_S_PresetDemanding".Translate())){Settings.alertEffects=true;Settings.crossTrainingScale=.5f;Settings.overbookedAt=2;Settings.teamBonus=.1f;}
+            list.GapLine();
             list.CheckboxLabeled("WFL_S_HealthChecks".Translate(),ref Settings.healthChecks,"WFL_S_HealthChecksTip".Translate());
             if(Settings.healthChecks)
             {

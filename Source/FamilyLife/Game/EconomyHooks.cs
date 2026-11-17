@@ -97,7 +97,7 @@ namespace FamilyLife
     /// <summary>A vanilla job that ended <i>successfully</i> (never one that was started, interrupted or cancelled), with the few facts a wage needs.</summary>
     public sealed class LabourReport
     {
-        public Pawn Pawn; public string JobDef, WorkType, RecipeSkill; public int JobId, ThingId; public bool TargetDead, HaulToStorage; public float WorkAmount;
+        public Pawn Pawn; public string JobDef, WorkType, RecipeSkill, TargetDef; public int JobId, ThingId; public bool TargetDead, TargetAnimal, TargetPredator, HaulToStorage; public float WorkAmount, TargetBodySize, TargetRevengeChance;
     }
 
     [HarmonyLib.HarmonyPatch(typeof(Verse.AI.Pawn_JobTracker), nameof(Verse.AI.Pawn_JobTracker.EndCurrentJob))]
@@ -113,7 +113,10 @@ namespace FamilyLife
                 {
                     Pawn = pawn, JobDef = job.def.defName, JobId = job.loadID, ThingId = job.targetA.Thing?.thingIDNumber ?? 0,
                     WorkType = job.workGiverDef?.workType?.defName, HaulToStorage = job.haulMode == Verse.AI.HaulMode.ToCellStorage,
-                    TargetDead = job.targetA.Thing is Pawn prey && (prey.Dead || prey.Destroyed), RecipeSkill = job.bill?.recipe?.workSkill?.defName, WorkAmount = job.bill?.recipe?.workAmount ?? 0f
+                    TargetDead = job.targetA.Thing is Pawn prey && (prey.Dead || prey.Destroyed), TargetAnimal=job.targetA.Thing is Pawn animal&&animal.RaceProps?.Animal==true,
+                    TargetPredator=job.targetA.Thing is Pawn predator&&predator.RaceProps?.predator==true, TargetBodySize=job.targetA.Thing is Pawn sized?sized.BodySize:0f,
+                    TargetRevengeChance=job.targetA.Thing is Pawn risky?(risky.RaceProps?.manhunterOnDamageChance??0f):0f,TargetDef=job.targetA.Thing?.def?.defName,
+                    RecipeSkill = job.bill?.recipe?.workSkill?.defName, WorkAmount = job.bill?.recipe?.workAmount ?? 0f
                 };
                 EconomyHits.JobsFinished++;
                 foreach (var listener in FamilyFramework.LabourDone.Enabled()) { try { listener(report); } catch (Exception ex) { Log.Warning("[Wil's Family Life] A labour listener was skipped: " + ex.Message); } }
@@ -133,6 +136,20 @@ namespace FamilyLife
                 foreach (var listener in FamilyFramework.ResearchDone.Enabled()) { try { listener(researcher, amount); } catch (Exception ex) { Log.Warning("[Wil's Family Life] A research listener was skipped: " + ex.Message); } }
             }
             catch (Exception ex) { Log.Warning("[Wil's Family Life] Research work could not be read: " + ex.Message); }
+        }
+    }
+}
+
+namespace FamilyLife
+{
+    [HarmonyLib.HarmonyPatch(typeof(RimWorld.WorkGiver_HunterHunt), nameof(RimWorld.WorkGiver_HunterHunt.HasJobOnThing))]
+    internal static class Patch_AutomaticHuntWorker
+    {
+        private static void Postfix(Pawn pawn,Thing t,bool forced,ref bool __result)
+        {
+            if(!__result||forced)return;
+            foreach(var predicate in FamilyFramework.HuntWorkAllowed.Enabled())
+                try{if(!predicate(pawn,t)){__result=false;return;}}catch(Exception ex){Log.Warning("[Wil's Family Life] Automatic hunting permission skipped: "+ex.Message);}
         }
     }
 }

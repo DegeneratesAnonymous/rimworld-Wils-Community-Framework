@@ -93,7 +93,7 @@ namespace FamilyLife.Tests
             string code = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Wardens/Game/WardenRoundGame.cs"));
             foreach (var forbidden in new[] { ".SetFaction(", ".Kill(", ".Destroy(", "SetExclusiveInteractionMode", ".Release", "SetGuestStatus", "Teleport", "Lock", "TryTakeOrderedJob", "DrawProgress", ".Position =" })
                 Assert.DoesNotContain(forbidden, code);
-            Assert.Contains("lastJobTag != JobTag.Idle", code); Assert.Contains("playerForced", code); Assert.Contains("Sleep", code); Assert.Contains("HostilesAbout", code); Assert.Contains("RoundsOn", code);
+            string shared = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/FamilyLife/Game/FrameworkServices.cs")); Assert.Contains("lastJobTag != JobTag.Idle", shared); Assert.Contains("playerForced", shared); Assert.Contains("Sleep", shared); Assert.Contains("FrameworkServices.FreeForDuty(p, ", code); Assert.Contains("HostilesAbout", code); Assert.Contains("RoundsOn", code);
             string module = File.ReadAllText(Path.Combine(RepoPaths.Root(), "Source/Wardens/Game/WardensModule.cs")); Assert.Contains("WardenRoundGame.Run", module); Assert.Contains("WardenRoundGame.Reset()", module);
             Assert.Contains("WFL_WardenRound", File.ReadAllText(Path.Combine(RepoPaths.Root(), "Packages/WilsWardens/Defs/WardenJobs.xml")));
         }

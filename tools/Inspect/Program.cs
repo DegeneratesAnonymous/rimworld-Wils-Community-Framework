@@ -26,7 +26,7 @@ internal static class Program
             foreach (var p in unique)
             {
                 var fn = Path.GetFileName(p);
-                if (fn.StartsWith("Assembly-CSharp", StringComparison.OrdinalIgnoreCase) || fn.StartsWith("RimWorld", StringComparison.OrdinalIgnoreCase) || fn.StartsWith("Krafs", StringComparison.OrdinalIgnoreCase))
+                if (fn.StartsWith("Assembly-CSharp", StringComparison.OrdinalIgnoreCase) || fn.StartsWith("RimWorld", StringComparison.OrdinalIgnoreCase) || fn.StartsWith("Krafs", StringComparison.OrdinalIgnoreCase) || fn.StartsWith("ColonyRoster", StringComparison.OrdinalIgnoreCase))
                     try { assemblies.Add(context.LoadFromAssemblyPath(p)); } catch { }
             }
             foreach (var name in names)

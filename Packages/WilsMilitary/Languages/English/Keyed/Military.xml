@@ -75,6 +75,15 @@
 <WFL_Military_Tab_Alert>Alert</WFL_Military_Tab_Alert>
 <WFL_Military_Tab_Positions>Positions</WFL_Military_Tab_Positions>
 <WFL_Military_Tab_Facilities>Facilities</WFL_Military_Tab_Facilities>
+<WFL_Military_Tab_Groups>Groups</WFL_Military_Tab_Groups>
+<WFL_Military_GroupsTitle>Groups</WFL_Military_GroupsTitle>
+<WFL_Military_GroupsHelp>Groups and subgroups from Wil's Group Organization. Soldiers in a group, and in its subgroups, can be posted together to a patrol route or a position. Groups and their members are managed in that mod; here they are only read.</WFL_Military_GroupsHelp>
+<WFL_Military_NoGroups>No groups yet. Make them with Wil's Group Organization.</WFL_Military_NoGroups>
+<WFL_Military_GroupCount>{0} serving / {1}</WFL_Military_GroupCount>
+<WFL_Military_GroupSelect>Select</WFL_Military_GroupSelect>
+<WFL_Military_GroupSelectTip>Select everyone in this group.</WFL_Military_GroupSelectTip>
+<WFL_Military_GroupPostTip>Post all {0} serving soldiers of this group (and its subgroups) to a patrol route or position.</WFL_Military_GroupPostTip>
+<WFL_Military_GroupMixed>Mixed</WFL_Military_GroupMixed>
 <WFL_Military_Tab_Soldiers>Soldiers</WFL_Military_Tab_Soldiers>
 <WFL_Military_PositionsTitle>Defensive positions ({0} of {1})</WFL_Military_PositionsTitle>
 <WFL_Military_PositionsHelp>Where soldiers stand at Red. Place Melee, Ranged and Mixed positions and the Rally point. A typed position holds one soldier; the Rally point is shared. You can post a soldier to a position on the Soldiers tab.</WFL_Military_PositionsHelp>
@@ -123,4 +132,6 @@
 <WFL_Military_AlertSet>Military alert set to {0}.</WFL_Military_AlertSet>
 <WFL_Military_OpenMenu>Open the Military menu</WFL_Military_OpenMenu>
 <WFL_Military_ButtonTip>Military alert: {0}{1}. Click to set {2}. Right-click for a menu.</WFL_Military_ButtonTip>
+<WFL_Military_ShowPositionsTip>Show or hide the placed positions and patrol routes on the map. They always show while you place them or have the Military menu open.</WFL_Military_ShowPositionsTip>
+<WFL_Need_Yard>A training yard for the soldiers</WFL_Need_Yard>
 </LanguageData>

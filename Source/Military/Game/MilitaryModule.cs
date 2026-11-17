@@ -30,7 +30,8 @@ namespace FamilyLife
             FamilyFramework.Tended.Add(Id + ".tends", Id, MilitaryCombat.Tended);
             FamilyFramework.TargetBias.Add(Id + ".targets", Id, MilitaryDoctrineGame.Bias);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, MilitaryStories.Social);
-            FamilyFramework.Pages.Register(new CommunityPage<Func<Rect, FamilyComponent, float>> { Id = Id + ".alert", ModuleId = Id, LabelKey = "WFL_Military_Page", Order = 160, Icon = "UI/Commands/Attack", Render = MilitaryPage.Draw, Status = MilitaryPage.Attention });
+            FamilyFramework.Pages.Register(new CommunityPage<Func<Rect, FamilyComponent, float>> { Id = Id + ".alert", ModuleId = Id, LabelKey = "WFL_Military_Page", Order = 160, Icon = "WilsFamilyLife/Pages/military", Render = MilitaryPage.Draw, Status = MilitaryPage.Attention });
+            FamilyFramework.PlayControls.Add(Id + ".playcontrols", Id, MilitaryPlayControls.Draw);
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".alert", ModuleId = Id, Interval = 250, Run = MilitaryAlertDriver.Run });
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".duties", ModuleId = Id, Interval = 300, Run = MilitaryDutyGame.Run });
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".armory", ModuleId = Id, Interval = 600, Run = MilitaryArmory.Run });
@@ -45,6 +46,11 @@ namespace FamilyLife
                 report.Step("Clear in-memory combat records", () => { MilitaryDoctrineGame.Reset(); MilitaryAlertDriver.Reset(); MilitaryDutyGame.Reset(); return "careers, experience and memories retained; the module's one job was ended above and it adds no hediffs"; });
                 return report;
             });
+            FamilyFramework.CrossTraining.Add(Id + ".cross.firstaid", Id, new CrossTrainingRule { From = MilitaryCareers.Career, To = "wils.care.practice", KindPrefix = "mil.duty.FirstAid", Share = .5f });
+            FamilyFramework.CrossTraining.Add(Id + ".cross.patrol", Id, new CrossTrainingRule { From = MilitaryCareers.Career, To = "wils.wardens.wardens", KindPrefix = "mil.duty.Patrol", Share = .25f });
+            FamilyFramework.CrossTraining.Add(Id + ".cross.gate", Id, new CrossTrainingRule { From = MilitaryCareers.Career, To = "wils.wardens.wardens", KindPrefix = "mil.duty.GateGuard", Share = .25f });
+            FamilyFramework.CrossTraining.Add(Id + ".cross.lookout", Id, new CrossTrainingRule { From = MilitaryCareers.Career, To = "wils.wardens.wardens", KindPrefix = "mil.duty.Lookout", Share = .25f });
+            FrameworkServices.RegisterNeedAction(Id, Id + ".yard", "WFL_Need_PlanYard", () => { Find.MainTabsRoot.EscapeCurrentTab(); Find.DesignatorManager.Select(new Designator_ZoneAdd_TrainingYard()); });
             CareerService.Registered(Id);
         }
     }

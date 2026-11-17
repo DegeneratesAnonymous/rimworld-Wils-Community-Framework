@@ -177,7 +177,7 @@ Settled with the owner by question and answer. **All three slices are built** (t
 
 **Build slices:** (1) **built:** typed positions, patrol routes, posting and the tabbed menu; (2) **built:** the Armory and arming the unarmed; (3) **built:** the bottom-bar icon.
 
-### Slice 3: the bottom-bar icon
+### Slice 3: the alert icon (now in the bottom-right icon cluster, with a hide-positions toggle; Military also lists Wil's Group Organization groups when present)
 
 - A **Military** button in the bottom bar, beside the Community button (`MainButtonDef WFL_MilitaryAlert`, order 97, no tab window of its own). It is shown while the Military module is running and a map is open. It is **tinted by the current level**: untinted at Normal, yellow at Yellow, red at Red (including a Red raised by a threat).
 - **Left-click** steps the level you set: Normal, Yellow, Red, back to Normal (`AlertRules.Next`), with a small message. **Right-click** opens a menu: Normal, Yellow, Red (each with what it means), and **Open the Military menu**. If a threat raised Red, a click changes the level you have set but Red stands down only when it has been calm for an hour, then the level you clicked is what remains. The tooltip says what the level is, whether a threat raised it, and what a click will set.

@@ -24,7 +24,7 @@ namespace FamilyLife
             CareerService.RegisterRole(new ProfessionRole { Id = WardenCareers.Warden, ModuleId = Id, Career = WardenCareers.Career, Level = 2 });
             foreach (var specialty in WardenCareers.Specialties)
                 CareerService.RegisterRole(new ProfessionRole { Id = WardenCareers.Role(specialty), ModuleId = Id, Career = WardenCareers.Career, Level = 3, Specialty = specialty, BonusKey = "WFL_Wardens_" + specialty + "Bonus" });
-            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Wardens_Page", Order = 165, Render = WardensPage.Draw });
+            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Wardens_Page", Order = 165, Icon = "WilsFamilyLife/Pages/prisoners", Render = WardensPage.Draw });
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, WardenWork.Labour);
             FamilyFramework.LabourDone.Add(Id + ".responsible", Id, WardenTreatmentGame.Labour);
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".treatment", ModuleId = Id, Interval = 2500, Run = WardenTreatmentGame.Run });
@@ -39,6 +39,7 @@ namespace FamilyLife
                 report.Step("Clear in-memory records", () => { WardenStories.Reset(); WardenTreatmentGame.Reset(); WardenRoomGame.Reset(); WardenRoundGame.Reset(); WardenEscortGame.Reset(); return "careers, experience, the treatment record and memories retained; the round job ends by itself and adds no hediffs"; });
                 return report;
             });
+            FamilyFramework.CrossTraining.Add(Id + ".cross.military", Id, new CrossTrainingRule { From = WardenCareers.Career, To = "wils.military.military", KindPrefix = null, Share = .25f });
             CareerService.Registered(Id);
         }
     }

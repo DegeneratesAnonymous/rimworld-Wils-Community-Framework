@@ -52,7 +52,8 @@ namespace FamilyLife
     {
         public static float Draw(Rect r, FamilyComponent c)
         {
-            float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Wardens_RoomsTitle".Translate(), s =>
+            float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Wardens_PrisonersTitle".Translate(), s => WardenPrisonerTable.Draw(s, c));
+            y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Wardens_RoomsTitle".Translate(), s =>
             {
                 int cells = 0, humane = 0, interview = 0, visiting = 0;
                 foreach (var map in Find.Maps)
@@ -66,11 +67,11 @@ namespace FamilyLife
                     }
                 }
                 float h = CommunityPageLayout.Line(s, 0f, "WFL_Wardens_RoomsFound".Translate(cells, humane, interview, visiting));
-                return CommunityPageLayout.Line(s, h, "WFL_Wardens_RoomsHelp".Translate(), true);
+                return CommunityPageLayout.Help(s, h, "WFL_Wardens_RoomsHelp".Translate());
             });
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Wardens_RecordTitle".Translate(), s =>
             {
-                var ledger = c.Registry.Wardens(); float h = CommunityPageLayout.Line(s, 0f, "WFL_Wardens_RecordHelp".Translate(), true); int shown = 0;
+                var ledger = c.Registry.Wardens(); float h = CommunityPageLayout.Help(s, 0f, "WFL_Wardens_RecordHelp".Translate()); int shown = 0;
                 foreach (int id in ledger.Wardens.OrderBy(x => x))
                 {
                     var st = ledger.Of(id); if (st.Samples == 0 && st.Outcomes == 0) continue;
@@ -83,7 +84,7 @@ namespace FamilyLife
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Wardens_RoundsTitle".Translate(), s =>
             {
                 var ledger = c.Registry.Wardens(); bool on = ledger.RoundsOn; Widgets.CheckboxLabeled(new Rect(0f, 0f, s.width, 24f), "WFL_Wardens_RoundsOn".Translate(), ref on); ledger.RoundsOn = on;
-                float h = CommunityPageLayout.Line(s, 28f, "WFL_Wardens_RoundsHelp".Translate(), true); int shown = 0;
+                float h = CommunityPageLayout.Help(s, 28f, "WFL_Wardens_RoundsHelp".Translate()); int shown = 0;
                 foreach (int id in ledger.Wardens.OrderBy(x => x))
                 {
                     var st = ledger.Of(id); if (st.FamiliesTogether + st.FamiliesApart == 0) continue;
@@ -95,7 +96,7 @@ namespace FamilyLife
             {
                 float h = 0f;
                 foreach (var specialty in WardenCareers.Specialties)
-                    h = CommunityPageLayout.Line(s, h, ("wils.wardens." + specialty.ToLowerInvariant() + "_label").Translate() + ": " + ("WFL_Wardens_" + specialty + "Bonus").Translate(), true);
+                    h = CommunityPageLayout.Help(s, h, ("wils.wardens." + specialty.ToLowerInvariant() + "_label").Translate() + ": " + ("WFL_Wardens_" + specialty + "Bonus").Translate());
                 return h;
             });
             return y;

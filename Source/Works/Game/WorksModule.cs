@@ -25,7 +25,7 @@ namespace FamilyLife
             Role(WorksCareers.MinerLabourer, WorksCareers.Miner, 1, null); Role(WorksCareers.MinerJourneyman, WorksCareers.Miner, 2, null);
             foreach (var specialty in WorksCareers.BuilderSpecialties) Role(specialty, WorksCareers.Builder, 3, specialty);
             foreach (var specialty in WorksCareers.MinerSpecialties) Role(specialty, WorksCareers.Miner, 3, specialty);
-            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Works_Page", Order = 170, Render = WorksPage.Draw });
+            FamilyFramework.Pages.Register(new CommunityPage<Func<UnityEngine.Rect, FamilyComponent, float>> { Id = Id + ".overview", ModuleId = Id, LabelKey = "WFL_Works_Page", Order = 170, Icon = "WilsFamilyLife/Pages/works", Render = WorksPage.Draw });
             FamilyFramework.LabourDone.Add(Id + ".labour", Id, WorksWork.Labour);
             FamilyFramework.SocialInteraction.Add(Id + ".relationships", Id, WorksStories.Social);
             FamilyFramework.Roster.Register(new WorkItem { Id = Id + ".rounds", ModuleId = Id, Interval = 500, Run = WorksRoundGame.Run });
