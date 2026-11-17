@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using FamilyLife.Domain;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -65,20 +64,7 @@ namespace FamilyLife
             {
                 string resistance = p.guest != null ? p.guest.resistance.ToString("0.#") : "-";
                 CommunityWidgets.Cell(new Rect(x, row.y, resW - 4f, row.height), resistance, p.guest != null && p.guest.resistance > 0.01f ? Color.white : CommunityWidgets.Good); x += resW;
-                CommunityWidgets.Choice(new Rect(x, row.y + 1f, modeW - 8f - 40f, row.height - 2f), p.guest?.ExclusiveInteractionMode?.LabelCap ?? "-", () => Modes(p));
-                var holds = FamilyComponent.Current?.Registry.ReleaseHolds(); var when = holds?.When(p.thingIDNumber) ?? ReleaseWhen.None;
-                var hold = new Rect(x + modeW - 8f - 36f, row.y + 1f, 36f, row.height - 2f);
-                if (holds != null)
-                {
-                    GUI.color = when != ReleaseWhen.None ? CommunityWidgets.Gold : Color.white;
-                    if (Widgets.ButtonText(hold, when == ReleaseWhen.None ? "R" : "R*")) Find.WindowStack.Add(new FloatMenu(new List<FloatMenuOption>
-                    {
-                        new FloatMenuOption("WFL_Wardens_HoldHealthy".Translate(), () => holds.Set(p.thingIDNumber, ReleaseWhen.Healthy)),
-                        new FloatMenuOption("WFL_Wardens_HoldWalk".Translate(), () => holds.Set(p.thingIDNumber, ReleaseWhen.CanWalk)),
-                        new FloatMenuOption("WFL_Wardens_HoldNone".Translate(), () => holds.Set(p.thingIDNumber, ReleaseWhen.None))
-                    }));
-                    GUI.color = Color.white; TooltipHandler.TipRegion(hold, when == ReleaseWhen.None ? "WFL_Wardens_HoldTip".Translate().ToString() : ("WFL_Wardens_HoldActive_" + when).Translate().ToString());
-                }
+                CommunityWidgets.Choice(new Rect(x, row.y + 1f, modeW - 8f, row.height - 2f), p.guest?.ExclusiveInteractionMode?.LabelCap ?? "-", () => Modes(p));
             }
             y += row.height;
         }

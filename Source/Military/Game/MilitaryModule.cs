@@ -51,7 +51,6 @@ namespace FamilyLife
             FamilyFramework.CrossTraining.Add(Id + ".cross.gate", Id, new CrossTrainingRule { From = MilitaryCareers.Career, To = "wils.wardens.wardens", KindPrefix = "mil.duty.GateGuard", Share = .25f });
             FamilyFramework.CrossTraining.Add(Id + ".cross.lookout", Id, new CrossTrainingRule { From = MilitaryCareers.Career, To = "wils.wardens.wardens", KindPrefix = "mil.duty.Lookout", Share = .25f });
             FrameworkServices.RegisterNeedAction(Id, Id + ".yard", "WFL_Need_PlanYard", () => { Find.MainTabsRoot.EscapeCurrentTab(); Find.DesignatorManager.Select(new Designator_ZoneAdd_TrainingYard()); });
-            FamilyFramework.HealthChecks.Add(Id + ".health", Id, c => MilitaryHealth.Check(c, Id));
             CareerService.Registered(Id);
         }
     }

@@ -43,20 +43,17 @@ namespace FamilyLife
         }
 
         /// <summary>What each pupil has been taught lately, from the lesson log: subject and number of classes.</summary>
-        private static Dictionary<int, Dictionary<string, int>> learningCache; private static int learningAt = -9999, learningCount = -1;
         private static Dictionary<int, Dictionary<string, int>> Learning(FamilyRegistry reg)
         {
-            int now = FrameworkServices.Now; var log = reg.EducationRecord().LessonLog;
-            if (learningCache != null && now >= learningAt && now - learningAt < 600 && log.Count == learningCount) return learningCache;          // the log is parsed line by line, so not every frame
             var map = new Dictionary<int, Dictionary<string, int>>();
-            foreach (var text in log)
+            foreach (var text in reg.EducationRecord().LessonLog)
             {
                 LessonRecord rec; try { rec = LessonRecord.Parse(text); } catch (Exception) { continue; }
                 if (rec == null || rec.Pupil <= 0 || rec.Classes <= 0) continue;
                 if (!map.TryGetValue(rec.Pupil, out var skills)) map[rec.Pupil] = skills = new Dictionary<string, int>();
                 skills[rec.Skill] = (skills.TryGetValue(rec.Skill, out int n) ? n : 0) + rec.Classes;
             }
-            learningCache = map; learningAt = now; learningCount = log.Count; return map;
+            return map;
         }
 
         public static float Pupils(Rect s, FamilyComponent c)

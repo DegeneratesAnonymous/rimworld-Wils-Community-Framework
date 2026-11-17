@@ -83,7 +83,6 @@ namespace FamilyLife
             Text.Font = GameFont.Small; GUI.color = Color.gray;
             Widgets.Label(new Rect(20f, 46f, w - 40f, 24f), "WFL_Ov_Summary".Translate(people, families.Count, government).ToString()); GUI.color = Color.white;
             y = banner.height + 12f;
-            y = ColonyHealthPanel.Draw(r, y, c) + 4f;
 
             // --- figures, each one a way in to the page behind it
             bool wide = w >= 600f; int perRow = wide ? 4 : 2; float gap = 10f, tw = (w - gap * (perRow - 1)) / perRow, th = 74f;
@@ -216,17 +215,12 @@ namespace FamilyLife
             return y + ((families.Count + perRow - 1) / perRow) * (ch + gap);
         }
 
-        private static int profView;
-
         private static float Professions(Rect r, FamilyComponent c)
         {
             var reg = c.Registry; var book = reg.Assignments(); var ledger = reg.Careers();
             var roles = CareerService.Professions.All.Where(x => FamilyFramework.Catalog.IsEnabled(x.ModuleId)).OrderBy(x => x.Career, StringComparer.Ordinal).ThenBy(x => x.Level).ThenBy(x => x.Id, StringComparer.Ordinal).ToList();
             if (roles.Count == 0) return Line(r, 0f, "WFL_Hub_NoProfessions".Translate(), true);
             GUI.color = Color.gray; float y = CommunityPageLayout.Help(r, 0f, "WFL_Hub_ProfessionsHelp".Translate()); GUI.color = Color.white;
-            y = CommunityPageLayout.Tabs(r, y, new[] { "WFL_Prof_ViewTree".Translate().ToString(), "WFL_Prof_ViewPeople".Translate().ToString(), "WFL_Prof_ViewRoles".Translate().ToString() }, profView, i => profView = i);
-            if (profView == 1) return ProfessionPeople.People(r, y, c);
-            if (profView == 2) return ProfessionPeople.ByRole(r, y, c);
             var careers = roles.Select(x => x.Career).Distinct().ToList();
             if (!careers.Contains(selectedCareer)) selectedCareer = careers[0];
             Func<string, string> careerName = id => CareerService.Career(id) != null ? CareerService.CareerName(CareerService.Career(id), reg) : id;

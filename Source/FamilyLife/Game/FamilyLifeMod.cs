@@ -31,7 +31,7 @@ namespace FamilyLife
         public int classEveryDays=3;
         public bool adultStudents=false;
         // How the modules work together. Alert effects: other modules react to the colony alert. Cross-training: the share of related-career credit (1 = as designed). Busy: how many modules a person may hold roles in before the Today page marks them Busy.
-        public bool alertEffects=true; public float crossTrainingScale=1f; public int overbookedAt=3; public float teamBonus=.25f; public bool professionTitle=true;
+        public bool alertEffects=true; public float crossTrainingScale=1f; public int overbookedAt=3; public float teamBonus=.25f;
         public bool healthChecks=true;
         public bool holdHallMeals=true;
         public bool mindComfort=true;
@@ -85,7 +85,7 @@ namespace FamilyLife
             Scribe_Values.Look(ref holdClasses,"holdClasses",true);
             Scribe_Values.Look(ref classEveryDays,"classEveryDays",3);
             Scribe_Values.Look(ref adultStudents,"adultStudents",false);
-            Scribe_Values.Look(ref alertEffects,"alertEffects",true); Scribe_Values.Look(ref crossTrainingScale,"crossTrainingScale",1f); Scribe_Values.Look(ref overbookedAt,"overbookedAt",3); Scribe_Values.Look(ref teamBonus,"teamBonus",.25f); Scribe_Values.Look(ref professionTitle,"professionTitle",true);
+            Scribe_Values.Look(ref alertEffects,"alertEffects",true); Scribe_Values.Look(ref crossTrainingScale,"crossTrainingScale",1f); Scribe_Values.Look(ref overbookedAt,"overbookedAt",3); Scribe_Values.Look(ref teamBonus,"teamBonus",.25f);
             Scribe_Values.Look(ref healthChecks,"healthChecks",true);
             Scribe_Values.Look(ref holdHallMeals,"holdHallMeals",true);
             Scribe_Values.Look(ref mindComfort,"mindComfort",true);
@@ -176,7 +176,6 @@ namespace FamilyLife
                 list.CheckboxLabeled("WFL_S_AdultStudents".Translate(),ref Settings.adultStudents,"WFL_S_AdultStudentsTip".Translate());
             }
             list.GapLine(); list.Label("WFL_S_Together".Translate());
-            list.CheckboxLabeled("WFL_S_ProfTitle".Translate(),ref Settings.professionTitle,"WFL_S_ProfTitleTip".Translate());
             list.CheckboxLabeled("WFL_S_AlertEffects".Translate(),ref Settings.alertEffects,"WFL_S_AlertEffectsTip".Translate());
             list.Label("WFL_S_CrossTraining".Translate(Settings.crossTrainingScale.ToString("P0")),tooltip:"WFL_S_CrossTrainingTip".Translate());
             Settings.crossTrainingScale=Mathf.Round(list.Slider(Settings.crossTrainingScale,0f,2f)*20f)/20f;

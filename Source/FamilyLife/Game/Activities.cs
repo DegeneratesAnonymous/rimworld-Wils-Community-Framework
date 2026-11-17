@@ -30,12 +30,6 @@ namespace FamilyLife
         /// Someone who can be spent time with, or share a story, without being pulled off anything that matters: awake, well,
         /// not on a work shift, and currently idle or doing something for themselves rather than a job.
         /// </summary>
-
-        /// <summary>
-        /// Busy with an order the player forced. The community's activities leave such pawns alone instead of cutting in.
-        /// </summary>
-        public static bool BusyElsewhere(Pawn p) => p?.CurJob?.playerForced == true;
-
         public static bool IsFree(Pawn p, bool checkCurrentJob = true)
         {
             if (p == null || !p.Spawned || p.Dead || p.Downed || p.Drafted || p.InMentalState) return false;
@@ -44,7 +38,6 @@ namespace FamilyLife
             var assignment = p.timetable?.CurrentAssignment;
             if (assignment == TimeAssignmentDefOf.Work || assignment == TimeAssignmentDefOf.Sleep) return false;
             if (!checkCurrentJob) return true;      // someone choosing what to do next has no current job to judge
-            if (BusyElsewhere(p)) return false;
             var tag = p.mindState?.lastJobTag;
             return tag == JobTag.Idle || tag == JobTag.SatisfyingNeeds;
         }

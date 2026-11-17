@@ -18,8 +18,7 @@ namespace FamilyLife
 
         private static WardenRoomFacts Facts(Room room)
         {
-            var f = new WardenRoomFacts { Enclosed = room.ProperRoom && !room.TouchesMapEdge, PrisonCell = room.Role == RoomRoleDefOf.PrisonCell || room.Role == RoomRoleDefOf.PrisonBarracks || room.IsPrisonCell,          // IsPrisonCell also covers a Prison Commons area when that mod is running
-                 Cells = room.CellCount, Cleanliness = room.GetStat(RoomStatDefOf.Cleanliness) };
+            var f = new WardenRoomFacts { Enclosed = room.ProperRoom && !room.TouchesMapEdge, PrisonCell = room.Role == RoomRoleDefOf.PrisonCell || room.Role == RoomRoleDefOf.PrisonBarracks, Cells = room.CellCount, Cleanliness = room.GetStat(RoomStatDefOf.Cleanliness) };
             if (!f.Enclosed) return f;
             var counted = new HashSet<Thing>(); int scanned = 0;
             foreach (var cell in room.Cells)

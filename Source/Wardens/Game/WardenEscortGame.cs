@@ -100,7 +100,6 @@ namespace FamilyLife
                 running[escort.Warden] = escort; taken[escort.Prisoner] = Day(now);
                 Begin(warden, escort, escort.Visiting ? LeaderVisit : LeaderLead, prisoner, warden, dest);
                 Begin(prisoner, escort, PrisonerFollow, prisoner, warden, dest);
-                FrameworkServices.Say(warden, prisoner, "WFL_Escort");
                 if (escort.Visiting) Begin(kin, escort, Visitor, prisoner, warden, dest);
                 FrameworkServices.AttachCompanion(FamilyComponent.Current, warden, "wils.military.military", WardenCareers.Module, 3000);          // a soldier escorts the escort
                 return true;
@@ -145,7 +144,6 @@ namespace FamilyLife
                 else
                 {
                     FrameworkServices.GainMemory(prisoner, WardenEscorts.InterviewThought, warden);
-                    FrameworkServices.Say(warden, prisoner, "WFL_Interview");
                     var guest = prisoner.guest; if (guest != null && (guest.ExclusiveInteractionMode?.defName ?? "") != "Convert") guest.resistance = Math.Max(0f, guest.resistance - WardenEscorts.Relief(guest.resistance));
                     if (prisoner.ideo != null && (guest?.ExclusiveInteractionMode?.defName ?? "") == "Convert") prisoner.ideo.OffsetCertainty(-WardenEscorts.CertaintyDrop(prisoner.ideo.Certainty));
                 }

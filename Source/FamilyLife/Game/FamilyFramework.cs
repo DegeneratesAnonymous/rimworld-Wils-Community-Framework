@@ -71,8 +71,6 @@ namespace FamilyLife
         public static readonly ContributionList<Action<Pawn, float>> ResearchDone;          // research work was performed: (researcher, points)
         public static readonly ContributionList<Action<FamilyComponent, IList<FamilyEvent>, int>> FamilyEventsApplied;          // after each reconciliation of the family records: (component, the events it produced, now)
         /// <summary>Related-career learning: finished activity in one career gives a share of its points to another (by career id), without wages. Declared by the module that owns the activity.</summary>
-        /// <summary>Findings about how a module is doing, shown on the Overview page (green: working well, amber: worth watching, red: needs attention). Each module adds its own; they are never saved.</summary>
-        public static readonly ContributionList<Func<FamilyComponent, IEnumerable<HealthNote>>> HealthChecks;
         public static readonly ContributionList<CrossTrainingRule> CrossTraining;
         public static readonly ContributionList<Action<Pawn, string, string, string, string, int>> WorkReported;          // a module reported finished professional work: (pawn, career, specialty, kind, activity key, tick)
         public static readonly ContributionList<Action<CommunityOffice>> DueNow;          // developer menu: brings a module's timers on a post due
@@ -109,7 +107,6 @@ namespace FamilyLife
             FamilyEventsApplied = new ContributionList<Action<FamilyComponent, IList<FamilyEvent>, int>>(Catalog);
             WorkReported = new ContributionList<Action<Pawn, string, string, string, string, int>>(Catalog);
             CrossTraining = new ContributionList<CrossTrainingRule>(Catalog);
-            HealthChecks = new ContributionList<Func<FamilyComponent, IEnumerable<HealthNote>>>(Catalog);
             Resets = new ContributionList<Action>(Catalog);
             Removal = new ContributionList<Func<FamilyComponent, CleanupReport>>(Catalog);
             DueNow = new ContributionList<Action<CommunityOffice>>(Catalog);

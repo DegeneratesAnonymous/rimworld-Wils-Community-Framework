@@ -113,7 +113,7 @@ namespace FamilyLife
             if (doctor == null || patient == null || doctor == patient || !doctor.RaceProps.Humanlike || !Running(out var c)) return;
             int now = FrameworkServices.Now;
             if (patient.RaceProps.Animal) { if (CareerService.Report(c, doctor, CareRoles.Career, "Veterinarian", "care.tend.animal", "tend|" + doctor.thingIDNumber + "|" + patient.thingIDNumber + "|" + now, 4, now) > 0) MedicalWorkHits.AnimalTendsCredited++; }
-            else if (patient.RaceProps.Humanlike) { FrameworkServices.Say(doctor, patient, "WFL_Reassure"); CareerService.Report(c, doctor, CareRoles.Career, null, "care.tend", "tend|" + doctor.thingIDNumber + "|" + patient.thingIDNumber + "|" + now, 2, now); }
+            else if (patient.RaceProps.Humanlike) CareerService.Report(c, doctor, CareRoles.Career, null, "care.tend", "tend|" + doctor.thingIDNumber + "|" + patient.thingIDNumber + "|" + now, 2, now);
         }
 
         /// <summary>The specialty this care worker does now: a specialist's own first; otherwise a Doctor who has the skills practises one, in a fixed order.</summary>

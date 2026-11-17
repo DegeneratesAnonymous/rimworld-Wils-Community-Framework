@@ -141,7 +141,6 @@ namespace FamilyLife
             var lines = PayrollBudget.ByModule(pay.Earned, assigned, moduleOf, pay.Policy);
             int funds = l.Balance(Ledger.CommunityId), perDay = lines.Sum(x => x.MaxPerDay), pending = lines.Sum(x => x.Pending), owed = l.Debts.Where(d => d.Active && d.Kind == DebtKind.Wage).Sum(d => d.Outstanding);
             y = Line(r, y, "WFL_Tr_BudgetFunds".Translate(funds, perDay));
-            y = Line(r, y, "WFL_Tr_BudgetIncome".Translate(PayrollBudget.IncomeSince(l.History, Ledger.CommunityId, TreasuryService.Today() - 15), 15));
             int days = PayrollBudget.RunwayDays(funds, lines);
             if (days >= 0) y = Line(r, y, "WFL_Tr_BudgetRunway".Translate(days), days < 3);
             if (owed > 0) y = Line(r, y, "WFL_Tr_BudgetOwed".Translate(owed));

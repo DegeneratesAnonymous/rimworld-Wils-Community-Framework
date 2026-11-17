@@ -46,7 +46,6 @@ namespace FamilyLife
             CareerService.RegisterSeat(moduleId, OfficeKind.Teacher, Teacher);
             FamilyFramework.CrossTraining.Add(moduleId + ".cross.intelligence", moduleId, new CrossTrainingRule { From = Career, To = "wils.intelligence.intelligence", KindPrefix = "teach.", Share = .25f });
             FrameworkServices.RegisterNeedAction(moduleId, moduleId + ".classroom", "WFL_Need_PlanBuild", () => Verse.Find.MainTabsRoot.SetCurrentTab(RimWorld.MainButtonDefOf.Architect));
-            FamilyFramework.HealthChecks.Add(moduleId + ".health", moduleId, c => EducationHealth.Check(c, moduleId));
             CareerService.Registered(moduleId);
             FamilyFramework.Roster.Register(new WorkItem { Id = moduleId + ".classes", ModuleId = moduleId, Interval = 600, Run = now => { var c = FamilyComponent.Current; if (c != null) EducationDriver.ClassWork(c, now); } });
             FamilyFramework.Roster.Register(new WorkItem { Id = moduleId + ".tutors", ModuleId = moduleId, Interval = 1200, Run = now => { var c = FamilyComponent.Current; if (c != null) TutorWork(c, now); } });
@@ -70,7 +69,6 @@ namespace FamilyLife
         internal static void Report(FamilyComponent c, Pawn teacher, Pawn pupil, SkillDef skill, string kind, float share, float delivery, int now)
         {
             int points = Math.Max(1, (int)Math.Round((kind == "tutor" ? TutoringPoints : ClassPoints) * Math.Min(1f, share) * Math.Max(.4f, Math.Min(1.2f, delivery))));
-            FrameworkServices.Say(teacher, pupil, "WFL_Lesson");
             CareerService.Report(c, teacher, Career, skill?.defName, "teach." + kind, kind + "|" + pupil.thingIDNumber + "|" + now, points, now);
         }
 

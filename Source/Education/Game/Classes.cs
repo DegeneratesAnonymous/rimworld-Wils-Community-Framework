@@ -225,10 +225,7 @@ namespace FamilyLife
                 float delivery = s.Delivery * (assisted ? EducationCareers.AssistBonus : 1f);          // one bounded bonus, however many specialists helped
                 bool tutored = possibleBase > 0 && s.TutorTicks.Values.Any(t => t >= half);
                 foreach (var tutor in s.TutorTicks.Where(kv => possibleBase > 0 && kv.Value >= half).Select(kv => c.TryGetPawn(kv.Key)).Where(p => p != null))
-                {
-                    FrameworkServices.Say(teacher, tutor, "WFL_Mentor");
                     CareerService.Report(c, tutor, EducationCareers.Career, s.Subject, "teach.assist.tutor", "tutorassist|" + s.StartTick + "|" + teacher.thingIDNumber + "|" + tutor.thingIDNumber, EducationCareers.AssistPoints, now);
-                }
                 foreach (var helper in s.AssistTicks.Where(kv => possibleBase > 0 && kv.Value >= half).Select(kv => c.TryGetPawn(kv.Key)).Where(p => p != null))
                     CareerService.Report(c, helper, EducationCareers.Career, s.Subject, "teach.assist", "assist|" + s.StartTick + "|" + teacher.thingIDNumber + "|" + helper.thingIDNumber, EducationCareers.AssistPoints, now);
                 if (skill != null && possibleBase > 0)

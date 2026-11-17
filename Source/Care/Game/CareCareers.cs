@@ -22,7 +22,6 @@ namespace FamilyLife
             }
             CareSpecialistWork.Register(moduleId);
             FrameworkServices.RegisterNeedAction(moduleId, moduleId + ".clinic", "WFL_Need_PlanBuild", () => Verse.Find.MainTabsRoot.SetCurrentTab(RimWorld.MainButtonDefOf.Architect));
-            FamilyFramework.HealthChecks.Add(moduleId + ".health", moduleId, c => CareHealth.Check(c, moduleId));
             CareerService.Registered(moduleId);
             FamilyFramework.OperationCompleted.Add(moduleId + ".surgery", moduleId, CareSpecialistWork.OnSurgery);
             FamilyFramework.Tended.Add(moduleId + ".tend", moduleId, CareSpecialistWork.OnTend);

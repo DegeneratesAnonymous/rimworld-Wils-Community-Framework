@@ -196,7 +196,6 @@ namespace FamilyLife
                 if (main.res.Completion == Completion.Complete)
                     FrameworkServices.GainMemory(kid, level >= ResultQuality.Good ? "WFL_TestingProud" : level == ResultQuality.Poor ? "WFL_TestingDisappointed" : "WFL_TestingDone", teacher);
                 score += (int)level / 3f; judged++;
-                FrameworkServices.Say(teacher, kid, "WFL_Quiz");
                 CareerService.Report(c, teacher, EducationCareers.Career, recs[0].Skill, "teach.assessment", "assess|" + kid.thingIDNumber + "|" + a.Year, 6, now);
             }
             // what was assessed is spent: marked done for this year (so no other teacher assesses it again) and removed from the shared record, whoever taught it

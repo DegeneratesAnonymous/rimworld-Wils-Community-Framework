@@ -133,7 +133,6 @@ namespace FamilyLife
         {
             var visit = JobMaker.MakeJob(CareDefOf.WFL_ClinicPatient, s.Bed, doctor, s.Bed.GetSleepingSlotPos(0));
             visit.playerForced = true;          // not interrupted by the usual choosing of something else to do; it still ends if they are drafted, hurt, hungry or break
-            FrameworkServices.Say(doctor, patient, "WFL_CheckIn");
             patient.jobs.StartJob(visit, JobCondition.InterruptForced, null, false, tag: JobTag.Misc);
             return patient.CurJobDef == CareDefOf.WFL_ClinicPatient;
         }

@@ -47,17 +47,6 @@ namespace FamilyLife.Domain
         private readonly List<int> people = new List<int>(), ticks = new List<int>();
         private readonly List<string> roles = new List<string>();
         private readonly HashSet<string> migrated = new HashSet<string>();
-        private readonly Dictionary<int, string> primary = new Dictionary<int, string>();
-
-        /// <summary>The role the player marked as this person's main profession, if they still hold it; otherwise their first assigned role. Null when they hold none. The rest are side professions.</summary>
-        public string PrimaryOf(int person)
-        {
-            if (primary.TryGetValue(person, out var r) && IsAssigned(person, r)) return r;
-            return RolesOf(person).FirstOrDefault();
-        }
-
-        /// <summary>Marks one of a person's assigned roles as their main profession. False when they do not hold it.</summary>
-        public bool SetPrimary(int person, string role) { if (!IsAssigned(person, role)) return false; primary[person] = role; return true; }
 
         public bool IsAssigned(int person, string role) { for (int i = 0; i < people.Count; i++) if (people[i] == person && roles[i] == role) return true; return false; }
         public IEnumerable<string> RolesOf(int person) { for (int i = 0; i < people.Count; i++) if (people[i] == person) yield return roles[i]; }
@@ -87,17 +76,17 @@ namespace FamilyLife.Domain
 
         public bool Unassign(int person, string role)
         {
-            for (int i = 0; i < people.Count; i++) if (people[i] == person && roles[i] == role) { people.RemoveAt(i); roles.RemoveAt(i); ticks.RemoveAt(i); if (primary.TryGetValue(person, out var pr) && pr == role) primary.Remove(person); return true; }
+            for (int i = 0; i < people.Count; i++) if (people[i] == person && roles[i] == role) { people.RemoveAt(i); roles.RemoveAt(i); ticks.RemoveAt(i); return true; }
             return false;
         }
 
         /// <summary>Drops every assignment of a person (they died or left). Their qualifications are not touched here.</summary>
-        public int Vacate(int person) { primary.Remove(person); int n = 0; for (int i = people.Count - 1; i >= 0; i--) if (people[i] == person) { people.RemoveAt(i); roles.RemoveAt(i); ticks.RemoveAt(i); n++; } return n; }
+        public int Vacate(int person) { int n = 0; for (int i = people.Count - 1; i >= 0; i--) if (people[i] == person) { people.RemoveAt(i); roles.RemoveAt(i); ticks.RemoveAt(i); n++; } return n; }
 
         public bool HasMigrated(string key) => migrated.Contains(key);
         public void MarkMigrated(string key) { migrated.Add(key); }
 
-        public string Encode() => new StateWriter().Ints("p", people).Strings("r", roles).Ints("t", ticks).Strings("m", migrated.OrderBy(x => x, StringComparer.Ordinal).ToList()).Ints("pp", primary.Keys.OrderBy(k => k).ToList()).Strings("pr", primary.OrderBy(k => k.Key).Select(k => k.Value).ToList()).ToString();
+        public string Encode() => new StateWriter().Ints("p", people).Strings("r", roles).Ints("t", ticks).Strings("m", migrated.OrderBy(x => x, StringComparer.Ordinal).ToList()).ToString();
 
         public static AssignmentBook Decode(StateReader r)
         {
@@ -108,8 +97,6 @@ namespace FamilyLife.Domain
                 b.people.Add(p[i]); b.roles.Add(ro[i]); b.ticks.Add(i < t.Count ? t[i] : 0);
             }
             foreach (var m in r.Strings("m")) b.migrated.Add(m);
-            var pp = r.Ints("pp"); var pr = r.Strings("pr");
-            for (int i = 0; i < pp.Count && i < pr.Count; i++) if (b.IsAssigned(pp[i], pr[i])) b.primary[pp[i]] = pr[i];
             return b;
         }
     }

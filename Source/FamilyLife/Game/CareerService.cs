@@ -115,7 +115,6 @@ namespace FamilyLife
                     try { listener(pawn, careerId, specialty, kind, activityKey, now); } catch (Exception ex) { Log.Warning("[Wil's Family Life] A work listener was skipped: " + ex.Message); }
                 int given = ledger.Award(pawn.thingIDNumber, careerId, specialty, kind, activityKey, points, day);
                 if (given <= 0) return 0;
-                gains.Record(pawn.thingIDNumber, careerId, given, now);
                 Event(pawn.LabelShort + " +" + given + " " + careerId + (specialty != null ? ":" + specialty : "") + " (" + kind + ")");
                 Qualify(ledger, pawn, def, now);
                 // related careers learn a little too (once per activity, no wages, and a cross credit never starts another)
@@ -125,7 +124,7 @@ namespace FamilyLife
                     int scaled = Math.Max(1, (int)Math.Round(credit.Value * scale));
                     var other = Career(credit.Key); if (other == null || !FamilyFramework.Catalog.IsEnabled(other.ModuleId)) continue;
                     int extra = ledger.Award(pawn.thingIDNumber, credit.Key, null, "cross." + kind, "xt|" + credit.Key + "|" + activityKey, scaled, day);
-                    if (extra > 0) { gains.Record(pawn.thingIDNumber, credit.Key, extra, now); Event(pawn.LabelShort + " +" + extra + " " + credit.Key + " (cross-training from " + kind + ")"); Qualify(ledger, pawn, other, now); }
+                    if (extra > 0) { Event(pawn.LabelShort + " +" + extra + " " + credit.Key + " (cross-training from " + kind + ")"); Qualify(ledger, pawn, other, now); }
                 }
                 return given;
             }
@@ -141,10 +140,6 @@ namespace FamilyLife
                 Messages.Message("WFL_Career_Qualified".Translate(pawn.LabelShort, Describe(gained)), pawn, MessageTypeDefOf.PositiveEvent, false);
             }
         }
-
-        private static readonly GainTracker gains = new GainTracker();
-        /// <summary>Experience this person has gained in a career recently (0 when none), so pages can show who is learning.</summary>
-        public static int RecentGain(int person, string career, int now) => gains.Recent(person, career, now);
 
         public static string TitleOf(ProfessionRole role, FamilyRegistry r) => (role.TitleKey?.Invoke(r) ?? role.Id + "_label").Translate().ToString();
 

@@ -12,13 +12,11 @@ namespace FamilyLife
     /// </summary>
     internal static class CarePatients
     {
-        private static List<Pawn> colonistsCache = new List<Pawn>(); private static int colonistsAt = -9999;
         private static List<Pawn> Colonists()
         {
-            int now = FrameworkServices.Now; if (now >= colonistsAt && now - colonistsAt < 60) return colonistsCache;
             var list = new List<Pawn>();
             foreach (var map in Find.Maps) if (map.IsPlayerHome) list.AddRange(map.mapPawns.FreeColonistsSpawned);
-            colonistsCache = list; colonistsAt = now; return list;
+            return list;
         }
 
         private static float Health(Pawn p) => p.health.summaryHealth.SummaryHealthPercent;
