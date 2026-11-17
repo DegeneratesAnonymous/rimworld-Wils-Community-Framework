@@ -16,7 +16,8 @@ namespace FamilyLife
 
         public static float Draw(Rect r, FamilyComponent c)
         {
-            float top = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Edu_Instructors".Translate(), a => EducationManage.Teachers(a, c));
+            float staffing = CommunityStaffing.Draw(r, 0f, c, "wils.education");
+            float top = CommunityPageLayout.Section(r, 0f, staffing, r.width, "WFL_Edu_Instructors".Translate(), a => EducationManage.Teachers(a, c));
             top = CommunityPageLayout.Section(r, 0f, top, r.width, "WFL_Edu_Pupils".Translate(), a => EducationManage.Pupils(a, c));
             top = CommunityPageLayout.Section(r, 0f, top, r.width, "WFL_Edu_Classes".Translate(), a =>
             {
@@ -38,3 +39,4 @@ namespace FamilyLife
         }
     }
 }
+

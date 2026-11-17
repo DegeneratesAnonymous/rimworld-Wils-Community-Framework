@@ -81,7 +81,7 @@ namespace FamilyLife
                 CommunityWidgets.Cell(new Rect(nameW, row.y, ageW, row.height), pawn.ageTracker.AgeBiologicalYears.ToString(), CommunityWidgets.Muted);
                 string learned = learning.TryGetValue(kv.Key, out var skills) ? string.Join(", ", skills.OrderByDescending(x => x.Value).Take(3).Select(x => SubjectLabel(x.Key) + " x" + x.Value)) : "WFL_Edu_NoLessons".Translate().ToString();
                 CommunityWidgets.Cell(new Rect(nameW + ageW, row.y, learnW - 6f, row.height), learned, learning.ContainsKey(kv.Key) ? Color.white : CommunityWidgets.Muted);
-                string status = ClassSessions.Board.IsBusy(kv.Key) ? "WFL_Edu_InClass".Translate().ToString() : assess.PupilBusy(kv.Key) ? "WFL_Edu_Sitting".Translate().ToString() : "WFL_Edu_Free".Translate().ToString();
+                string status = pawn.ageTracker.AgeBiologicalYears < 3 ? "WFL_UX_NotEnrolled".Translate().ToString() : ClassSessions.Board.IsBusy(kv.Key) ? "WFL_Edu_InClass".Translate().ToString() : assess.PupilBusy(kv.Key) ? "WFL_Edu_Sitting".Translate().ToString() : "WFL_Edu_Free".Translate().ToString();
                 CommunityWidgets.Cell(new Rect(nameW + ageW + learnW, row.y, statusW, row.height), status, ClassSessions.Board.IsBusy(kv.Key) ? CommunityWidgets.Gold : CommunityWidgets.Muted);
                 y += row.height;
             }
@@ -89,3 +89,4 @@ namespace FamilyLife
         }
     }
 }
+

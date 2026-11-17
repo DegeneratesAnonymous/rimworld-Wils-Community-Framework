@@ -16,7 +16,7 @@ namespace FamilyLife
     internal static class ColonyHealthPanel
     {
         private static int cachedAt = -9999; private static List<HealthNote> cache = new List<HealthNote>();
-        private static int firstSeen = -1;
+        private static int firstSeen = -1; private static FamilyComponent cachedComponent;
 
         public static Color Colour(HealthLevel l) => l == HealthLevel.Bad ? CommunityWidgets.Poor : l == HealthLevel.Warn ? CommunityWidgets.Fair : CommunityWidgets.Good;
 
@@ -29,6 +29,7 @@ namespace FamilyLife
         /// <summary>Every finding, worst first. Recomputed at most every 250 ticks.</summary>
         public static List<HealthNote> Collect(FamilyComponent c)
         {
+            if (!ReferenceEquals(cachedComponent, c)) { cachedComponent = c; cachedAt = -9999; firstSeen = -1; cache.Clear(); }
             int now = FrameworkServices.Now; if (firstSeen < 0) firstSeen = now;
             if (now - cachedAt < 250 && now >= cachedAt) return cache;
             var notes = new List<HealthNote>(); var reg = c.Registry; var book = reg.Assignments(); bool longEnough = now - firstSeen > GainTracker.WindowTicks;
@@ -38,8 +39,8 @@ namespace FamilyLife
                 int learning = holders.Count(id => module.Any(r => CareerService.RecentGain(id, r.Career, now) > 0)); string name = ModuleName(module.Key);
                 switch (HealthRules.Staffing(holders.Count, learning, longEnough))
                 {
-                    case StaffReason.Unstaffed: notes.Add(HealthNote.Warn(module.Key, "WFL_Health_Unstaffed".Translate(name), "WFL_Health_UnstaffedHint".Translate())); break;
-                    case StaffReason.Idle: notes.Add(HealthNote.Warn(module.Key, "WFL_Health_Idle".Translate(name, holders.Count), "WFL_Health_IdleHint".Translate())); break;
+                    case StaffReason.Unstaffed: break;
+                    case StaffReason.Idle: break;
                     default: notes.Add(HealthNote.Good(module.Key, "WFL_Health_Working".Translate(name, holders.Count, learning))); break;
                 }
             }
@@ -53,24 +54,26 @@ namespace FamilyLife
             cache = HealthRules.Order(notes); cachedAt = now; return cache;
         }
 
+        private static bool showAll;
         public static float Draw(Rect r, float y, FamilyComponent c)
         {
-            var notes = Collect(c); var worst = HealthRules.Worst(notes); int bad = notes.Count(n => n.Level == HealthLevel.Bad), warn = notes.Count(n => n.Level == HealthLevel.Warn);
-            var banner = new Rect(0f, y, r.width, 40f); Widgets.DrawBoxSolid(banner, new Color(.13f, .13f, .15f)); Widgets.DrawBoxSolid(new Rect(0f, y, 6f, banner.height), Colour(worst));
-            string summary = worst == HealthLevel.Good ? "WFL_Health_AllGood".Translate().ToString() : bad > 0 ? "WFL_Health_Problems".Translate(bad, warn).ToString() : "WFL_Health_Watch".Translate(warn).ToString();
-            CommunityWidgets.Cell(new Rect(18f, y, r.width - 28f, banner.height), summary, Colour(worst));
-            TooltipHandler.TipRegion(banner, "WFL_Health_Help".Translate());
-            y += banner.height + 6f; int i = 0; int shownGood = 0;
-            foreach (var n in notes)
+            var notes = Collect(c).Where(n => n.Level != HealthLevel.Good).ToList();
+            y = CommunityPageLayout.Line(r, y, notes.Count == 0 ? "WFL_Health_AllGood".Translate().ToString() : "WFL_UX_Attention".Translate(notes.Count).ToString());
+            foreach (var n in notes.Take(showAll ? notes.Count : 3))
             {
-                if (n.Level == HealthLevel.Good && ++shownGood > 6 && worst != HealthLevel.Good) continue;          // when there are problems, keep the good news short
-                var row = CommunityWidgets.Row(r, y, i++, 26f);
-                Widgets.DrawBoxSolid(new Rect(8f, y + 8f, 10f, 10f), Colour(n.Level));
-                var textRect = new Rect(26f, y, r.width - 34f, 26f); CommunityWidgets.Cell(textRect, n.Text.Truncate(textRect.width), n.Level == HealthLevel.Good ? CommunityWidgets.Muted : Color.white);
-                TooltipHandler.TipRegion(row, (ModuleName(n.Module)) + (string.IsNullOrEmpty(n.Hint) ? "" : "\n" + n.Hint) + "\n" + "WFL_Health_Open".Translate());
-                if (Widgets.ButtonInvisible(row)) { var page = FamilyFramework.Pages.Visible().FirstOrDefault(p => p.ModuleId == n.Module && p.Id != n.Module + ".overview"); if (page != null) MainTabWindow_Community.Open(page.Id); }
-                y += 26f;
+                var pages = FamilyFramework.Pages.Visible().Where(p => p.ModuleId == n.Module).ToList();
+                var page = pages.FirstOrDefault();
+                float buttonW = 100f, textW = Mathf.Max(60f, r.width - buttonW - 36f);
+                float h = Mathf.Max(56f, Text.CalcHeight(n.Text, textW) + 20f);
+                Widgets.DrawBoxSolid(new Rect(0f, y, r.width, h), new Color(.15f, .16f, .17f));
+                Widgets.DrawBoxSolid(new Rect(0f, y, 4f, h), Colour(n.Level));
+                GUI.color = Colour(n.Level); Widgets.Label(new Rect(12f, y + 8f, 18f, 24f), n.Level == HealthLevel.Bad ? "!" : "•"); GUI.color = Color.white;
+                Widgets.Label(new Rect(32f, y + 8f, textW - 12f, h - 12f), n.Text);
+                TooltipHandler.TipRegion(new Rect(0f, y, r.width - buttonW - 8f, h), n.Hint ?? n.Text);
+                if (page != null && Widgets.ButtonText(new Rect(r.width - buttonW - 8f, y + (h - 30f) / 2f, buttonW, 30f), "WFL_UX_Review".Translate())) MainTabWindow_Community.Open(page.Id);
+                y += h + 6f;
             }
+            if (notes.Count > 3) { if (Widgets.ButtonText(new Rect(0f, y, Mathf.Min(220f, r.width), 30f), (showAll ? "WFL_UX_ShowLess" : "WFL_UX_ShowAll").Translate())) showAll = !showAll; y += 36f; }
             return y + 8f;
         }
     }

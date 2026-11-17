@@ -51,7 +51,8 @@ namespace FamilyLife
 
         public static float Draw(Rect r, FamilyComponent c)
         {
-            float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Sciences_FocusTitle".Translate(), s => Focus(s));
+            float staffing = CommunityStaffing.Draw(r, 0f, c, "wils.intelligence");
+            float y = CommunityPageLayout.Section(r, 0f, staffing, r.width, "WFL_Sciences_FocusTitle".Translate(), s => Focus(s));
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Sciences_LeadTitle".Translate(), s => Lead(s, c));
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Sciences_PlacesTitle".Translate(), s => Places(s));
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Sciences_ResearchersTitle".Translate(), s => Researchers(s, c));
@@ -76,7 +77,7 @@ namespace FamilyLife
             {
                 y = CommunityPageLayout.Line(s, 0f, project.LabelCap + (project.techLevel != TechLevel.Undefined ? " (" + project.techLevel.ToString() + ")" : ""));
                 float pct = project.ProgressPercent;
-                CommunityWidgets.Bar(new Rect(0f, y, Mathf.Min(s.width, 420f), 18f), pct, CommunityWidgets.Level(pct), pct.ToStringPercent() + "  " + Mathf.RoundToInt(project.ProgressReal) + " / " + Mathf.RoundToInt(project.CostApparent));
+                CommunityWidgets.Bar(new Rect(0f, y, Mathf.Min(s.width, 420f), 18f), pct, new Color(.38f, .64f, .85f), pct.ToStringPercent() + "  " + Mathf.RoundToInt(project.ProgressReal) + " / " + Mathf.RoundToInt(project.CostApparent));
                 y += 26f;
                 if (!project.description.NullOrEmpty()) CommunityPageLayout.Help(s, y, project.description);
             }
@@ -139,7 +140,7 @@ namespace FamilyLife
             {
                 var row = CommunityWidgets.Row(s, y, i++); var sk = p.skills.GetSkill(SkillDefOf.Intellectual);
                 CommunityWidgets.NameButton(new Rect(4f, row.y, nameW - 6f, row.height), p);
-                CommunityWidgets.Bar(new Rect(nameW, row.y + 6f, skillW - 12f, row.height - 12f), sk.Level / 20f, CommunityWidgets.Level(sk.Level / 20f), sk.Level + (sk.passion == Passion.Major ? " **" : sk.passion == Passion.Minor ? " *" : ""));
+                CommunityWidgets.Bar(new Rect(nameW, row.y + 6f, skillW - 12f, row.height - 12f), sk.Level / 20f, new Color(.38f, .64f, .85f), sk.Level + (sk.passion == Passion.Major ? " **" : sk.passion == Passion.Minor ? " *" : ""));
                 string doing = p.thingIDNumber == lead ? "WFL_Sciences_LeadMark".Translate().ToString() : p.CurJob != null && p.CurJob.def == JobDefOf.Research ? "WFL_Sciences_Researching".Translate().ToString() : "-";
                 CommunityWidgets.Cell(new Rect(nameW + skillW, row.y, w - nameW - skillW, row.height), doing, p.thingIDNumber == lead ? CommunityWidgets.Gold : CommunityWidgets.Muted);
                 y += row.height;
@@ -148,3 +149,4 @@ namespace FamilyLife
         }
     }
 }
+

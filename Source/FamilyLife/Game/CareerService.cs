@@ -146,7 +146,12 @@ namespace FamilyLife
         /// <summary>Experience this person has gained in a career recently (0 when none), so pages can show who is learning.</summary>
         public static int RecentGain(int person, string career, int now) => gains.Recent(person, career, now);
 
-        public static string TitleOf(ProfessionRole role, FamilyRegistry r) => (role.TitleKey?.Invoke(r) ?? role.Id + "_label").Translate().ToString();
+        public static string TitleOf(ProfessionRole role, FamilyRegistry r)
+        {
+            string key = role.TitleKey?.Invoke(r) ?? role.Id + "_label";
+            string title = key.Translate().ToString();
+            return title == key ? "WFL_UX_UnknownRole".Translate().ToString() : title;
+        }
 
         /// <summary>A specialty benefit is active only while the qualified pawn is assigned to that exact specialty.</summary>
         public static bool IsAssignedSpecialist(Pawn pawn, string career, string specialty)
@@ -167,3 +172,4 @@ namespace FamilyLife
         }
     }
 }
+

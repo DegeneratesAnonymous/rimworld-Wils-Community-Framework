@@ -110,9 +110,19 @@ namespace FamilyLife
                     else { if (Widgets.ButtonText(post, Shared(c, soldiers))) PostMenu(c, soldiers); TooltipHandler.TipRegion(post, "WFL_Military_GroupPostTip".Translate(soldiers.Count)); }
                     if (Widgets.ButtonText(new Rect(s.width - 32f, row.y + 2f, 30f, row.height - 4f), "...")) MoreMenu(c, squad);
                     h += row.height;
+                    int maxPortraits = Mathf.Max(1, (int)((s.width - indent) / 42f));
+                    foreach (var member in members.Take(maxPortraits)) {
+                        int portraitIndex = members.IndexOf(member);
+                        var portrait = new Rect(indent + portraitIndex * 42f, h, 38f, 42f);
+                        GUI.DrawTexture(portrait, PortraitsCache.Get(member, portrait.size, Rot4.South, new Vector3(0f,0f,.1f),1.15f));
+                        TooltipHandler.TipRegion(portrait,member.LabelCap);
+                        if(Widgets.ButtonInvisible(portrait)) CameraJumper.TryJumpAndSelect(member);
+                    }
+                    if(members.Count>0) h+=48f;
                 }
                 return h;
             });
         }
     }
 }
+

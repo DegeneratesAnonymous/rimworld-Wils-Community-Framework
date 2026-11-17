@@ -23,6 +23,7 @@ namespace FamilyLife
         private static Color AlertColour(ColonyAlertLevel l) => l == ColonyAlertLevel.Red ? CommunityWidgets.Poor : l == ColonyAlertLevel.Yellow ? CommunityWidgets.Fair : CommunityWidgets.Good;
 
         private sealed class Row { public int Id; public Pawn Pawn; public List<ProfessionRole> Roles; public int Modules; public string Holder, RolesText, RolesTip; }
+        private static int filter;
         private static List<Row> rowsCache = new List<Row>(); private static int rowsAt = -9999;
 
         public static float Draw(Rect r, FamilyComponent c)
@@ -55,7 +56,7 @@ namespace FamilyLife
                 var chip = new Rect(0f, 0f, 150f, 30f); Widgets.DrawBoxSolid(chip, AlertColour(level) * new Color(1f, 1f, 1f, .35f));
                 CommunityWidgets.Cell(chip, ("WFL_Today_Level_" + level).Translate(), AlertColour(level), TextAnchor.MiddleCenter);
                 TooltipHandler.TipRegion(chip, ("WFL_Today_LevelTip_" + level).Translate(by == null ? "" : ModuleName(by)));
-                CommunityWidgets.Cell(new Rect(162f, 0f, s.width - 162f, 30f), "WFL_Today_Counts".Translate(rows.Count, onDuty, rows.Count - onDuty), CommunityWidgets.Muted);
+                CommunityWidgets.Cell(new Rect(162f, 0f, s.width - 162f, 30f), "WFL_UX_DutyCounts".Translate(rows.Count, onDuty), CommunityWidgets.Muted);
                 CommunityPageLayout.Help(s, 0f, "WFL_Today_Help".Translate());
                 float h = 36f;
                 if (overbooked > 0) h = CommunityPageLayout.Line(s, h, "WFL_Today_Overbooked".Translate(overbooked, OverbookedModules));
@@ -84,6 +85,9 @@ namespace FamilyLife
                     }
                     return h;
                 });
+            y = CommunityPageLayout.Tabs(r, y, new[] { "WFL_UX_ActivityAll".Translate().ToString(), "WFL_UX_ActivityDuty".Translate().ToString(), "WFL_UX_ActivityReview".Translate().ToString() }, filter, i => filter = i);
+            y = CommunityPageLayout.Line(r, y, "WFL_UX_ActivityKey".Translate(), true);
+            rows = rows.Where(q => filter == 0 || (filter == 1 ? q.Holder != null : q.Modules >= OverbookedModules)).ToList();
             return CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Today_People".Translate(), s =>
             {
                 if (rows.Count == 0) return CommunityPageLayout.Line(s, 0f, "WFL_Today_Nobody".Translate(), true);
@@ -103,7 +107,7 @@ namespace FamilyLife
                     var doingRect = new Rect(nameW + rolesW, row.y, doingW - 6f, row.height);
                     CommunityWidgets.Cell(doingRect, doing.Truncate(doingRect.width), x.Holder != null ? CommunityWidgets.Gold : CommunityWidgets.Muted);
                     var tag = new Rect(w - statusW, row.y, statusW - 4f, row.height);
-                    if (x.Modules >= OverbookedModules) { CommunityWidgets.Cell(tag, "WFL_Today_Busy".Translate(), CommunityWidgets.Fair, TextAnchor.MiddleRight); TooltipHandler.TipRegion(tag, "WFL_Today_BusyTip".Translate(x.Modules)); }
+                    if (x.Modules >= OverbookedModules) { CommunityWidgets.Cell(tag, "WFL_UX_MultipleRoles".Translate(), CommunityWidgets.Fair, TextAnchor.MiddleRight); TooltipHandler.TipRegion(tag, "WFL_Today_BusyTip".Translate(x.Modules)); }
                     else if (x.Holder != null) CommunityWidgets.Cell(tag, "WFL_Today_OnDuty".Translate(), CommunityWidgets.Gold, TextAnchor.MiddleRight);
                     h += row.height;
                 }
@@ -112,3 +116,4 @@ namespace FamilyLife
         }
     }
 }
+

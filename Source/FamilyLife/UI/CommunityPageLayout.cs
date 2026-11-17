@@ -33,7 +33,8 @@ namespace FamilyLife
             try
             {
                 float heading = Mathf.Max(28f, Text.CalcHeight(title, width - 40f) + 10f);
-                Widgets.DrawBoxSolid(new Rect(0f, 0f, width, heading), new Color(.18f, .18f, .19f));
+                Widgets.DrawBoxSolid(new Rect(0f, 0f, width, heading), new Color(.14f, .15f, .16f));
+                Widgets.DrawBoxSolid(new Rect(0f, heading - 1f, width, 1f), new Color(.30f, .31f, .32f));
                 GUI.color = FamilyKit.Gold;
                 Widgets.Label(new Rect(8f, 5f, width - 40f, heading - 5f), title);
                 GUI.color = Color.white;
@@ -98,10 +99,14 @@ namespace FamilyLife
             float x = 0f, rowHeight = 32f;
             for (int i = 0; i < labels.Count; i++)
             {
-                float width = Mathf.Max(86f, Text.CalcSize(labels[i]).x + 22f);
+                float width = Mathf.Min(r.width, Mathf.Max(86f, Text.CalcSize(labels[i]).x + 22f));
                 if (x > 0f && x + width > r.width) { x = 0f; y += rowHeight; }
-                var color = i == selected ? FamilyKit.Gold : Color.white;
-                if (Widgets.ButtonText(new Rect(x, y, width, 28f), labels[i], true, true, color)) choose(i);
+                var tab = new Rect(x, y, width, 28f);
+                Widgets.DrawBoxSolid(tab, new Color(.14f, .15f, .16f));
+                if (i == selected) Widgets.DrawBoxSolid(new Rect(x, y + 26f, width, 2f), FamilyKit.Gold);
+                CommunityWidgets.Cell(tab, labels[i].Truncate(width - 12f), i == selected ? FamilyKit.Gold : Color.white, TextAnchor.MiddleCenter);
+                TooltipHandler.TipRegion(tab, labels[i]);
+                if (Widgets.ButtonInvisible(tab)) choose(i);
                 x += width + 4f;
             }
             return y + rowHeight + 4f;
@@ -127,3 +132,4 @@ namespace FamilyLife
         }
     }
 }
+
