@@ -72,4 +72,7 @@
   <WFL_Edu_Sitting>Sitting an assessment</WFL_Edu_Sitting>
   <WFL_Edu_PupilsHelp>Children are pupils by default; turn on adult students above to include adults. Lessons are classes attended recently, by subject.</WFL_Edu_PupilsHelp>
 <WFL_Need_Classroom>A classroom: a teacher has nowhere to hold a class</WFL_Need_Classroom>
+<WFL_Health_Edu_NoTeacher>{0} children and no teacher is assigned</WFL_Health_Edu_NoTeacher>
+<WFL_Health_Edu_NoTeacherHint>Assign a teacher on the Professions page.</WFL_Health_Edu_NoTeacherHint>
+<WFL_Health_Edu_Teaching>{0} children, {1} teachers</WFL_Health_Edu_Teaching>
 </LanguageData>

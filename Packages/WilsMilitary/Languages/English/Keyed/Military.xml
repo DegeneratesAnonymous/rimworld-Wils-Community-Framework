@@ -134,4 +134,9 @@
 <WFL_Military_ButtonTip>Military alert: {0}{1}. Click to set {2}. Right-click for a menu.</WFL_Military_ButtonTip>
 <WFL_Military_ShowPositionsTip>Show or hide the placed positions and patrol routes on the map. They always show while you place them or have the Military menu open.</WFL_Military_ShowPositionsTip>
 <WFL_Need_Yard>A training yard for the soldiers</WFL_Need_Yard>
+<WFL_Health_Mil_RedNoSoldiers>Red alert and no soldiers are serving</WFL_Health_Mil_RedNoSoldiers>
+<WFL_Health_Mil_RedNoSoldiersHint>Assign soldiers on the Professions page.</WFL_Health_Mil_RedNoSoldiersHint>
+<WFL_Health_Mil_Red>Red alert: {0} soldiers serving</WFL_Health_Mil_Red>
+<WFL_Health_Mil_RedHint>The colony is under threat. Routine work waits.</WFL_Health_Mil_RedHint>
+<WFL_Health_Mil_Ready>{0} soldiers ready, no threat</WFL_Health_Mil_Ready>
 </LanguageData>

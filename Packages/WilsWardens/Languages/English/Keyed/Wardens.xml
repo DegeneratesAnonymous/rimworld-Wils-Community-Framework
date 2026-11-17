@@ -28,4 +28,8 @@
   <WFL_Wardens_Handling>Handling</WFL_Wardens_Handling>
   <WFL_Wardens_SlavesHeading>Slaves</WFL_Wardens_SlavesHeading>
   <WFL_Wardens_Suppression>Suppression</WFL_Wardens_Suppression>
+<WFL_Health_Ward_NoGuard>{0} prisoners and no guard is assigned</WFL_Health_Ward_NoGuard>
+<WFL_Health_Ward_NoGuardHint>Assign a warden on the Professions page.</WFL_Health_Ward_NoGuardHint>
+<WFL_Health_Ward_Watched>{0} prisoners watched by {1} wardens</WFL_Health_Ward_Watched>
+<WFL_Wardens_MoreOptionsTip>Open this prisoner's own tab for the extra Convert and Release options from Custom Prisoner Interactions.</WFL_Wardens_MoreOptionsTip>
 </LanguageData>

@@ -118,4 +118,9 @@
 <WFL_Tr_BudgetMax>Daily max</WFL_Tr_BudgetMax>
 <WFL_Tr_BudgetOrdinary>Ordinary labour</WFL_Tr_BudgetOrdinary>
 <WFL_Tr_BudgetNone>Nobody is on the payroll yet.</WFL_Tr_BudgetNone>
+<WFL_Health_Tr_Owed>{0} silver in wages owed</WFL_Health_Tr_Owed>
+<WFL_Health_Tr_OwedHint>Add silver to the community treasury, or lower wage rates on the Payroll tab.</WFL_Health_Tr_OwedHint>
+<WFL_Health_Tr_Low>Funds cover only about {0} days of wages</WFL_Health_Tr_Low>
+<WFL_Health_Tr_LowHint>See the Budget tab for who costs what.</WFL_Health_Tr_LowHint>
+<WFL_Health_Tr_Paid>Wages are paid, funds cover about {0} days</WFL_Health_Tr_Paid>
 </LanguageData>

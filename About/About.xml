@@ -22,6 +22,11 @@
     <li>Ludeon.RimWorld.Royalty</li>
     <li>Ludeon.RimWorld.Ideology</li>
     <li>Ludeon.RimWorld.Biotech</li>
+    <li>Jaxe.Bubbles</li>
+    <li>Vengie.BubblesExpanded</li>
+    <li>VanillaExpanded.VanillaSocialInteractionsExpanded</li>
+    <li>Mlie.CustomPrisonerInteractions</li>
+    <li>Mlie.PrisonCommons</li>
   </loadAfter>
   <description>WIL'S FAMILY LIFE (early development)
 

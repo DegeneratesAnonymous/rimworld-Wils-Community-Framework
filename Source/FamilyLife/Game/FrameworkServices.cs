@@ -46,6 +46,26 @@ namespace FamilyLife
         /// <summary>The need is met (or gone). Only the module that posted it closes it.</summary>
         public static void ResolveNeed(string moduleId, string key) { var c = FamilyComponent.Current; if (c != null) c.Registry.Needs().Resolve(moduleId, key); }
 
+        private static readonly Dictionary<long, int> saidAt = new Dictionary<long, int>();
+        /// <summary>
+        /// Plays one of the community's everyday interactions between two pawns (<paramref name="defName"/> is a WFL_ interaction, e.g. WFL_Lesson). It goes through the game's own interaction tracker when they are close, so it is
+        /// logged and shows as a speech bubble and other social mods see it; otherwise it is logged directly. At most once per pair per half hour, and never an error.
+        /// </summary>
+        public static void Say(Pawn from, Pawn to, string defName)
+        {
+            try
+            {
+                if (from == null || to == null || from == to || from.Dead || to.Dead || from.interactions == null || !from.RaceProps.Humanlike) return;
+                var def = DefDatabase<InteractionDef>.GetNamedSilentFail(defName); if (def == null) return;
+                long key = ((long)from.thingIDNumber << 32) ^ (uint)to.thingIDNumber ^ (uint)defName.GetHashCode();
+                if (saidAt.TryGetValue(key, out int last) && Now >= last && Now - last < 1250) return; saidAt[key] = Now;
+                if (saidAt.Count > 400) saidAt.Clear();
+                if (from.Spawned && to.Spawned && from.Map == to.Map && from.Position.InHorDistOf(to.Position, 8f) && from.interactions.TryInteractWith(to, def)) return;
+                Find.PlayLog.Add(new PlayLogEntry_Interaction(def, from, to, null));
+            }
+            catch (Exception ex) { Log.WarningOnce("[Wil's Family Life] An interaction could not be played: " + ex.Message, 7710213); }
+        }
+
         private static readonly CompanionBook companions = new CompanionBook();
         /// <summary>
         /// Joint duty: asks a free colleague holding a role in another career (by career id) to come along with <paramref name="leader"/> for a while. The colleague is claimed for <paramref name="claimModule"/>, follows the
@@ -65,6 +85,7 @@ namespace FamilyLife
             if (best == null || !TryClaimDuty(best, claimModule, ticks) || !companions.TryPair(leader.thingIDNumber, best.thingIDNumber, Now, ticks)) return null;
             var job = JobMaker.MakeJob(JobDefOf.FollowClose, leader); job.followRadius = 5f; job.expiryInterval = ticks; job.checkOverrideOnExpire = true;
             best.jobs.StartJob(job, JobCondition.InterruptForced, null, false, tag: JobTag.Misc);
+            Say(leader, best, "WFL_TeamUp");
             return best;
         }
 

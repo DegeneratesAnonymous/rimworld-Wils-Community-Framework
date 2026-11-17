@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <!-- Everyday interactions of the community modules: teaching, care, patrols, escorts, payday, research. They are played through the game's own interaction system, so they appear in the social log and as speech bubbles (Interaction Bubbles), and other social mods can see them. They change no opinions and cause no fights. -->
+  <InteractionDef>
+    <defName>WFL_Lesson</defName>
+    <label>lesson</label>
+    <symbol>Things/Mote/SpeechSymbols/DeepTalk</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>3</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] taught [RECIPIENT_nameDef] a lesson.</li>
+        <li>r_logentry->[INITIATOR_nameDef] went over the day&apos;s lesson with [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] explained something new to [RECIPIENT_nameDef].</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Quiz</defName>
+    <label>quiz</label>
+    <symbol>Things/Mote/SpeechSymbols/Chitchat</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>3</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] quizzed [RECIPIENT_nameDef] on what they had learned.</li>
+        <li>r_logentry->[INITIATOR_nameDef] tested [RECIPIENT_nameDef]&apos;s knowledge.</li>
+        <li>r_logentry->[INITIATOR_nameDef] asked [RECIPIENT_nameDef] a few hard questions.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Commend</defName>
+    <label>commend</label>
+    <symbol>Things/Mote/SpeechSymbols/KindWords</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>2</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] praised [RECIPIENT_nameDef]&apos;s progress.</li>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] they were doing well.</li>
+        <li>r_logentry->[INITIATOR_nameDef] commended [RECIPIENT_nameDef] for hard work.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_CheckIn</defName>
+    <label>check-in</label>
+    <symbol>Things/Mote/SpeechSymbols/Chitchat</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>3</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] asked [RECIPIENT_nameDef] how they were feeling.</li>
+        <li>r_logentry->[INITIATOR_nameDef] checked on [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] looked [RECIPIENT_nameDef] over and asked about their health.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Reassure</defName>
+    <label>reassure</label>
+    <symbol>Things/Mote/SpeechSymbols/KindWords</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>2</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] reassured [RECIPIENT_nameDef] while treating them.</li>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] the treatment was going well.</li>
+        <li>r_logentry->[INITIATOR_nameDef] calmed [RECIPIENT_nameDef] during the treatment.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Gratitude</defName>
+    <label>thanks</label>
+    <symbol>Things/Mote/SpeechSymbols/KindWords</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>2</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] thanked [RECIPIENT_nameDef] for the care.</li>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] they felt much better.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Briefing</defName>
+    <label>briefing</label>
+    <symbol>Things/Mote/SpeechSymbols/Chitchat</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>3</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] briefed [RECIPIENT_nameDef] on the patrol.</li>
+        <li>r_logentry->[INITIATOR_nameDef] went over the route with [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] gave [RECIPIENT_nameDef] their orders.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Salute</defName>
+    <label>salute</label>
+    <symbol>Things/Mote/SpeechSymbols/KindWords</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>2</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] saluted [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] reported to [RECIPIENT_nameDef].</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_TeamUp</defName>
+    <label>team up</label>
+    <symbol>Things/Mote/SpeechSymbols/Chitchat</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>3</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] asked [RECIPIENT_nameDef] to come along.</li>
+        <li>r_logentry->[INITIATOR_nameDef] and [RECIPIENT_nameDef] set out together.</li>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] to stay close.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Escort</defName>
+    <label>escort</label>
+    <symbol>Things/Mote/SpeechSymbols/Chitchat</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>3</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] to follow them.</li>
+        <li>r_logentry->[INITIATOR_nameDef] led [RECIPIENT_nameDef] away.</li>
+        <li>r_logentry->[INITIATOR_nameDef] walked [RECIPIENT_nameDef] to the interview room.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Interview</defName>
+    <label>interview</label>
+    <symbol>Things/Mote/SpeechSymbols/DeepTalk</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>4</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] questioned [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] sat down with [RECIPIENT_nameDef] and asked about their past.</li>
+        <li>r_logentry->[INITIATOR_nameDef] listened to [RECIPIENT_nameDef]&apos;s story.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Counsel</defName>
+    <label>counsel</label>
+    <symbol>Things/Mote/SpeechSymbols/DeepTalk</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>4</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] counselled [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] talked [RECIPIENT_nameDef] through their troubles.</li>
+        <li>r_logentry->[INITIATOR_nameDef] offered [RECIPIENT_nameDef] some advice.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_PayWages</defName>
+    <label>pay</label>
+    <symbol>Things/Mote/SpeechSymbols/Chitchat</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>2</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] handed [RECIPIENT_nameDef] their wages.</li>
+        <li>r_logentry->[INITIATOR_nameDef] paid [RECIPIENT_nameDef] for the week.</li>
+        <li>r_logentry->[INITIATOR_nameDef] counted out silver for [RECIPIENT_nameDef].</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Haggle</defName>
+    <label>haggle</label>
+    <symbol>Things/Mote/SpeechSymbols/Chitchat</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>3</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] haggled with [RECIPIENT_nameDef] over the price.</li>
+        <li>r_logentry->[INITIATOR_nameDef] drove a hard bargain with [RECIPIENT_nameDef].</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_SiteTalk</defName>
+    <label>site talk</label>
+    <symbol>Things/Mote/SpeechSymbols/Chitchat</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>3</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] and [RECIPIENT_nameDef] talked over the repairs.</li>
+        <li>r_logentry->[INITIATOR_nameDef] pointed out a weak wall to [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] asked [RECIPIENT_nameDef] to hold the beam.</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Findings</defName>
+    <label>findings</label>
+    <symbol>Things/Mote/SpeechSymbols/DeepTalk</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>4</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] shared a finding with [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] explained their latest results to [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] argued a point of theory with [RECIPIENT_nameDef].</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+  <InteractionDef>
+    <defName>WFL_Mentor</defName>
+    <label>mentor</label>
+    <symbol>Things/Mote/SpeechSymbols/DeepTalk</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>4</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] showed [RECIPIENT_nameDef] how it was done.</li>
+        <li>r_logentry->[INITIATOR_nameDef] mentored [RECIPIENT_nameDef].</li>
+        <li>r_logentry->[INITIATOR_nameDef] shared a trick of the trade with [RECIPIENT_nameDef].</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+</Defs>

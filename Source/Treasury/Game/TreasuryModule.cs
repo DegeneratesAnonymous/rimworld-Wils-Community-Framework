@@ -31,6 +31,7 @@ namespace FamilyLife
             CareerService.RegisterCareer(new CareerDefinition { Id = TreasuryRoles.Career, ModuleId = Id, Level2 = new CareerRule { GeneralXp = TreasuryRoles.CollectorExperience }.Skill("Social", TreasuryRoles.CollectorSocial).Skill("Melee", TreasuryRoles.CollectorMelee) });
             CareerService.RegisterRole(new ProfessionRole { Id = TreasuryRoles.Treasurer, ModuleId = Id, Career = TreasuryRoles.Career, Level = 1 });
             CareerService.RegisterRole(new ProfessionRole { Id = TreasuryRoles.TaxCollector, ModuleId = Id, Career = TreasuryRoles.Career, Level = 2 });
+            FamilyFramework.HealthChecks.Add(Id + ".health", Id, c => TreasuryHealth.Check(c, Id));
             CareerService.Registered(Id);
 
             FamilyFramework.Pages.Register(new CommunityPage<System.Func<Rect, FamilyComponent, float>> { Id = TreasuryService.PageId, ModuleId = Id, LabelKey = "WFL_Treasury_Page", Order = 130, Icon = "WilsFamilyLife/Pages/treasury", Render = TreasuryPage.Draw, Status = TreasuryPage.Attention });

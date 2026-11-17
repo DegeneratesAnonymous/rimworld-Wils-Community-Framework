@@ -43,6 +43,16 @@ namespace FamilyLife
             return CommunityPageLayout.Help(s, y + 4f, "WFL_Wardens_PrisonersHelp".Translate());
         }
 
+        private static bool? customInteractions;
+        /// <summary>True when Custom Prisoner Interactions is running: it adds per-prisoner options for Convert and Release on the prisoner's own tab.</summary>
+        private static bool CustomInteractions => (customInteractions ?? (customInteractions = GenTypes.GetTypeInAnyAssembly("CustomPrisonerInteractions.CustomPrisonerInteractionsMod") != null)).Value;
+
+        private static void OpenPrisonerTab(Pawn p)
+        {
+            Find.MainTabsRoot.EscapeCurrentTab(); CameraJumper.TryJumpAndSelect(p);
+            try { InspectPaneUtility.OpenTab(typeof(ITab_Pawn_Visitor)); } catch (System.Exception) { }
+        }
+
         private static void Row(Rect s, ref float y, int index, Pawn p, bool slave, float nameW, float barW, float resW, float modeW)
         {
             var row = CommunityWidgets.Row(s, y, index); float x = 0f;
@@ -64,7 +74,14 @@ namespace FamilyLife
             {
                 string resistance = p.guest != null ? p.guest.resistance.ToString("0.#") : "-";
                 CommunityWidgets.Cell(new Rect(x, row.y, resW - 4f, row.height), resistance, p.guest != null && p.guest.resistance > 0.01f ? Color.white : CommunityWidgets.Good); x += resW;
-                CommunityWidgets.Choice(new Rect(x, row.y + 1f, modeW - 8f, row.height - 2f), p.guest?.ExclusiveInteractionMode?.LabelCap ?? "-", () => Modes(p));
+                float extra = CustomInteractions ? 34f : 0f;
+                CommunityWidgets.Choice(new Rect(x, row.y + 1f, modeW - 8f - extra, row.height - 2f), p.guest?.ExclusiveInteractionMode?.LabelCap ?? "-", () => Modes(p));
+                if (CustomInteractions)
+                {
+                    var more = new Rect(x + modeW - 8f - extra + 4f, row.y + 1f, extra - 4f, row.height - 2f);
+                    if (Widgets.ButtonText(more, "...")) OpenPrisonerTab(p);
+                    TooltipHandler.TipRegion(more, "WFL_Wardens_MoreOptionsTip".Translate());
+                }
             }
             y += row.height;
         }
