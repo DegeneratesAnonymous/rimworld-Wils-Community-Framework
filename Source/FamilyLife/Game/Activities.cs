@@ -30,20 +30,11 @@ namespace FamilyLife
         /// Someone who can be spent time with, or share a story, without being pulled off anything that matters: awake, well,
         /// not on a work shift, and currently idle or doing something for themselves rather than a job.
         /// </summary>
-        private static readonly string[] OtherModJobs = { "LivingBonds", "SearchAndRescue", "Gastronomy", "Storefront", "VendingMachines", "HospitalityCasino", "HospitalitySpa", "PrisonerRealism", "CashRegister" };
 
         /// <summary>
-        /// Busy with an order the player forced (Achtung! and the game's own forced jobs) or with another mod's own work (Living Bonds family activities, Search and Rescue, shops, Prisoner Realism). The community's
-        /// activities leave such pawns alone instead of cutting in.
+        /// Busy with an order the player forced. The community's activities leave such pawns alone instead of cutting in.
         /// </summary>
-        public static bool BusyElsewhere(Pawn p)
-        {
-            var job = p?.CurJob; if (job == null) return false;
-            if (job.playerForced) return true;
-            var ns = job.def?.driverClass?.Namespace; if (ns == null) return false;
-            for (int i = 0; i < OtherModJobs.Length; i++) if (ns.StartsWith(OtherModJobs[i], System.StringComparison.Ordinal)) return true;
-            return false;
-        }
+        public static bool BusyElsewhere(Pawn p) => p?.CurJob?.playerForced == true;
 
         public static bool IsFree(Pawn p, bool checkCurrentJob = true)
         {

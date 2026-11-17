@@ -25,7 +25,17 @@ namespace FamilyLife
             return CareerFocus.Of(c.Registry.Careers().Progress(pawn.thingIDNumber, def, CareerService.SkillsOf(pawn)), role.Specialty);
         }
 
+        private static readonly Dictionary<int, KeyValuePair<int, List<Held>>> heldCache = new Dictionary<int, KeyValuePair<int, List<Held>>>();
+
+        /// <summary>A person's professions with their progress. Working progress out reads the whole career ledger, so it is kept for two seconds instead of every frame.</summary>
         private static List<Held> HeldBy(FamilyComponent c, Pawn pawn, int now)
+        {
+            if (heldCache.TryGetValue(pawn.thingIDNumber, out var e) && now >= e.Key && now - e.Key < 120) return e.Value;
+            var built = Build(c, pawn, now); if (heldCache.Count > 1000) heldCache.Clear();
+            heldCache[pawn.thingIDNumber] = new KeyValuePair<int, List<Held>>(now, built); return built;
+        }
+
+        private static List<Held> Build(FamilyComponent c, Pawn pawn, int now)
         {
             var book = c.Registry.Assignments(); string main = book.PrimaryOf(pawn.thingIDNumber); var list = new List<Held>();
             foreach (var id in book.RolesOf(pawn.thingIDNumber))
@@ -75,7 +85,6 @@ namespace FamilyLife
                 var card = new Rect(nameW, y + 4f, mainW, h0 - 8f); Widgets.DrawBoxSolid(card, new Color(Gold.r, Gold.g, Gold.b, .10f)); Widgets.DrawBox(card);
                 GUI.color = Gold; Text.Font = GameFont.Tiny; Widgets.Label(new Rect(card.x + 6f, card.y + 1f, card.width - 12f, 16f), "★ " + "WFL_Prof_Main".Translate() + ": " + CareerService.TitleOf(main.Role, reg)); Text.Font = GameFont.Small; GUI.color = Color.white;
                 XpBar(new Rect(card.x + 6f, card.yMax - 20f, card.width - 12f, 16f), main, "");
-                string expertise = ExpertiseLink.Describe(pawn, main.Role.Career); if (expertise != null) TooltipHandler.TipRegion(card, "WFL_Prof_Expertise".Translate(expertise));
                 if (Widgets.ButtonInvisible(card)) ChipMenu(c, pawn, main);
                 for (int i = 0; i < sides.Count; i++)
                 {
@@ -105,8 +114,7 @@ namespace FamilyLife
                 if (holders.Count == 0) { GUI.color = CommunityWidgets.Muted; Text.Anchor = TextAnchor.MiddleLeft; Widgets.Label(new Rect(204f, y, r.width - 210f, h0), "WFL_Prof_Vacant".Translate()); Text.Anchor = TextAnchor.UpperLeft; GUI.color = Color.white; }
                 for (int i = 0; i < holders.Count; i++)
                 {
-                    var p = holders[i]; var focus = FocusOf(c, p, role); int gain = CareerService.RecentGain(p.thingIDNumber, role.Career, now);
-                    var h = new Held { Role = role, Focus = focus, Gain = gain, Main = book.PrimaryOf(p.thingIDNumber) == role.Id };
+                    var p = holders[i]; var h = HeldBy(c, p, now).FirstOrDefault(x => x.Role == role); if (h == null) continue;
                     var chip = new Rect(204f + (i % perRow) * 210f, y + 3f + (i / perRow) * 26f, 204f, 22f);
                     XpBar(chip, h, (h.Main ? "★ " : "") + p.LabelShort.Truncate(90f));
                     if (Widgets.ButtonInvisible(chip)) ChipMenu(c, p, h);

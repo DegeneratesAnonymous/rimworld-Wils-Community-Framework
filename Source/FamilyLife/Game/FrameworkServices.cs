@@ -117,7 +117,16 @@ namespace FamilyLife
 
         private static readonly ColonyAlertBoard alertBoard = new ColonyAlertBoard();
         /// <summary>How alert the colony is as a whole (the highest level any running module has published). Modules read this to adapt: pause routine work at Red, stand by, and so on.</summary>
-        public static ColonyAlertLevel ColonyAlert => FamilyLifeMod.Settings != null && !FamilyLifeMod.Settings.alertEffects ? ColonyAlertLevel.Normal : alertBoard.Level(id => FamilyFramework.Catalog.IsEnabled(id));
+        private static int alertAt = -1; private static ColonyAlertLevel alertLevel;
+        public static ColonyAlertLevel ColonyAlert
+        {
+            get
+            {
+                if (FamilyLifeMod.Settings != null && !FamilyLifeMod.Settings.alertEffects) return ColonyAlertLevel.Normal;
+                int n = Now; if (n != alertAt) { alertLevel = alertBoard.Level(id => FamilyFramework.Catalog.IsEnabled(id)); alertAt = n; }          // asked once per pawn per check, so worked out once per tick
+                return alertLevel;
+            }
+        }
         /// <summary>The alert as published, whether or not the player has turned its effects on other modules off (for display).</summary>
         public static ColonyAlertLevel ColonyAlertPublished => alertBoard.Level(id => FamilyFramework.Catalog.IsEnabled(id));
         /// <summary>The module that raised the colony to its current level, or null at Normal.</summary>

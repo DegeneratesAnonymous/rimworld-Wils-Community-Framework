@@ -18,12 +18,7 @@ namespace FamilyLife.Domain
             pair = null; return false;
         }
 
-        public bool InPair(int person, int now)
-        {
-            if (Live(person, now, out _)) return true;
-            foreach (var leader in new List<int>(byLeader.Keys)) if (Live(leader, now, out var p) && p.Companion == person) return true;
-            return false;
-        }
+        public bool InPair(int person, int now) => Live(person, now, out _) || LeaderOf(person, now) != 0;
 
         /// <summary>Pairs a leader with a companion for <paramref name="ticks"/>. Refused when either is already in a pair, or they are the same person.</summary>
         public bool TryPair(int leader, int companion, int now, int ticks)
@@ -36,8 +31,14 @@ namespace FamilyLife.Domain
 
         public int LeaderOf(int companion, int now)
         {
-            foreach (var leader in new List<int>(byLeader.Keys)) if (Live(leader, now, out var p) && p.Companion == companion) return leader;
-            return 0;
+            int found = 0; List<int> expired = null;
+            foreach (var kv in byLeader)
+            {
+                if (now >= kv.Value.Until) { (expired ?? (expired = new List<int>())).Add(kv.Key); continue; }
+                if (kv.Value.Companion == companion) found = kv.Key;
+            }
+            if (expired != null) foreach (var k in expired) byLeader.Remove(k);
+            return found;
         }
 
         public void End(int leader) => byLeader.Remove(leader);

@@ -34,4 +34,11 @@
 <WFL_Wardens_MoreOptionsTip>Open this prisoner's own tab for the extra Convert and Release options from Custom Prisoner Interactions.</WFL_Wardens_MoreOptionsTip>
 <WFL_Health_Ward_Hunger>{0} prisoners are on hunger strike</WFL_Health_Ward_Hunger>
 <WFL_Health_Ward_HungerHint>From Prisoner Realism. Check their treatment and conditions, or use force feeding.</WFL_Health_Ward_HungerHint>
+<WFL_Wardens_HoldHealthy>Release when healthy</WFL_Wardens_HoldHealthy>
+<WFL_Wardens_HoldWalk>Release when able to walk</WFL_Wardens_HoldWalk>
+<WFL_Wardens_HoldNone>No release condition</WFL_Wardens_HoldNone>
+<WFL_Wardens_HoldTip>Release this prisoner automatically once they are healthy or able to walk. Until then their handling stays as it is.</WFL_Wardens_HoldTip>
+<WFL_Wardens_HoldActive_Healthy>Will be released once healthy.</WFL_Wardens_HoldActive_Healthy>
+<WFL_Wardens_HoldActive_CanWalk>Will be released once able to walk.</WFL_Wardens_HoldActive_CanWalk>
+<WFL_Wardens_ReleaseNow>{0} meets the release condition and will be released.</WFL_Wardens_ReleaseNow>
 </LanguageData>

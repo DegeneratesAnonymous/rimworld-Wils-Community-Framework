@@ -11,7 +11,20 @@ namespace FamilyLife
     /// </summary>
     internal static class ProfessionTitles
     {
+        private static readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.KeyValuePair<int, string>> remembered = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.KeyValuePair<int, string>>();
+        private const int RememberTicks = 250;
+
+        /// <summary>The title is read many times a frame by the colonist bar, so each pawn's answer is kept for a few seconds (null means "show the backstory").</summary>
         public static string For(Pawn_StoryTracker story, Pawn pawn)
+        {
+            if (pawn == null) return null;
+            int now = FrameworkServices.Now;
+            if (remembered.TryGetValue(pawn.thingIDNumber, out var e) && now >= e.Key && now - e.Key < RememberTicks && FamilyLifeMod.Settings?.professionTitle != false) return e.Value;
+            var title = Compute(story, pawn); if (remembered.Count > 4000) remembered.Clear();
+            remembered[pawn.thingIDNumber] = new System.Collections.Generic.KeyValuePair<int, string>(now, title); return title;
+        }
+
+        private static string Compute(Pawn_StoryTracker story, Pawn pawn)
         {
             try
             {

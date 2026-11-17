@@ -75,10 +75,21 @@
 <WFL_Military_Tab_Alert>Alert</WFL_Military_Tab_Alert>
 <WFL_Military_Tab_Positions>Positions</WFL_Military_Tab_Positions>
 <WFL_Military_Tab_Facilities>Facilities</WFL_Military_Tab_Facilities>
-<WFL_Military_Tab_Groups>Groups</WFL_Military_Tab_Groups>
-<WFL_Military_GroupsTitle>Groups</WFL_Military_GroupsTitle>
-<WFL_Military_GroupsHelp>Groups and subgroups from Wil's Group Organization. Soldiers in a group, and in its subgroups, can be posted together to a patrol route or a position. Groups and their members are managed in that mod; here they are only read.</WFL_Military_GroupsHelp>
-<WFL_Military_NoGroups>No groups yet. Make them with Wil's Group Organization.</WFL_Military_NoGroups>
+<WFL_Military_Tab_Groups>Squads</WFL_Military_Tab_Groups>
+<WFL_Military_GroupsTitle>Squads</WFL_Military_GroupsTitle>
+<WFL_Military_GroupsHelp>Named groups of soldiers, with smaller squads inside them. A person can be in several squads. Select a whole squad, or post all of it to a patrol route or position at once. Squads inside a squad count as part of it.</WFL_Military_GroupsHelp>
+<WFL_Military_NoGroups>No squads yet. Make one, then add soldiers to it.</WFL_Military_NoGroups>
+<WFL_Military_SquadNew>New squad</WFL_Military_SquadNew>
+<WFL_Military_SquadNamePrompt>Squad name</WFL_Military_SquadNamePrompt>
+<WFL_Military_SquadOk>OK</WFL_Military_SquadOk>
+<WFL_Military_SquadCancel>Cancel</WFL_Military_SquadCancel>
+<WFL_Military_SquadAdd>Add</WFL_Military_SquadAdd>
+<WFL_Military_SquadAddAll>Everyone serving ({0})</WFL_Military_SquadAddAll>
+<WFL_Military_SquadEmpty>Nobody in this squad yet.</WFL_Military_SquadEmpty>
+<WFL_Military_SquadRename>Rename</WFL_Military_SquadRename>
+<WFL_Military_SquadNewInside>New squad inside this one</WFL_Military_SquadNewInside>
+<WFL_Military_SquadRemoveMember>Remove {0}</WFL_Military_SquadRemoveMember>
+<WFL_Military_SquadDelete>Delete this squad</WFL_Military_SquadDelete>
 <WFL_Military_GroupCount>{0} serving / {1}</WFL_Military_GroupCount>
 <WFL_Military_GroupSelect>Select</WFL_Military_GroupSelect>
 <WFL_Military_GroupSelectTip>Select everyone in this group.</WFL_Military_GroupSelectTip>

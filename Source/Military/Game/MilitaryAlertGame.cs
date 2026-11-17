@@ -126,29 +126,44 @@ namespace FamilyLife
 
         private static string Letter(PostKind k) => k == PostKind.Melee ? "M" : k == PostKind.Ranged ? "R" : k == PostKind.Mixed ? "X" : "";
 
-        public override void MapComponentUpdate()
+        private sealed class Label { public IntVec3 Cell; public string Text; public Color Colour; }
+        private int builtAt = -9999; private readonly List<IntVec3> postCells = new List<IntVec3>(); private readonly List<Label> labels = new List<Label>();
+        private readonly List<KeyValuePair<int, List<IntVec3>>> routeCells = new List<KeyValuePair<int, List<IntVec3>>>();
+
+        /// <summary>The overlay reads the post and route books and builds label text. That is cheap once, but not on every frame of every map, so it is rebuilt a few times a second.</summary>
+        private void Ensure(FamilyRegistry reg)
         {
-            if (map != Find.CurrentMap || !Showing()) return;
-            var reg = FamilyComponent.Current.Registry;
-            foreach (var p in reg.Posts().All) if (p.Map == map.uniqueID) GenDraw.DrawTargetHighlight(new LocalTargetInfo(new IntVec3(p.X, 0, p.Z)));
+            int now = Find.TickManager.TicksGame; if (now >= builtAt && now - builtAt < 15) return; builtAt = now;
+            postCells.Clear(); labels.Clear(); routeCells.Clear();
+            foreach (var p in reg.Posts().All)
+                if (p.Map == map.uniqueID) { var cell = new IntVec3(p.X, 0, p.Z); postCells.Add(cell); labels.Add(new Label { Cell = cell, Text = ("WFL_Military_Post_" + p.Kind).Translate(), Colour = Color.white }); }
             var book = reg.Patrols();
             foreach (var route in book.Routes)
             {
-                var ordered = PatrolPlanner.Order(book.InRoute(route.Id).Where(s => s.Map == map.uniqueID));
-                foreach (var spot in ordered) CellRenderer.RenderCell(new IntVec3(spot.X, 0, spot.Z), MaterialOf(route.Id));
-                for (int i = 0; i + 1 < ordered.Count; i++) GenDraw.DrawLineBetween(new IntVec3(ordered[i].X, 0, ordered[i].Z).ToVector3Shifted(), new IntVec3(ordered[i + 1].X, 0, ordered[i + 1].Z).ToVector3Shifted());
+                var ordered = PatrolPlanner.Order(book.InRoute(route.Id).Where(s => s.Map == map.uniqueID)); var cells = new List<IntVec3>(ordered.Count);
+                foreach (var spot in ordered) { var cell = new IntVec3(spot.X, 0, spot.Z); cells.Add(cell); labels.Add(new Label { Cell = cell, Text = route.Name + " " + Letter(spot.Type), Colour = ColourOf(route.Id) }); }
+                routeCells.Add(new KeyValuePair<int, List<IntVec3>>(route.Id, cells));
+            }
+        }
+
+        public override void MapComponentUpdate()
+        {
+            if (map != Find.CurrentMap || !Showing()) return;
+            Ensure(FamilyComponent.Current.Registry);
+            foreach (var cell in postCells) GenDraw.DrawTargetHighlight(new LocalTargetInfo(cell));
+            foreach (var route in routeCells)
+            {
+                var cells = route.Value; var material = MaterialOf(route.Key);
+                foreach (var cell in cells) CellRenderer.RenderCell(cell, material);
+                for (int i = 0; i + 1 < cells.Count; i++) GenDraw.DrawLineBetween(cells[i].ToVector3Shifted(), cells[i + 1].ToVector3Shifted());
             }
         }
 
         public override void MapComponentOnGUI()
         {
             if (map != Find.CurrentMap || !Showing()) return;
-            Text.Font = GameFont.Tiny; var reg = FamilyComponent.Current.Registry;
-            foreach (var p in reg.Posts().All)
-                if (p.Map == map.uniqueID) GenMapUI.DrawThingLabel(GenMapUI.LabelDrawPosFor(new IntVec3(p.X, 0, p.Z)), ("WFL_Military_Post_" + p.Kind).Translate(), Color.white);
-            var book = reg.Patrols();
-            foreach (var spot in book.Spots)
-                if (spot.Map == map.uniqueID) GenMapUI.DrawThingLabel(GenMapUI.LabelDrawPosFor(new IntVec3(spot.X, 0, spot.Z)), (book.Route(spot.Route)?.Name ?? "?") + " " + Letter(spot.Type), ColourOf(spot.Route));
+            Ensure(FamilyComponent.Current.Registry); Text.Font = GameFont.Tiny;
+            foreach (var l in labels) GenMapUI.DrawThingLabel(GenMapUI.LabelDrawPosFor(l.Cell), l.Text, l.Colour);
         }
     }
 

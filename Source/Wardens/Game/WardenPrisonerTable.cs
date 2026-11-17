@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using FamilyLife.Domain;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -43,22 +44,12 @@ namespace FamilyLife
             return CommunityPageLayout.Help(s, y + 4f, "WFL_Wardens_PrisonersHelp".Translate());
         }
 
-        private static bool? customInteractions;
-        /// <summary>True when Custom Prisoner Interactions is running: it adds per-prisoner options for Convert and Release on the prisoner's own tab.</summary>
-        private static bool CustomInteractions => (customInteractions ?? (customInteractions = GenTypes.GetTypeInAnyAssembly("CustomPrisonerInteractions.CustomPrisonerInteractionsMod") != null)).Value;
-
-        private static void OpenPrisonerTab(Pawn p)
-        {
-            Find.MainTabsRoot.EscapeCurrentTab(); CameraJumper.TryJumpAndSelect(p);
-            try { InspectPaneUtility.OpenTab(typeof(ITab_Pawn_Visitor)); } catch (System.Exception) { }
-        }
-
         private static void Row(Rect s, ref float y, int index, Pawn p, bool slave, float nameW, float barW, float resW, float modeW)
         {
             var row = CommunityWidgets.Row(s, y, index); float x = 0f;
             bool trouble = p.Downed || p.health.HasHediffsNeedingTend(false);
             GUI.color = trouble ? CommunityWidgets.Poor : Color.white;
-            CommunityWidgets.NameButton(new Rect(x + 4f, row.y, nameW - 6f, row.height), p); GUI.color = Color.white; PrisonerRealismLink.DrawMarks(new Rect(x + 4f, row.y, nameW - 6f, row.height), p); x += nameW;
+            CommunityWidgets.NameButton(new Rect(x + 4f, row.y, nameW - 6f, row.height), p); GUI.color = Color.white; x += nameW;
             float mood = p.needs?.mood?.CurLevelPercentage ?? 0f, food = p.needs?.food?.CurLevelPercentage ?? 0f, health = p.health.summaryHealth.SummaryHealthPercent;
             CommunityWidgets.Bar(new Rect(x, row.y + 6f, barW - 8f, row.height - 12f), mood, CommunityWidgets.Level(mood), p.needs?.mood != null ? mood.ToStringPercent() : "-"); x += barW;
             CommunityWidgets.Bar(new Rect(x, row.y + 6f, barW - 8f, row.height - 12f), health, CommunityWidgets.Level(health), health.ToStringPercent()); x += barW;
@@ -74,13 +65,19 @@ namespace FamilyLife
             {
                 string resistance = p.guest != null ? p.guest.resistance.ToString("0.#") : "-";
                 CommunityWidgets.Cell(new Rect(x, row.y, resW - 4f, row.height), resistance, p.guest != null && p.guest.resistance > 0.01f ? Color.white : CommunityWidgets.Good); x += resW;
-                float extra = CustomInteractions ? 34f : 0f;
-                CommunityWidgets.Choice(new Rect(x, row.y + 1f, modeW - 8f - extra, row.height - 2f), p.guest?.ExclusiveInteractionMode?.LabelCap ?? "-", () => Modes(p));
-                if (CustomInteractions)
+                CommunityWidgets.Choice(new Rect(x, row.y + 1f, modeW - 8f - 40f, row.height - 2f), p.guest?.ExclusiveInteractionMode?.LabelCap ?? "-", () => Modes(p));
+                var holds = FamilyComponent.Current?.Registry.ReleaseHolds(); var when = holds?.When(p.thingIDNumber) ?? ReleaseWhen.None;
+                var hold = new Rect(x + modeW - 8f - 36f, row.y + 1f, 36f, row.height - 2f);
+                if (holds != null)
                 {
-                    var more = new Rect(x + modeW - 8f - extra + 4f, row.y + 1f, extra - 4f, row.height - 2f);
-                    if (Widgets.ButtonText(more, "...")) OpenPrisonerTab(p);
-                    TooltipHandler.TipRegion(more, "WFL_Wardens_MoreOptionsTip".Translate());
+                    GUI.color = when != ReleaseWhen.None ? CommunityWidgets.Gold : Color.white;
+                    if (Widgets.ButtonText(hold, when == ReleaseWhen.None ? "R" : "R*")) Find.WindowStack.Add(new FloatMenu(new List<FloatMenuOption>
+                    {
+                        new FloatMenuOption("WFL_Wardens_HoldHealthy".Translate(), () => holds.Set(p.thingIDNumber, ReleaseWhen.Healthy)),
+                        new FloatMenuOption("WFL_Wardens_HoldWalk".Translate(), () => holds.Set(p.thingIDNumber, ReleaseWhen.CanWalk)),
+                        new FloatMenuOption("WFL_Wardens_HoldNone".Translate(), () => holds.Set(p.thingIDNumber, ReleaseWhen.None))
+                    }));
+                    GUI.color = Color.white; TooltipHandler.TipRegion(hold, when == ReleaseWhen.None ? "WFL_Wardens_HoldTip".Translate().ToString() : ("WFL_Wardens_HoldActive_" + when).Translate().ToString());
                 }
             }
             y += row.height;

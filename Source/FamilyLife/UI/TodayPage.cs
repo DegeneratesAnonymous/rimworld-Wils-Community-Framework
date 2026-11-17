@@ -22,18 +22,32 @@ namespace FamilyLife
 
         private static Color AlertColour(ColonyAlertLevel l) => l == ColonyAlertLevel.Red ? CommunityWidgets.Poor : l == ColonyAlertLevel.Yellow ? CommunityWidgets.Fair : CommunityWidgets.Good;
 
-        private sealed class Row { public int Id; public Pawn Pawn; public List<ProfessionRole> Roles; public int Modules; public string Holder; }
+        private sealed class Row { public int Id; public Pawn Pawn; public List<ProfessionRole> Roles; public int Modules; public string Holder, RolesText, RolesTip; }
+        private static List<Row> rowsCache = new List<Row>(); private static int rowsAt = -9999;
 
         public static float Draw(Rect r, FamilyComponent c)
         {
-            var reg = c.Registry; var book = reg.Assignments(); var rows = new List<Row>();
+            var reg = c.Registry; var book = reg.Assignments(); var rows = Rows(c, reg, book);
+            int onDuty = rows.Count(x => x.Holder != null), overbooked = rows.Count(x => x.Modules >= OverbookedModules);
+            return DrawRows(r, c, reg, rows, onDuty, overbooked);
+        }
+
+        private static List<Row> Rows(FamilyComponent c, FamilyRegistry reg, AssignmentBook book)
+        {
+            int now = FrameworkServices.Now; if (now >= rowsAt && now - rowsAt < 60) return rowsCache;
+            var rows = new List<Row>();
             foreach (int id in book.AllPeople().Distinct())
             {
                 var pawn = c.TryGetPawn(id); if (pawn == null || pawn.Dead || reg.GetPerson(id)?.InColony != true) continue;
                 var roles = book.RolesOf(id).Select(x => CareerService.Professions.ById(x)).Where(x => x != null && FamilyFramework.Catalog.IsEnabled(x.ModuleId)).ToList(); if (roles.Count == 0) continue;
-                rows.Add(new Row { Id = id, Pawn = pawn, Roles = roles, Modules = roles.Select(x => x.ModuleId).Distinct().Count(), Holder = FrameworkServices.DutyHolder(pawn) });
+                rows.Add(new Row { Id = id, Pawn = pawn, Roles = roles, Modules = roles.Select(x => x.ModuleId).Distinct().Count(), Holder = FrameworkServices.DutyHolder(pawn),
+                    RolesText = string.Join(", ", roles.Select(q => CareerService.TitleOf(q, reg))), RolesTip = string.Join("\n", roles.Select(q => CareerService.TitleOf(q, reg) + " - " + ModuleName(q.ModuleId))) });
             }
-            int onDuty = rows.Count(x => x.Holder != null), overbooked = rows.Count(x => x.Modules >= OverbookedModules);
+            rowsCache = rows; rowsAt = now; return rows;
+        }
+
+        private static float DrawRows(Rect r, FamilyComponent c, FamilyRegistry reg, List<Row> rows, int onDuty, int overbooked)
+        {
             var level = FrameworkServices.ColonyAlertPublished; string by = FrameworkServices.ColonyAlertRaisedBy;
 
             float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Today_Status".Translate(), s =>
@@ -81,8 +95,8 @@ namespace FamilyLife
                     var row = CommunityWidgets.Row(s, h, i++);
                     CommunityWidgets.NameButton(new Rect(4f, row.y, nameW - 6f, row.height), x.Pawn);
                     var rolesRect = new Rect(nameW, row.y, rolesW - 6f, row.height);
-                    CommunityWidgets.Cell(rolesRect, string.Join(", ", x.Roles.Select(q => CareerService.TitleOf(q, reg))).Truncate(rolesRect.width), Color.white);
-                    TooltipHandler.TipRegion(rolesRect, string.Join("\n", x.Roles.Select(q => CareerService.TitleOf(q, reg) + " - " + ModuleName(q.ModuleId))));
+                    CommunityWidgets.Cell(rolesRect, x.RolesText.Truncate(rolesRect.width), Color.white);
+                    TooltipHandler.TipRegion(rolesRect, x.RolesTip);
                     string report = x.Pawn.jobs?.curDriver?.GetReport(); string doing = x.Holder != null ? ModuleName(x.Holder) + (string.IsNullOrEmpty(report) ? "" : ": " + report) : (string.IsNullOrEmpty(report) ? "WFL_Today_Idle".Translate().ToString() : report);
                     var mate = FrameworkServices.CompanionOf(x.Pawn); var boss = FrameworkServices.LeaderOf(x.Pawn);
                     if (mate != null) doing += " (" + "WFL_Today_With".Translate(mate.LabelShort) + ")"; else if (boss != null) doing += " (" + "WFL_Today_Joining".Translate(boss.LabelShort) + ")";
