@@ -73,6 +73,7 @@ namespace FamilyLife
                     float fit = QuickSetupPlanner.Fit(Rules(CareerService.Career(career)),
                         name => { var def = DefDatabase<SkillDef>.GetNamedSilentFail(name); var sk = def == null ? null : pawn.skills.GetSkill(def); return sk == null || sk.TotallyDisabled ? 0 : sk.Level; },
                         name => { var def = DefDatabase<SkillDef>.GetNamedSilentFail(name); var sk = def == null ? null : pawn.skills.GetSkill(def); return sk == null ? 0 : sk.passion == Passion.Major ? 2 : sk.passion == Passion.Minor ? 1 : 0; });
+                    fit += ExpertiseLink.Fit(pawn, career);          // Vanilla Skills Expanded expertise counts when that mod is present
                     if (fit > 0f) cand.Fit[career] = fit;
                 }
                 candidates.Add(cand);

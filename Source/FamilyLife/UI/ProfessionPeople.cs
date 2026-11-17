@@ -75,6 +75,7 @@ namespace FamilyLife
                 var card = new Rect(nameW, y + 4f, mainW, h0 - 8f); Widgets.DrawBoxSolid(card, new Color(Gold.r, Gold.g, Gold.b, .10f)); Widgets.DrawBox(card);
                 GUI.color = Gold; Text.Font = GameFont.Tiny; Widgets.Label(new Rect(card.x + 6f, card.y + 1f, card.width - 12f, 16f), "★ " + "WFL_Prof_Main".Translate() + ": " + CareerService.TitleOf(main.Role, reg)); Text.Font = GameFont.Small; GUI.color = Color.white;
                 XpBar(new Rect(card.x + 6f, card.yMax - 20f, card.width - 12f, 16f), main, "");
+                string expertise = ExpertiseLink.Describe(pawn, main.Role.Career); if (expertise != null) TooltipHandler.TipRegion(card, "WFL_Prof_Expertise".Translate(expertise));
                 if (Widgets.ButtonInvisible(card)) ChipMenu(c, pawn, main);
                 for (int i = 0; i < sides.Count; i++)
                 {

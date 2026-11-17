@@ -70,7 +70,7 @@ namespace FamilyLife
         private static bool IsFreeForStory(Pawn p)
         {
             if (p == null || !p.Spawned || p.Dead || p.Downed || p.Drafted || p.InMentalState || !p.Awake() || p.IsPrisoner) return false;
-            return p.timetable?.CurrentAssignment != TimeAssignmentDefOf.Work && Activities.CanSpareAttention(p);
+            return p.timetable?.CurrentAssignment != TimeAssignmentDefOf.Work && Activities.CanSpareAttention(p) && !Activities.BusyElsewhere(p);
         }
 
         /// <summary>True in the hour before the child's schedule says sleep.</summary>

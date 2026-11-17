@@ -58,7 +58,7 @@ namespace FamilyLife
             var row = CommunityWidgets.Row(s, y, index); float x = 0f;
             bool trouble = p.Downed || p.health.HasHediffsNeedingTend(false);
             GUI.color = trouble ? CommunityWidgets.Poor : Color.white;
-            CommunityWidgets.NameButton(new Rect(x + 4f, row.y, nameW - 6f, row.height), p); GUI.color = Color.white; x += nameW;
+            CommunityWidgets.NameButton(new Rect(x + 4f, row.y, nameW - 6f, row.height), p); GUI.color = Color.white; PrisonerRealismLink.DrawMarks(new Rect(x + 4f, row.y, nameW - 6f, row.height), p); x += nameW;
             float mood = p.needs?.mood?.CurLevelPercentage ?? 0f, food = p.needs?.food?.CurLevelPercentage ?? 0f, health = p.health.summaryHealth.SummaryHealthPercent;
             CommunityWidgets.Bar(new Rect(x, row.y + 6f, barW - 8f, row.height - 12f), mood, CommunityWidgets.Level(mood), p.needs?.mood != null ? mood.ToStringPercent() : "-"); x += barW;
             CommunityWidgets.Bar(new Rect(x, row.y + 6f, barW - 8f, row.height - 12f), health, CommunityWidgets.Level(health), health.ToStringPercent()); x += barW;

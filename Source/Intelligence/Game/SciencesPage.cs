@@ -11,7 +11,7 @@ namespace FamilyLife
     /// <summary>The Sciences page: the research focus, the lead researcher, every lab and library with what is in it, and the researchers with their skill. Reads the game; only the lead choice is saved.</summary>
     public static class SciencesPage
     {
-        private sealed class Place { public IntelligenceRoom Kind; public int Cells, Benches, Shelves, Equipment; public IntVec3 Spot; public Map Map; }
+        private sealed class Place { public IntelligenceRoom Kind; public int Cells, Benches, Shelves, Equipment, Books, Papers; public IntVec3 Spot; public Map Map; }
         private static List<Place> places = new List<Place>(); private static int surveyed = -1;
         public static void Reset() { places = new List<Place>(); surveyed = -1; }
 
@@ -35,6 +35,8 @@ namespace FamilyLife
                         if (++scanned > 400) break; p.Cells++;
                         foreach (var thing in cell.GetThingList(map))
                         {
+                            if (thing.def.defName == "ResearchPaper") { if (counted.Add(thing)) p.Papers += thing.stackCount; continue; }          // Research Papers
+                            if (thing is Book && counted.Add(thing)) { p.Books++; continue; }          // books of the game and of book mods
                             if (!(thing is Building b) || !counted.Add(b)) continue;
                             if (Named(b, "ResearchBench")) p.Benches++; else if (Named(b, "Bookcase", "Bookshelf", "Bookshelves")) p.Shelves++;
                             else if (Named(b, "GeneExtractor", "GeneAssembler", "GeneBank", "GeneProcessor", "Xenogerm")) p.Equipment++;
@@ -117,6 +119,7 @@ namespace FamilyLife
             {
                 var row = CommunityWidgets.Row(s, y, i++);
                 string detail = p.Kind == IntelligenceRoom.ResearchLab ? "WFL_Sciences_BenchCount".Translate(p.Benches).ToString() : p.Kind == IntelligenceRoom.Library ? "WFL_Sciences_ShelfCount".Translate(p.Shelves).ToString() : "WFL_Sciences_EquipCount".Translate(p.Equipment).ToString();
+                if (p.Kind == IntelligenceRoom.Library && (p.Books > 0 || p.Papers > 0)) detail += ", " + "WFL_Sciences_Holdings".Translate(p.Books, p.Papers);
                 CommunityWidgets.Cell(new Rect(6f, row.y, s.width * .3f, row.height), KindName(p.Kind));
                 CommunityWidgets.Cell(new Rect(s.width * .3f, row.y, s.width * .5f, row.height), detail + ", " + "WFL_Sciences_CellCount".Translate(p.Cells), CommunityWidgets.Muted);
                 if (Widgets.ButtonText(new Rect(s.width - 70f, row.y + 2f, 66f, row.height - 4f), "WFL_Sciences_Go".Translate())) CameraJumper.TryJump(p.Spot, p.Map);

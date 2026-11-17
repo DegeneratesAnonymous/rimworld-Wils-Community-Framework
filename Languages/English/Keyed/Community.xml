@@ -75,6 +75,7 @@
   <WFL_Prof_PeopleKey>Gold box: main profession. Bars show progress toward the next step of that career; a green arrow means experience came in recently. Click a profession to make it main or remove it.</WFL_Prof_PeopleKey>
   <WFL_Prof_RoleKey>Each role and who holds it. A star marks someone's main profession. Bars show progress; green arrows mean recent experience.</WFL_Prof_RoleKey>
   <WFL_Prof_NoPeople>Nobody has a profession yet. Use Quick setup, or assign people on the Career paths view.</WFL_Prof_NoPeople>
+  <WFL_Prof_Expertise>Expertise: {0}</WFL_Prof_Expertise>
   <WFL_Prof_Vacant>Vacant</WFL_Prof_Vacant>
   <WFL_Prof_MakeMain>Make this their main profession</WFL_Prof_MakeMain>
   <WFL_Prof_Remove>Remove this assignment</WFL_Prof_Remove>

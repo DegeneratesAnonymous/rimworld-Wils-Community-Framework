@@ -30,6 +30,10 @@ namespace FamilyLife.Domain
             return lines.Values.OrderByDescending(l => l.MaxPerDay).ThenByDescending(l => l.Pending).ThenBy(l => l.Module, StringComparer.Ordinal).ToList();
         }
 
+        /// <summary>Silver that came into an account by trade or as plain income since a day (trade with caravans and markets, sales, other income). Rewards and taxes are not counted.</summary>
+        public static int IncomeSince(IEnumerable<Transaction> history, string account, int fromDay) =>
+            history == null ? 0 : history.Where(t => t.Day >= fromDay && t.To == account && (t.Kind == TxKind.Trade || t.Kind == TxKind.Income)).Sum(t => t.Amount);
+
         /// <summary>How many days the funds would last if everyone earned the daily maximum, or -1 when there is no bill.</summary>
         public static int RunwayDays(int funds, IEnumerable<BudgetLine> lines)
         {

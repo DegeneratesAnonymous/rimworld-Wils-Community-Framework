@@ -48,7 +48,7 @@ namespace FamilyLife
         public static bool Busy(Pawn pawn)
         {
             if(pawn==null||controller!=null&&(dining==null||queued==null))return true;string driver=pawn.CurJob?.def?.driverClass?.FullName??"";
-            if(driver=="Hospitality.JobDriver_BuyItem"||driver.StartsWith("Gastronomy.",StringComparison.Ordinal)||driver.StartsWith("CashRegister.",StringComparison.Ordinal))return true;
+            if(driver=="Hospitality.JobDriver_BuyItem"||driver.StartsWith("Gastronomy.",StringComparison.Ordinal)||driver.StartsWith("CashRegister.",StringComparison.Ordinal)||driver.StartsWith("Storefront.",StringComparison.Ordinal)||driver.StartsWith("VendingMachines.",StringComparison.Ordinal)||driver.StartsWith("HospitalityCasino.",StringComparison.Ordinal)||driver.StartsWith("HospitalitySpa.",StringComparison.Ordinal))return true;
             try{return dining?.Invoke(null,new object[]{pawn})!=null||queued?.Invoke(null,new object[]{pawn}) is bool q&&q;}
             catch{return true;}
         }

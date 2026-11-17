@@ -32,4 +32,6 @@
 <WFL_Health_Ward_NoGuardHint>Assign a warden on the Professions page.</WFL_Health_Ward_NoGuardHint>
 <WFL_Health_Ward_Watched>{0} prisoners watched by {1} wardens</WFL_Health_Ward_Watched>
 <WFL_Wardens_MoreOptionsTip>Open this prisoner's own tab for the extra Convert and Release options from Custom Prisoner Interactions.</WFL_Wardens_MoreOptionsTip>
+<WFL_Health_Ward_Hunger>{0} prisoners are on hunger strike</WFL_Health_Ward_Hunger>
+<WFL_Health_Ward_HungerHint>From Prisoner Realism. Check their treatment and conditions, or use force feeding.</WFL_Health_Ward_HungerHint>
 </LanguageData>

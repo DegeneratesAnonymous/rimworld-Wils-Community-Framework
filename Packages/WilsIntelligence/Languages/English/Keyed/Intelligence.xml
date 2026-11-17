@@ -36,6 +36,7 @@
   <WFL_Sciences_ResearchLab>Research Lab</WFL_Sciences_ResearchLab>
   <WFL_Sciences_Totals>In all: {0} research benches in labs, {1} bookshelves in libraries, {2} pieces of gene equipment.</WFL_Sciences_Totals>
   <WFL_Sciences_BenchCount>{0} research benches</WFL_Sciences_BenchCount>
+  <WFL_Sciences_Holdings>{0} books, {1} research papers</WFL_Sciences_Holdings>
   <WFL_Sciences_ShelfCount>{0} bookshelves</WFL_Sciences_ShelfCount>
   <WFL_Sciences_EquipCount>{0} pieces of gene equipment</WFL_Sciences_EquipCount>
   <WFL_Sciences_CellCount>{0} cells</WFL_Sciences_CellCount>

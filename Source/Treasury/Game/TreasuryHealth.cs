@@ -19,6 +19,9 @@ namespace FamilyLife
             if (owed > 0) list.Add(HealthNote.Bad(module, "WFL_Health_Tr_Owed".Translate(owed), "WFL_Health_Tr_OwedHint".Translate()));
             else if (days >= 0 && days < 3) list.Add(HealthNote.Warn(module, "WFL_Health_Tr_Low".Translate(days), "WFL_Health_Tr_LowHint".Translate()));
             else if (days >= 0) list.Add(HealthNote.Good(module, "WFL_Health_Tr_Paid".Translate(days)));
+            int perDay = lines.Sum(x => x.MaxPerDay); int income = PayrollBudget.IncomeSince(l.History, Ledger.CommunityId, TreasuryService.Today() - 15);
+            if (perDay > 0 && income / 15 < perDay / 2) list.Add(HealthNote.Warn(module, "WFL_Health_Tr_Income".Translate(income / 15, perDay), "WFL_Health_Tr_IncomeHint".Translate()));
+            else if (perDay > 0) list.Add(HealthNote.Good(module, "WFL_Health_Tr_IncomeOk".Translate(income / 15, perDay)));
             return list;
         }
     }

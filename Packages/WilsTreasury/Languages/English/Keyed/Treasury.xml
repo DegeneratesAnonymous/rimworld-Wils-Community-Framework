@@ -123,4 +123,8 @@
 <WFL_Health_Tr_Low>Funds cover only about {0} days of wages</WFL_Health_Tr_Low>
 <WFL_Health_Tr_LowHint>See the Budget tab for who costs what.</WFL_Health_Tr_LowHint>
 <WFL_Health_Tr_Paid>Wages are paid, funds cover about {0} days</WFL_Health_Tr_Paid>
+<WFL_Tr_BudgetIncome>Trade and other income in the last {1} days: {0} silver.</WFL_Tr_BudgetIncome>
+<WFL_Health_Tr_Income>Income is about {0} silver a day against wages of up to {1}</WFL_Health_Tr_Income>
+<WFL_Health_Tr_IncomeHint>Trade with caravans or markets, sell goods, or lower wage rates.</WFL_Health_Tr_IncomeHint>
+<WFL_Health_Tr_IncomeOk>Income is about {0} silver a day against wages of up to {1}</WFL_Health_Tr_IncomeOk>
 </LanguageData>
