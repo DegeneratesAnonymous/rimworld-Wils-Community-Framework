@@ -49,7 +49,7 @@ namespace FamilyLife
         /// <summary>One bar: the fill, a label over it, and a green arrow with the recent gain when the person is learning.</summary>
         private static void XpBar(Rect r, Held h, string label)
         {
-            var color = h.Gain > 0 ? Gaining : CommunityWidgets.Level(h.Focus.Share);
+            var color = h.Gain > 0 ? Gaining : new Color(.38f, .64f, .85f);
             CommunityWidgets.Bar(r, h.Focus.Share, color, label + (h.Focus.Done ? "" : "  " + Mathf.RoundToInt(h.Focus.Share * 100f) + "%"));
             if (h.Gain > 0) { Text.Font = GameFont.Tiny; GUI.color = Gaining; Text.Anchor = TextAnchor.MiddleRight; Widgets.Label(new Rect(r.xMax - 46f, r.y, 44f, r.height), "▲+" + h.Gain); Text.Anchor = TextAnchor.UpperLeft; GUI.color = Color.white; Text.Font = GameFont.Small; }
             string tip = h.Focus.Done ? "WFL_Prof_BarDone".Translate().ToString() : "WFL_Prof_BarTip".Translate(h.Focus.Target == null ? "WFL_Prof_NextStep".Translate().ToString() : h.Focus.Target).ToString();
@@ -72,6 +72,7 @@ namespace FamilyLife
                 var pawn = c.TryGetPawn(id); if (pawn == null || pawn.Dead || reg.GetPerson(id)?.InColony != true) continue;
                 var held = HeldBy(c, pawn, now); if (held.Count > 0) people.Add(new KeyValuePair<Pawn, List<Held>>(pawn, held));
             }
+            y = CommunityStaffing.Draw(r, y, c, null);
             if (people.Count == 0) return CommunityPageLayout.Line(r, y, "WFL_Prof_NoPeople".Translate(), true);
             y = CommunityPageLayout.Line(r, y, "WFL_Prof_PeopleKey".Translate(), true);
             float nameW = Mathf.Max(120f, r.width * .17f), mainW = Mathf.Max(200f, r.width * .32f);
@@ -106,7 +107,7 @@ namespace FamilyLife
             foreach (var role in roles)
             {
                 var holders = book.Holders(role.Id).Distinct().Select(id => c.TryGetPawn(id)).Where(p => p != null && !p.Dead && reg.GetPerson(p.thingIDNumber)?.InColony == true).ToList();
-                if (holders.Count == 0 && role.Level > 1) continue;          // list vacant entry roles (where to start) but not every locked higher tier
+                // The directory includes optional and unqualified roles so it can be searched by browsing.
                 if (role.Career != lastCareer) { lastCareer = role.Career; var def = CareerService.Career(role.Career); y += 4f; GUI.color = Gold; Widgets.Label(new Rect(0f, y, r.width, 24f), (def != null ? CareerService.CareerName(def, reg) : role.Career).ToUpperInvariant()); GUI.color = Color.white; y += 26f; }
                 int perRow = Mathf.Max(1, Mathf.FloorToInt((r.width - 200f) / 210f)); int rows = Math.Max(1, (holders.Count + perRow - 1) / perRow); float h0 = rows * 26f + 6f; var row = new Rect(0f, y, r.width, h0);
                 Widgets.DrawBoxSolid(row, new Color(1f, 1f, 1f, .035f));
@@ -125,3 +126,4 @@ namespace FamilyLife
         }
     }
 }
+

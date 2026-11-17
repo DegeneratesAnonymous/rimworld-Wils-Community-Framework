@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <WFL_UX_SearchRoles>Search roles</WFL_UX_SearchRoles>
+  <WFL_UX_OptionalRoles>roles in use · specialties are optional</WFL_UX_OptionalRoles>
+  <WFL_UX_MultipleRoles>Review roles</WFL_UX_MultipleRoles>
+  <WFL_UX_InfantAssistance>Infant · needs assistance</WFL_UX_InfantAssistance>
+  <WFL_UX_AllResidents>All residents ({0})</WFL_UX_AllResidents>
+  <WFL_UX_Community>COMMUNITY</WFL_UX_Community>
+  <WFL_UX_Services>SERVICES</WFL_UX_Services>
+  <WFL_UX_Operations>OPERATIONS</WFL_UX_Operations>
+  <WFL_UX_Review>Review</WFL_UX_Review>
+  <WFL_UX_Attention>Needs attention ({0})</WFL_UX_Attention>
+  <WFL_UX_ShowAll>Show all</WFL_UX_ShowAll>
+  <WFL_UX_ShowLess>Show fewer</WFL_UX_ShowLess>
+  <WFL_UX_ManageStaff>Manage staff</WFL_UX_ManageStaff>
+  <WFL_UX_Candidates>Candidates</WFL_UX_Candidates>
+  <WFL_UX_NeutralRole>Optional role · no current holder</WFL_UX_NeutralRole>
+  <WFL_UX_Details>Details</WFL_UX_Details>
+  <WFL_UX_Back>Back</WFL_UX_Back>
+  <WFL_UX_Pending>Earned wages pending</WFL_UX_Pending>
+  <WFL_UX_Funds>Community funds</WFL_UX_Funds>
+  <WFL_UX_Payday>Days until payday</WFL_UX_Payday>
+  <WFL_UX_PayHint>Pending wages are already earned; future wages may increase the next payroll.</WFL_UX_PayHint>
+  <WFL_UX_CareHint>Downed describes mobility, not medical urgency. Inspect the cause; infants may normally need assistance.</WFL_UX_CareHint>
+  <WFL_UX_ActivityAll>All role holders</WFL_UX_ActivityAll>
+  <WFL_UX_ActivityDuty>On community duty</WFL_UX_ActivityDuty>
+  <WFL_UX_ActivityReview>Multiple roles</WFL_UX_ActivityReview>
+  <WFL_UX_ActivityKey>Community duty and current activity are separate. Multiple roles suggests a review, not a confirmed conflict.</WFL_UX_ActivityKey>
+  <WFL_UX_NotEnrolled>Not of school age</WFL_UX_NotEnrolled>
+  <WFL_UX_PeopleActivity>People &amp; activity</WFL_UX_PeopleActivity>
+  <WFL_UX_FacilitySetup>Select an action to place it on the map. Right-click or Escape cancels placement.</WFL_UX_FacilitySetup>
+  <WFL_UX_StaffingKey>Specialties are optional. Choose roles to meet your community’s needs.</WFL_UX_StaffingKey>
+  <WFL_UX_XpRequired>Experience required: {0} general · {1} specialty</WFL_UX_XpRequired>
+  <WFL_UX_Requires>Requires: {0}</WFL_UX_Requires>
+  <WFL_UX_DutyCounts>{0} role holders · {1} on community duty</WFL_UX_DutyCounts>
+  <WFL_UX_UnknownRole>Unavailable profession</WFL_UX_UnknownRole>
+  <WFL_UX_Readiness>{0} serving · {1} lack a suitable weapon · {2} downed or player-drafted</WFL_UX_Readiness>
+  <WFL_UX_Unarmed>{0} soldiers lack a suitable weapon</WFL_UX_Unarmed>
+  <WFL_UX_Ownership>Community ownership: {0} of {1} silver claims</WFL_UX_Ownership>
+  <WFL_UX_OwnershipHint>Ownership shares describe claims on stored silver, not separate physical piles.</WFL_UX_OwnershipHint>
+  <WFL_UX_VenueSetup>Get this establishment ready</WFL_UX_VenueSetup>
+  <WFL_UX_Premises>Designate premises and stock</WFL_UX_Premises>
+  <WFL_UX_StaffHours>Assign staff and review hours</WFL_UX_StaffHours>
+  <WFL_UX_CardView>Show compact cards</WFL_UX_CardView>
+  <WFL_UX_GraphView>Show prerequisite graph</WFL_UX_GraphView>
+</LanguageData>

@@ -53,7 +53,8 @@ namespace FamilyLife
     {
         public static float Draw(Rect r, FamilyComponent c)
         {
-            float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Wardens_PrisonersTitle".Translate(), s => WardenPrisonerTable.Draw(s, c));
+            float staffing = CommunityStaffing.Draw(r, 0f, c, "wils.wardens");
+            float y = CommunityPageLayout.Section(r, 0f, staffing, r.width, "WFL_Wardens_PrisonersTitle".Translate(), s => WardenPrisonerTable.Draw(s, c));
             y = CommunityPageLayout.Section(r, 0f, y, r.width, "WFL_Wardens_RoomsTitle".Translate(), s =>
             {
                 int cells = 0, humane = 0, interview = 0, visiting = 0;
@@ -97,10 +98,11 @@ namespace FamilyLife
             {
                 float h = 0f;
                 foreach (var specialty in WardenCareers.Specialties)
-                    h = CommunityPageLayout.Help(s, h, ("wils.wardens." + specialty.ToLowerInvariant() + "_label").Translate() + ": " + ("WFL_Wardens_" + specialty + "Bonus").Translate());
+                    h = CommunityPageLayout.Line(s, h, ("wils.wardens." + specialty.ToLowerInvariant() + "_label").Translate() + ": " + ("WFL_Wardens_" + specialty + "Bonus").Translate());
                 return h;
             });
             return y;
         }
     }
 }
+

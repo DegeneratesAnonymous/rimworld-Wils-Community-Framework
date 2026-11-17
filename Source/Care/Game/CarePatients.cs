@@ -12,6 +12,7 @@ namespace FamilyLife
     /// </summary>
     internal static class CarePatients
     {
+        private static bool showResidents;
         private static List<Pawn> colonistsCache = new List<Pawn>(); private static int colonistsAt = -9999;
         private static List<Pawn> Colonists()
         {
@@ -30,7 +31,7 @@ namespace FamilyLife
         private static string Conditions(Pawn p)
         {
             var parts = new List<string>();
-            if (p.Downed) parts.Add("WFL_Care_Downed".Translate());
+            if (p.Downed) parts.Add((p.ageTracker.AgeBiologicalYears < 3 ? "WFL_UX_InfantAssistance" : "WFL_Care_Downed").Translate());
             if (Bleeding(p)) parts.Add("WFL_Care_Bleeding".Translate());
             foreach (var h in p.health.hediffSet.hediffs.Where(x => x.Visible && (x.Bleeding || x.TendableNow(false) || x.def.makesSickThought)).OrderByDescending(x => x.Severity).Take(2)) parts.Add(h.LabelCap);
             return parts.Count == 0 ? "-" : string.Join(", ", parts);
@@ -45,7 +46,7 @@ namespace FamilyLife
 
         public static float Patients(Rect s)
         {
-            var all = Colonists(); var patients = all.Where(IsPatient).OrderBy(Health).ToList();
+            var all = Colonists(); var patients = all.Where(IsPatient).OrderByDescending(Bleeding).ThenByDescending(NeedsTending).ThenBy(Health).ToList();
             float y = CommunityPageLayout.Line(s, 0f, "WFL_Care_PatientSummary".Translate(all.Count, patients.Count, all.Count(NeedsTending), all.Count(p => p.Downed)));
             if (patients.Count == 0) return CommunityPageLayout.Line(s, y, "WFL_Care_NoPatients".Translate(), true);
             float w = s.width, nameW = Mathf.Max(100f, w * .15f), barW = Mathf.Max(80f, w * .11f), careW = Mathf.Max(120f, w * .16f), whereW = Mathf.Max(90f, w * .12f), condW = w - nameW - barW - careW - whereW - 60f;
@@ -58,9 +59,10 @@ namespace FamilyLife
             foreach (var p in patients.Take(30))
             {
                 var row = CommunityWidgets.Row(s, y, i++); float x = 0f; float h = Health(p);
-                GUI.color = p.Downed || Bleeding(p) ? CommunityWidgets.Poor : Color.white; CommunityWidgets.NameButton(new Rect(4f, row.y, nameW - 6f, row.height), p); GUI.color = Color.white; x += nameW;
+                GUI.color = Bleeding(p) ? CommunityWidgets.Poor : NeedsTending(p) ? CommunityWidgets.Fair : Color.white; CommunityWidgets.NameButton(new Rect(4f, row.y, nameW - 6f, row.height), p); GUI.color = Color.white; x += nameW;
                 CommunityWidgets.Bar(new Rect(x, row.y + 6f, barW - 8f, row.height - 12f), h, CommunityWidgets.Level(h), h.ToStringPercent()); x += barW;
-                CommunityWidgets.Cell(new Rect(x, row.y, condW - 6f, row.height), Conditions(p), NeedsTending(p) ? CommunityWidgets.Fair : Color.white); x += condW;
+                TooltipHandler.TipRegion(new Rect(x, row.y, condW - 6f, row.height), Conditions(p));
+                CommunityWidgets.Cell(new Rect(x, row.y, condW - 6f, row.height), Conditions(p).Truncate(Mathf.Max(1f, condW - 6f)), NeedsTending(p) ? CommunityWidgets.Fair : Color.white); x += condW;
                 CommunityWidgets.Cell(new Rect(x, row.y, whereW, row.height), Where(p), CommunityWidgets.Muted); x += whereW;
                 if (p.playerSettings != null) MedicalCareUtility.MedicalCareSelectButton(new Rect(x, row.y + 1f, careW + 54f, row.height - 2f), p);
                 y += row.height;
@@ -70,6 +72,14 @@ namespace FamilyLife
 
         /// <summary>A tile per colonist: a name and a health bar coloured by how they are, pain and tending shown by a mark. Click to go to them.</summary>
         public static float Overview(Rect s)
+        {
+            if (Widgets.ButtonText(new Rect(0f, 0f, s.width, 30f), (showResidents ? "− " : "+ ") + "WFL_UX_AllResidents".Translate(Colonists().Count))) showResidents = !showResidents;
+            if (!showResidents) return 36f;
+            GUI.BeginGroup(new Rect(0f, 36f, s.width, 10000f));
+            try { return 36f + ResidentTiles(s); } finally { GUI.EndGroup(); }
+        }
+
+        private static float ResidentTiles(Rect s)
         {
             var all = Colonists().OrderBy(Health).ThenBy(p => p.LabelShort).ToList();
             if (all.Count == 0) return CommunityPageLayout.Line(s, 0f, "WFL_Care_NoColonists".Translate(), true);
@@ -92,3 +102,4 @@ namespace FamilyLife
         }
     }
 }
+

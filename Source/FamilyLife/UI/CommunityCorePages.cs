@@ -23,7 +23,7 @@ namespace FamilyLife
         {
             coreModule = moduleId;
             Add(moduleId, "overview", "WFL_Hub_Overview", 0, Overview, "WilsFamilyLife/Pages/overview");
-            Add(moduleId, "today", "WFL_Hub_Today", 5, TodayPage.Draw, "WilsFamilyLife/Pages/today");
+            Add(moduleId, "today", "WFL_UX_PeopleActivity", 5, TodayPage.Draw, "WilsFamilyLife/Pages/today");
             Add(moduleId, "families", "WFL_Hub_Families", 10, Families, "WilsFamilyLife/Pages/families");
             Add(moduleId, "professions", "WFL_Hub_Professions", 20, Professions, "WilsFamilyLife/Pages/professions");
             Add(moduleId, "assembly", "WFL_Hub_Assembly", 30, Assembly, "WilsFamilyLife/Pages/assembly");
@@ -83,7 +83,6 @@ namespace FamilyLife
             Text.Font = GameFont.Small; GUI.color = Color.gray;
             Widgets.Label(new Rect(20f, 46f, w - 40f, 24f), "WFL_Ov_Summary".Translate(people, families.Count, government).ToString()); GUI.color = Color.white;
             y = banner.height + 12f;
-            y = ColonyHealthPanel.Draw(r, y, c) + 4f;
 
             // --- figures, each one a way in to the page behind it
             bool wide = w >= 600f; int perRow = wide ? 4 : 2; float gap = 10f, tw = (w - gap * (perRow - 1)) / perRow, th = 74f;
@@ -92,11 +91,14 @@ namespace FamilyLife
             {
                 new Tile("WFL_Ov_Residents", people.ToString(), children > 0 ? "WFL_Ov_Children".Translate(children).ToString() : "", PageId("families")),
                 new Tile("WFL_Ov_Families", families.Count.ToString(), "", PageId("families")),
-                new Tile("WFL_Ov_Professions", staffed + " / " + roles.Count, "WFL_Ov_Staffed".Translate().ToString(), PageId("professions")),
+                new Tile("WFL_Ov_Professions", staffed.ToString(), "WFL_UX_OptionalRoles".Translate().ToString(), PageId("professions")),
                 new Tile("WFL_Ov_Assembly", nextAssembly, "", PageId("assembly")),
             };
             for (int i = 0; i < tiles.Length; i++) DrawTile(new Rect(i % perRow * (tw + gap), y + i / perRow * (th + gap), tw, th), tiles[i]);
             y += ((tiles.Length + perRow - 1) / perRow) * (th + gap) + 8f;
+
+
+            y = ColonyHealthPanel.Draw(r, y, c) + 4f;
 
             // --- first-time offer: set up professions from what people are good at
             if (Window_QuickSetup.Offered(reg))
@@ -202,7 +204,7 @@ namespace FamilyLife
             if (Widgets.ButtonText(new Rect(w - 180f, 0f, 180f, 30f), "WFL_Hub_AllFamilies".Translate()) && Find.WindowStack.WindowOfType<Window_Families>() == null) Find.WindowStack.Add(new Window_Families());
             y = 46f;
             if (families.Count == 0) return Line(r, y, "WFL_NoFamilies".Translate(), true);
-            int perRow = w >= 760f ? 3 : w >= 480f ? 2 : 1; float cw = (w - gap * (perRow - 1)) / perRow, ch = 112f; int i = 0;
+            int perRow = w >= 760f ? 3 : w >= 480f ? 2 : 1; float cw = (w - gap * (perRow - 1)) / perRow, ch = 164f; int i = 0;
             foreach (var f in families)
             {
                 var card = new Rect(i % perRow * (cw + gap), y + i / perRow * (ch + gap), cw, ch); i++; int id = f.Id;
@@ -211,12 +213,14 @@ namespace FamilyLife
                 var members = reg.Persons.Where(p => p.InColony && reg.FamilyOf(p.Id) == id).Select(p => NameOf(c, p.Id)).ToList();
                 GUI.color = Color.gray; Widgets.Label(new Rect(card.x + 14f, card.y + 42f, card.width - 28f, 22f), "WFL_Hub_FamilyResidents".Translate(reg.LivingCount(id, Presence.Colony)).ToString());
                 Text.Font = GameFont.Tiny; Widgets.Label(new Rect(card.x + 14f, card.y + 66f, card.width - 28f, 40f), string.Join(", ", members).Truncate((card.width - 28f) * 2f - 20f)); Text.Font = GameFont.Small; GUI.color = Color.white;
+                var portraits = reg.Persons.Where(p => p.InColony && reg.FamilyOf(p.Id) == id).Select(p => c.TryGetPawn(p.Id)).Where(p => p != null).Take(Math.Max(1, (int)((card.width - 28f) / 38f))).ToList();
+                for (int j = 0; j < portraits.Count; j++) GUI.DrawTexture(new Rect(card.x + 14f + j * 38f, card.y + 110f, 34f, 40f), PortraitsCache.Get(portraits[j], new Vector2(34f, 40f), Rot4.South, new Vector3(0f, 0f, .1f), 1.15f));
                 if (Widgets.ButtonInvisible(card)) { Window_Families.PendingLineageId = id; if (Find.WindowStack.WindowOfType<Window_Families>() == null) Find.WindowStack.Add(new Window_Families()); }
             }
             return y + ((families.Count + perRow - 1) / perRow) * (ch + gap);
         }
 
-        private static int profView;
+        private static int profView = 1;
 
         private static float Professions(Rect r, FamilyComponent c)
         {
@@ -230,40 +234,33 @@ namespace FamilyLife
             var careers = roles.Select(x => x.Career).Distinct().ToList();
             if (!careers.Contains(selectedCareer)) selectedCareer = careers[0];
             Func<string, string> careerName = id => CareerService.Career(id) != null ? CareerService.CareerName(CareerService.Career(id), reg) : id;
-            // one tab per career, with the search to the right
-            float tx = 0f, searchW = Mathf.Min(220f, r.width * .35f);
-            foreach (var id in careers)
-            {
-                string label = careerName(id); float tabW = Text.CalcSize(label).x + 32f; var tab = new Rect(tx, y, tabW, 32f); bool on = id == selectedCareer;
-                Widgets.DrawBoxSolid(tab, on ? new Color(.2f, .18f, .12f) : new Color(.14f, .14f, .16f)); if (!on && Mouse.IsOver(tab)) Widgets.DrawHighlight(tab);
-                if (on) Widgets.DrawBoxSolid(new Rect(tab.x, tab.yMax - 3f, tab.width, 3f), FamilyKit.Gold);
-                Text.Anchor = TextAnchor.MiddleCenter; Widgets.Label(tab, label); Text.Anchor = TextAnchor.UpperLeft;
-                if (!on && Widgets.ButtonInvisible(tab)) { selectedCareer = id; professionSearch = ""; }
-                tx += tabW + 6f;
-            }
-            if (tx < r.width - searchW) professionSearch = Widgets.TextField(new Rect(r.width - searchW, y + 2f, searchW, 28f), professionSearch);
-            y += 44f;
+            float selectorW = Mathf.Min(280f, r.width * .5f);
+            CommunityWidgets.Choice(new Rect(0f, y, selectorW, 30f), careerName(selectedCareer), () => careers.Select(id => new FloatMenuOption(careerName(id), () => { selectedCareer = id; professionSearch = ""; })));
+            professionSearch = Widgets.TextField(new Rect(selectorW + 8f, y, r.width - selectorW - 8f, 30f), professionSearch);
+            TooltipHandler.TipRegion(new Rect(selectorW + 8f, y, r.width - selectorW - 8f, 30f), "WFL_UX_SearchRoles".Translate());
+            y += 42f;
             var mine = roles.Where(x => x.Career == selectedCareer).ToList(); int held = mine.Count(x => book.Holders(x.Id).Any(id => reg.GetPerson(id)?.InColony == true));
-            GUI.color = Color.gray; Widgets.Label(new Rect(0f, y, r.width, 22f), "WFL_Ov_Staffed2".Translate(held, mine.Count).ToString()); GUI.color = Color.white; 
-            var qs = new Rect(r.width - 170f, y - 4f, 170f, 28f);
+            GUI.color = Color.gray; Widgets.Label(new Rect(0f, y, r.width, 22f), "WFL_UX_StaffingKey".Translate().ToString()); GUI.color = Color.white; 
+            y += 28f;
+            var qs = new Rect(0f, y, Mathf.Min(r.width, 200f), 30f);
             if (Widgets.ButtonText(qs, "WFL_Quick_Open".Translate())) Find.WindowStack.Add(new Window_QuickSetup(c));
             TooltipHandler.TipRegion(qs, "WFL_Quick_OpenTip".Translate());
             y += 30f;
             var shown = roles.Where(role => role.Career == selectedCareer && (professionSearch.Length == 0 || CareerService.TitleOf(role, reg).IndexOf(professionSearch, StringComparison.OrdinalIgnoreCase) >= 0)).ToList();
             if (shown.Count == 0) return Line(r, y, "WFL_Hub_NoMatches".Translate(), true);
-            return ProfessionTree.Draw(r, y, c, selectedCareer, roles.Where(role => role.Career == selectedCareer).ToList(), professionSearch);
+            return ProfessionTree.DrawCompact(r, y, c, selectedCareer, roles.Where(role => role.Career == selectedCareer).ToList(), professionSearch);
         }
 
         private static float Assembly(Rect r, FamilyComponent c)
         {
-            var reg = c.Registry; float w = r.width, gap = 10f;
+            var reg = c.Registry; float w = r.width;
             GUI.color = Color.gray; Widgets.Label(new Rect(0f, 2f, w, 22f), "WFL_Hub_AssemblyHelp".Translate()); GUI.color = Color.white; float y = 32f;
             // status card
             var card = new Rect(0f, y, w, 70f); Widgets.DrawBoxSolid(card, new Color(.13f, .13f, .15f)); Widgets.DrawBoxSolid(new Rect(0f, y, 5f, card.height), FamilyKit.Gold);
             Text.Font = GameFont.Tiny; GUI.color = Color.gray; Widgets.Label(new Rect(20f, y + 8f, w - 220f, 16f), "WFL_Ov_Assembly".Translate().ToString().ToUpperInvariant()); GUI.color = Color.white;
             Text.Font = GameFont.Medium; Widgets.Label(new Rect(20f, y + 26f, w - 220f, 34f), reg.OpenAssembly != null ? "WFL_Assembly_InSession".Translate().ToString() : reg.NextAssemblyTick > 0 ? FamilyUi.Date(reg.NextAssemblyTick) : "-"); Text.Font = GameFont.Small;
-            if (reg.NextAssemblyTick > 0 && reg.OpenAssembly == null && Widgets.ButtonText(new Rect(w - 190f, y + 20f, 176f, 30f), "WFL_Assembly_Postpone".Translate())) reg.PostponeAssembly(Find.TickManager.TicksGame, 30);
-            y += card.height + 14f;
+            if (reg.NextAssemblyTick > 0 && reg.OpenAssembly == null && Widgets.ButtonText(new Rect(0f, y + card.height + 4f, Mathf.Min(w, Text.CalcSize("WFL_Assembly_Postpone".Translate()).x + 24f), 32f), "WFL_Assembly_Postpone".Translate())) reg.PostponeAssembly(Find.TickManager.TicksGame, 30);
+            y += card.height + 46f;
             if (reg.OpenAssembly != null)
             {
                 y = Rule(w, y, "WFL_Ov_Races".Translate());
@@ -311,3 +308,4 @@ namespace FamilyLife
         }
     }
 }
+

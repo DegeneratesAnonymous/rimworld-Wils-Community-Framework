@@ -38,15 +38,14 @@ namespace FamilyLife
             float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Military_MenuTitle".Translate(), s =>
             {
                 var tabs = Enum.GetValues(typeof(Tab)).Cast<Tab>().ToList(); if (!tabs.Contains(tab)) tab = Tab.Alert;
-                float bw = (s.width - 6f * (tabs.Count - 1)) / tabs.Count;
-                for (int i = 0; i < tabs.Count; i++)
-                {
-                    var t = tabs[i]; var rect = new Rect(i * (bw + 6f), 0f, bw, 30f); GUI.color = t == tab ? Gold : Color.white;
-                    if (Widgets.ButtonText(rect, ("WFL_Military_Tab_" + t).Translate())) tab = t;
-                    GUI.color = Color.white;
-                }
-                return 36f;
+                return CommunityPageLayout.Tabs(s, 0f, tabs.Select(t => ("WFL_Military_Tab_" + t).Translate().ToString()).ToList(), tabs.IndexOf(tab), i => tab = tabs[i]);
+
             });
+            var roster = Soldiers().ToList();
+            int unarmed = roster.Count(p => MilitaryArmory.Needs(p, MilitaryRoles.ActiveRole(p)));
+            int unavailable = roster.Count(p => p.Downed || p.Drafted);
+            y = CommunityPageLayout.Line(r, y, "WFL_UX_Readiness".Translate(roster.Count, unarmed, unavailable));
+            y = CommunityStaffing.Draw(r, y, c, "wils.military");
             switch (tab)
             {
                 case Tab.Positions: return DrawPositions(r, y, c);
@@ -111,7 +110,7 @@ namespace FamilyLife
             var posts = c.Registry.Posts(); var patrols = c.Registry.Patrols(); var postings = c.Registry.Postings(); float width = r.width;
             y = CommunityPageLayout.Section(r, 0f, y, width, "WFL_Military_PositionsTitle".Translate(posts.All.Count, PostBook.MaxPosts), s =>
             {
-                float h = CommunityPageLayout.Help(s, 0f, "WFL_Military_PositionsHelp".Translate());
+                float h = CommunityPageLayout.Line(s, 0f, "WFL_UX_FacilitySetup".Translate(), true);
                 float bw = (s.width - 18f) / 4f; int i = 0;
                 foreach (var k in new[] { PostKind.Melee, PostKind.Ranged, PostKind.Mixed, PostKind.Rally })
                 {
@@ -234,13 +233,13 @@ namespace FamilyLife
             {
                 float h = CommunityPageLayout.Help(s, 0f, "WFL_Military_SoldiersHelp".Translate());
                 if (soldiers.Count == 0) return CommunityPageLayout.Line(s, h, "WFL_Military_NoSoldiers".Translate());
-                Text.Font = GameFont.Tiny;
+                Text.Font = GameFont.Small;
                 float wName = s.width * .20f, wRole = s.width * .14f, wProg = s.width * .22f, wDuty = s.width * .26f, wPost = s.width - wName - wRole - wProg - wDuty;
                 foreach (var p in soldiers)
                 {
                     string role = MilitaryRoles.ActiveRole(p); string target = MilitaryDutyGame.CreditTarget(c, p, role);
                     var nameRect = new Rect(0f, h, wName - 4f, 24f);
-                    if (Widgets.ButtonText(nameRect, p.LabelShortCap, false)) { Find.MainTabsRoot.EscapeCurrentTab(); CameraJumper.TryJumpAndSelect(p); }
+                    CommunityWidgets.NameButton(nameRect, p);
                     TooltipHandler.TipRegion(nameRect, "WFL_Military_SelectTip".Translate());
                     Widgets.Label(new Rect(wName, h + 2f, wRole - 4f, 24f), role == null ? "" : ("wils.military." + role.ToLowerInvariant() + "_label").Translate().ToString());
                     string prog;
@@ -260,3 +259,4 @@ namespace FamilyLife
         }
     }
 }
+

@@ -48,16 +48,7 @@ namespace FamilyLife
 
         public static float Draw(Rect r, FamilyComponent c)
         {
-            float y = 0f; float x = 0f;
-            for (int i = 0; i < Tabs.Length; i++)
-            {
-                var label = Tabs[i].Translate(); float w = Mathf.Min(r.width, Mathf.Max(90f, Text.CalcSize(label).x + 20f));
-                if (x > 0f && x + w > r.width) { x = 0f; y += 34f; }
-                var tab = new Rect(x, y, w, 30f);
-                if (Widgets.ButtonText(tab, label, true, true, i == sub ? new Color(0.9f, 0.74f, 0.28f) : Color.white)) sub = i;
-                x += w + 4f;
-            }
-            y += 34f;
+            float y = CommunityPageLayout.Tabs(r, 0f, Tabs.Select(t => t.Translate().ToString()).ToList(), sub, i => sub = i);
             switch (sub)
             {
                 case 0: return Overview(r, c, y);
@@ -79,9 +70,25 @@ namespace FamilyLife
         private static float Overview(Rect r, FamilyComponent c, float y)
         {
             var reg = c.Registry; var l = reg.Ledger(); var pay = reg.Payroll(); int today = TreasuryService.Today(); var map = Find.AnyPlayerHomeMap;
+            y = CommunityStaffing.Draw(r, y, c, "wils.treasury");
+            int payday = PayCalendar.NextPayday(today + 1) - today;
+            int columns = r.width >= 600f ? 3 : 1;
+            float metricWidth = (r.width - (columns - 1) * 12f) / columns;
+            var metricLabels = new[] { "WFL_UX_Funds", "WFL_UX_Pending", "WFL_UX_Payday" };
+            var metricValues = new[] { l.Balance(Ledger.CommunityId).ToString(), pay.PendingTotal.ToString(), payday.ToString() };
+            for (int m = 0; m < 3; m++) {
+                GUI.BeginGroup(new Rect(m % columns * (metricWidth + 12f), y + m / columns * 90f, metricWidth, 90f));
+                try { CommunityStaffing.Metric(new Rect(0f, 0f, metricWidth, 90f), 0f, metricLabels[m].Translate(), metricValues[m]); } finally { GUI.EndGroup(); }
+            }
+            y += columns == 3 ? 90f : 270f;
+            y = Line(r, y, "WFL_UX_PayHint".Translate(), true);
             y = Line(r, y, "WFL_Tr_CommunityFunds".Translate(l.Balance(Ledger.CommunityId)));
             int physical = TreasuryService.PhysicalSilver(map);
             y = Line(r, y, "WFL_Tr_Claims".Translate(l.TotalClaims, physical));
+            float communityShare = l.TotalClaims <= 0 ? 0f : Mathf.Clamp01(l.Balance(Ledger.CommunityId) / (float)l.TotalClaims);
+            CommunityWidgets.Bar(new Rect(4f, y, r.width - 8f, 22f), communityShare, CommunityWidgets.Gold, "WFL_UX_Ownership".Translate(l.Balance(Ledger.CommunityId), l.TotalClaims));
+            y += 30f;
+            y = Line(r, y, "WFL_UX_OwnershipHint".Translate(), true);
             y = Line(r, y, "WFL_Tr_Owned".Translate(l.TotalClaims, l.TotalAvailable, l.Unbacked), l.Unbacked > 0);
             if (l.Unbacked > 0) y = Line(r, y, "WFL_Tr_Bearer".Translate(l.CommunityShare, l.SpilledToOwners), true);
             int owedWages = l.Debts.Where(d => d.Active && d.Kind == DebtKind.Wage).Sum(d => d.Outstanding);
@@ -177,8 +184,8 @@ namespace FamilyLife
                 for (int i = 0; i < pol.Order.Count; i++)
                 {
                     var rl = roles.FirstOrDefault(x => x.Id == pol.Order[i]); Widgets.Label(new Rect(24f, y, 300f, 24f), (i + 1) + ". " + (rl == null ? pol.Order[i] : CareerService.TitleOf(rl, reg)));
-                    if (i > 0 && Widgets.ButtonText(new Rect(330f, y, 30f, 22f), "▲")) { var t = pol.Order[i]; pol.Order[i] = pol.Order[i - 1]; pol.Order[i - 1] = t; }
-                    if (i < pol.Order.Count - 1 && Widgets.ButtonText(new Rect(364f, y, 30f, 22f), "▼")) { var t = pol.Order[i]; pol.Order[i] = pol.Order[i + 1]; pol.Order[i + 1] = t; }
+                    if (i > 0 && Widgets.ButtonText(new Rect(330f, y, 30f, 22f), "â–²")) { var t = pol.Order[i]; pol.Order[i] = pol.Order[i - 1]; pol.Order[i - 1] = t; }
+                    if (i < pol.Order.Count - 1 && Widgets.ButtonText(new Rect(364f, y, 30f, 22f), "â–¼")) { var t = pol.Order[i]; pol.Order[i] = pol.Order[i + 1]; pol.Order[i + 1] = t; }
                     y += 26f;
                 }
             }
@@ -244,3 +251,4 @@ namespace FamilyLife
         }
     }
 }
+

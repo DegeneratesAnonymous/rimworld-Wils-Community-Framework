@@ -56,7 +56,8 @@ namespace FamilyLife
     {
         public static float Draw(Rect r, FamilyComponent c)
         {
-            float y = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Works_PlacesTitle".Translate(), s =>
+            float staffing = CommunityStaffing.Draw(r, 0f, c, "wils.works");
+            float y = CommunityPageLayout.Section(r, 0f, staffing, r.width, "WFL_Works_PlacesTitle".Translate(), s =>
             {
                 int workshops = 0, mines = 0;
                 foreach (var map in Find.Maps)
@@ -76,10 +77,11 @@ namespace FamilyLife
             {
                 float h = 0f;
                 foreach (var specialty in WorksCareers.BuilderSpecialties.Concat(WorksCareers.MinerSpecialties))
-                    h = CommunityPageLayout.Help(s, h, (WorksCareers.Role(specialty) + "_label").Translate() + ": " + ("WFL_Works_" + specialty + "Bonus").Translate());
+                    h = CommunityPageLayout.Line(s, h, (WorksCareers.Role(specialty) + "_label").Translate() + ": " + ("WFL_Works_" + specialty + "Bonus").Translate());
                 return h;
             });
             return y;
         }
     }
 }
+

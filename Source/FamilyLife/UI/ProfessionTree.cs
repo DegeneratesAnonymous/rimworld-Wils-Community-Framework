@@ -12,8 +12,86 @@ namespace FamilyLife
     /// <summary>Draws one career as a left-to-right tree: entry roles on the left, each qualification a step to the right. Like a family tree, the lines show who may follow whom.</summary>
     internal static class ProfessionTree
     {
+        private static bool showGraph;
         private static Dictionary<ProfessionRole, Color> Lanes = new Dictionary<ProfessionRole, Color>();
         private const float NodeH = 78f, GapY = 12f, GapX = 26f;
+
+        internal static void AssignMenu(FamilyComponent c, ProfessionRole role)
+        {
+            var residents = c.Registry.Persons.Where(p => p.InColony && !p.Juvenile).ToList();
+            Find.WindowStack.Add(new FloatMenu(Options(c, c.Registry.Assignments(), c.Registry.Careers(), role, residents, CareerService.Career(role.Career))));
+        }
+
+        public static float DrawCompact(Rect r, float y, FamilyComponent c, string career, List<ProfessionRole> roles, string search)
+        {
+            if (Widgets.ButtonText(new Rect(0f, y, Mathf.Min(260f, r.width), 30f), (showGraph ? "WFL_UX_CardView" : "WFL_UX_GraphView").Translate())) showGraph = !showGraph;
+            y += 38f;
+            if (showGraph) return Draw(r, y, c, career, roles, search);
+            var shown = roles.Where(q => search.Length == 0 || CareerService.TitleOf(q, c.Registry).IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(q => q.Level).ThenBy(q => q.Id).ToList();
+            y = CommunityPageLayout.Line(r, y, "WFL_UX_StaffingKey".Translate(), true);
+            int columns = r.width >= 620f ? 3 : r.width >= 400f ? 2 : 1;
+            float width = (r.width - 12f * (columns - 1)) / columns;
+            var def = CareerService.Career(career);
+            foreach (var tier in shown.GroupBy(q => q.Level))
+            {
+                y = CommunityPageLayout.Line(r, y, (tier.Key == 1 ? "WFL_Tree_Entry" : tier.Key == 2 ? "WFL_Tree_Skilled" : "WFL_Tree_Specialist").Translate());
+                int i = 0;
+                foreach (var role in tier)
+                {
+                    float x = i % columns * (width + 12f), top = y + i / columns * 132f;
+                    Widgets.DrawBoxSolid(new Rect(x, top, width, 120f), new Color(.15f, .16f, .17f));
+                    string title = CareerService.TitleOf(role, c.Registry);
+                    Widgets.Label(new Rect(x + 10f, top + 8f, width - 20f, 26f), title.Truncate(width - 20f));
+                    var holders = c.Registry.Assignments().Holders(role.Id).Where(id => c.Registry.GetPerson(id)?.InColony == true).ToList();
+                    string who = holders.Count == 0 ? "WFL_UX_NeutralRole".Translate().ToString() : string.Join(", ", holders.Select(id => CommunityCorePages.NameOf(c, id)));
+                    CommunityWidgets.Cell(new Rect(x + 10f, top + 34f, width - 20f, 28f), who.Truncate(width - 20f), holders.Count == 0 ? CommunityWidgets.Muted : CommunityWidgets.Good);
+                    TooltipHandler.TipRegion(new Rect(x, top, width, 64f), title + "\n" + who);
+                    if (Widgets.ButtonText(new Rect(x + 10f, top + 76f, width - 20f, 30f), "WFL_UX_Details".Translate())) Find.WindowStack.Add(new RoleInspector(c, role, roles));
+                    i++;
+                }
+                y += (int)Math.Ceiling(i / (float)columns) * 132f;
+            }
+            return y;
+        }
+
+        private sealed class RoleInspector : Window
+        {
+            private readonly FamilyComponent component; private readonly ProfessionRole role; private readonly List<ProfessionRole> roles; private Vector2 scroll; private float height = 900f;
+            public RoleInspector(FamilyComponent c, ProfessionRole r, List<ProfessionRole> all) { component = c; role = r; roles = all; doCloseX = true; doCloseButton = true; absorbInputAroundWindow = true; }
+            public override Vector2 InitialSize => new Vector2(Mathf.Min(600f, UI.screenWidth - 40f), Mathf.Min(620f, UI.screenHeight - 60f));
+            public override void DoWindowContents(Rect rect)
+            {
+                var def = CareerService.Career(role.Career); var reg = component.Registry;
+                var area = new Rect(0f, 0f, rect.width, rect.height - 50f);
+                Widgets.BeginScrollView(area, ref scroll, new Rect(0f, 0f, rect.width - 20f, height));
+                try {
+                    var body = new Rect(0f, 0f, rect.width - 20f, height);
+                    float y = CommunityPageLayout.Line(body, 0f, CareerService.TitleOf(role, reg));
+                    if (!string.IsNullOrEmpty(role.BonusKey)) y = CommunityPageLayout.Line(body, y, role.BonusKey.Translate());
+                    var parents = ParentsOf(def, roles, role);
+                    if (parents.Count > 0) y = CommunityPageLayout.Line(body, y, "WFL_Tree_Needs".Translate(string.Join(" / ", parents.Select(q => CareerService.TitleOf(q, reg)))));
+                    if (def != null && role.Level > 1) {
+                        var rule = RuleOf(def, role);
+                        foreach (var skill in rule.Skills) y = CommunityPageLayout.Line(body, y, SkillName(skill.Key) + ": " + skill.Value);
+                        y = CommunityPageLayout.Line(body, y, "WFL_UX_XpRequired".Translate(rule.GeneralXp, rule.SpecialtyXp));
+                        foreach (var required in rule.RequiresAll) y = CommunityPageLayout.Line(body, y, "WFL_UX_Requires".Translate(CareerService.Describe(required)));
+                    }
+                    y = CommunityPageLayout.Line(body, y, "WFL_UX_StaffingKey".Translate(), true);
+                    y = CommunityPageLayout.Line(body, y, "WFL_UX_Candidates".Translate());
+                    foreach (var person in reg.Persons.Where(p => p.InColony && !p.Juvenile).OrderBy(p => CommunityCorePages.NameOf(component, p.Id))) {
+                        var pawn = component.TryGetPawn(person.Id); if (pawn == null || pawn.Dead) continue;
+                        var check = AssignmentBook.Check(role, reg.Careers(), person.Id); bool held = reg.Assignments().IsAssigned(person.Id, role.Id);
+                        CommunityWidgets.NameButton(new Rect(0f, y, body.width * .5f, 36f), pawn);
+                        string label = held ? "WFL_Prof_Remove".Translate().ToString() : check == AssignResult.Assigned ? "WFL_Career_Assign".Translate().ToString() : "WFL_Career_Needs_Short".Translate().ToString();
+                        var action = new Rect(body.width * .55f, y, body.width * .45f, 32f);
+                        if (held || check == AssignResult.Assigned) { if (Widgets.ButtonText(action, label)) { if (held) reg.Assignments().Unassign(person.Id, role.Id); else reg.Assignments().Assign(person.Id, role, reg.Careers(), FrameworkServices.Now); } }
+                        else CommunityWidgets.Cell(action, label, CommunityWidgets.Muted);
+                        y += 40f;
+                    }
+                    height = y + 12f;
+                } finally { Widgets.EndScrollView(); }
+            }
+        }
 
         internal static List<ProfessionRole> ParentsOf(CareerDefinition def, List<ProfessionRole> roles, ProfessionRole role)
         {
@@ -257,3 +335,4 @@ namespace FamilyLife
         }
     }
 }
+

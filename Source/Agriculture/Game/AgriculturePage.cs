@@ -23,6 +23,8 @@ namespace FamilyLife
                 if(automatic!=policy.Automatic){policy.Automatic=automatic;if(!automatic)AutomaticHunting.RemoveAll(c);}
                 string state=!automatic?"Off — manual hunt designations continue to work normally":hunters==0?"Waiting for an assigned Tracker or Hunter":meat>=policy.MeatTarget?"Reserve reached — no new targets will be selected":"Selecting safe targets until the reserve is restored";
                 y=CommunityPageLayout.Line(r,y,state,!automatic||hunters==0);
+                CommunityWidgets.Bar(new Rect(0f,y,r.width,22f), policy.MeatTarget <= 0 ? 1f : meat/(float)policy.MeatTarget, new Color(.38f,.64f,.85f), meat+" / "+policy.MeatTarget); y+=30f;
+                if(policy.AutomaticTargets.Count==0 && automatic && meat<policy.MeatTarget) y=CommunityPageLayout.Line(r,y,"No automatic targets selected. Review workforce, allowed targets, distance and safety limits.",true);
                 return CommunityPageLayout.Line(r,y,"Meat "+meat+" / "+policy.MeatTarget+"   •   "+hunters+" hunting professional"+(hunters==1?"":"s")+"   •   "+policy.AutomaticTargets.Count+" automatic target"+(policy.AutomaticTargets.Count==1?"":"s"),true);
             });
             float width=CommunityPageLayout.ColumnWidth(rect),left=top,right=top;
@@ -57,7 +59,7 @@ namespace FamilyLife
             {
                 var def=CareerService.Professions.ById(role);int count=a.Holders(role).Count();y=CommunityPageLayout.Line(r,y,(def==null?role:CareerService.TitleOf(def,c.Registry))+": "+count);
             }
-            y=CommunityPageLayout.Button(r,y,"Manage agriculture professions",()=>MainTabWindow_Community.Open(FamilyLife.Framework.ModuleCatalog.FrameworkId+".professions"));
+            y=CommunityStaffing.Draw(r,y,c,"wils.agriculture");
             y=CommunityPageLayout.Line(r,y,"Tracker: safe small game automatically\nHunter: unlocks medium game\nStalker: longer range\nGamekeeper: protects populations\nBig-Game Hunter: large game and predators",true);
             return y;
         }
@@ -69,3 +71,4 @@ namespace FamilyLife
         private static bool Has(FamilyComponent c,string specialty)=>c.Registry.Assignments().Holders(AgricultureCareers.Role(specialty)).Any(id=>c.TryGetPawn(id) is Pawn p&&p.Spawned&&!p.Dead);
     }
 }
+
