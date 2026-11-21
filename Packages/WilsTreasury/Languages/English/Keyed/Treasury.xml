@@ -56,6 +56,13 @@
   <WFL_Tr_TransferTo>To</WFL_Tr_TransferTo>
   <WFL_Tr_TransferDo>Move {0} silver</WFL_Tr_TransferDo>
   <WFL_Tr_TransferFailed>That transfer could not be made ({0}).</WFL_Tr_TransferFailed>
+  <WFL_Tr_WealthPayTitle>Pay linked to the colony's wealth</WFL_Tr_WealthPayTitle>
+  <WFL_Tr_WealthPayShare>Share of the colony's wealth paid out as wages each year: {0}%</WFL_Tr_WealthPayShare>
+  <WFL_Tr_WealthPayOff>Off. Wages use the fixed rates below.</WFL_Tr_WealthPayOff>
+  <WFL_Tr_WealthPayOn>On. The colony is worth {0} silver, so each payday's wage pool is about {1} silver, shared by the work done. Pay rises and falls with the colony.</WFL_Tr_WealthPayOn>
+  <WFL_Tr_WealthGapLine>Colonists hold {0} silver on average against {1} of the colony's wealth each ({2}%).</WFL_Tr_WealthGapLine>
+  <WFL_Tr_GapMood>Colonists mind being far poorer than the colony</WFL_Tr_GapMood>
+  <WFL_Tr_GapMoodNote>When a colonist holds only a tiny share of the colony's wealth per colonist, they feel left out: a small mood penalty, stronger the wider the gap. Only counts once the colony is worth about 1,500 silver per colonist. It never changes any balance.</WFL_Tr_GapMoodNote>
   <WFL_Tr_PayrollHelp>Wages are paid on the 1st and 8th of every quadrum from the treasury, for finished work by people assigned to a profession. If the money is short everyone receives the same share and the rest stays owed. Payroll never creates silver.</WFL_Tr_PayrollHelp>
   <WFL_Tr_RatePerUnit>{0}: silver per finished task</WFL_Tr_RatePerUnit>
   <WFL_Tr_DailyCap>Most any one person can earn in a day</WFL_Tr_DailyCap>

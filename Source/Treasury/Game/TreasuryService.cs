@@ -133,7 +133,7 @@ namespace FamilyLife
             var map = Find.AnyPlayerHomeMap; if (map == null) return;
             var r = c.Registry; var l = r.Ledger(); var st = r.Treasury(); int today = Today();
             Reconcile(l, st, PhysicalSilver(map), now, today);
-            foreach (var rep in r.Payroll().SettleDue(l, today, PhysicalSilver(map)))
+            foreach (var rep in r.Payroll().SettleDue(l, today, PhysicalSilver(map), ColonyWealth()))
             {
                 if (rep.TotalDue <= 0) continue;
                 Messages.Message("WFL_Tr_Payday".Translate(rep.TotalDue, rep.TotalPaid, rep.Shortfall > 0 ? (string)"WFL_Tr_ShortBy".Translate(rep.Shortfall) : ""), MessageTypeDefOf.NeutralEvent, false);
@@ -142,7 +142,32 @@ namespace FamilyLife
                 else FrameworkServices.ResolveNeed("wils.treasury", "wils.treasury.wages");
             }
             Estates(r, l, today);
+            WealthGapMood(c, r, l);
             l.Prune(today);
+        }
+
+        /// <summary>The colony's wealth as the game counts it (items, buildings and creatures) on every home map. Wealth is counted by the game itself, so nothing here can disagree with the wealth shown elsewhere.</summary>
+        public static long ColonyWealth() { long total = 0; foreach (var m in Find.Maps) if (m.IsPlayerHome && m.wealthWatcher != null) total += (long)m.wealthWatcher.WealthTotal; return total; }
+
+        /// <summary>Adults who live in the colony and are free to act (not prisoners or slaves), the people the wealth gap is measured over.</summary>
+        internal static List<Pawn> GapColonists(FamilyComponent c) => Find.Maps.Where(m => m.IsPlayerHome).SelectMany(m => m.mapPawns.FreeColonistsSpawned).Where(p => !p.Dead && p.ageTracker != null && p.ageTracker.AgeBiologicalYears >= 18 && c.Registry.GetPerson(p.thingIDNumber)?.InColony == true).Distinct().ToList();
+
+        /// <summary>
+        /// A colonist who holds almost nothing of their own while the colony is wealthy feels left out. Only a mood (stage 1 to 3, small), refreshed with each pass; it ends by itself when their holdings catch up or the player turns it off.
+        /// Nothing about any balance changes.
+        /// </summary>
+        private static void WealthGapMood(FamilyComponent c, FamilyRegistry r, Ledger l)
+        {
+            if (!r.Payroll().Policy.GapMood) return;
+            var def = DefDatabase<ThoughtDef>.GetNamedSilentFail("WFL_WealthGap"); if (def == null) return;
+            var people = GapColonists(c); if (people.Count < 2) return; long wealth = ColonyWealth();
+            foreach (var p in people)
+            {
+                if (p.needs?.mood?.thoughts?.memories == null) continue;
+                int stage = WealthGap.Stage(wealth, people.Count, l.Balance(Ledger.IdFor(AccountKind.Person, p.thingIDNumber)));
+                if (stage <= 0) { p.needs.mood.thoughts.memories.RemoveMemoriesOfDef(def); continue; }
+                var thought = (Thought_Memory)ThoughtMaker.MakeThought(def); thought.SetForcedStage(stage - 1); p.needs.mood.thoughts.memories.TryGainMemory(thought);
+            }
         }
 
         /// <summary>

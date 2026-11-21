@@ -195,6 +195,17 @@
   <WFL_CampState_Expired>lapsed</WFL_CampState_Expired>
   <WFL_CampState_Cut>cut short</WFL_CampState_Cut>
   <WFL_Camp_Line>Camping trip ({0}): {1}. About {2} hours. They would like to bring: {3}</WFL_Camp_Line>
+  <WFL_Camp_OpenPlan>Plan the trip</WFL_Camp_OpenPlan>
+  <WFL_Camp_PlanTitle>The {0} family's camping trip</WFL_Camp_PlanTitle>
+  <WFL_Camp_PlanWhy>{0} and the family would like a day or two away ({1}).</WFL_Camp_PlanWhy>
+  <WFL_Camp_PlanFacts>About {0} hours at the camp. Status: {1}. {2}</WFL_Camp_PlanFacts>
+  <WFL_Camp_PlanFar>The place is about {0} tiles from home.</WFL_Camp_PlanFar>
+  <WFL_Camp_PlanBring>They would like to bring:</WFL_Camp_PlanBring>
+  <WFL_Camp_PlanReady>ready to go</WFL_Camp_PlanReady>
+  <WFL_Camp_PlanBusy>busy or unavailable right now</WFL_Camp_PlanBusy>
+  <WFL_Camp_PlanGuideAsk>Agreeing only says yes. Nothing moves until you form a caravan yourself, and you choose who goes. The trip counts once at least two of the family have stayed at the place the whole time.</WFL_Camp_PlanGuideAsk>
+  <WFL_Camp_PlanGuideGo>Agreed. Open the caravan screen from here, pick who goes, and take them to the place shown on the world map.</WFL_Camp_PlanGuideGo>
+  <WFL_Camp_PlanGuideDone>This trip is no longer open.</WFL_Camp_PlanGuideDone>
   <WFL_Camp_Plan>Agree to the trip</WFL_Camp_Plan>
   <WFL_Camp_Decline>Not now</WFL_Camp_Decline>
   <WFL_Camp_FormCaravan>Form the caravan</WFL_Camp_FormCaravan>

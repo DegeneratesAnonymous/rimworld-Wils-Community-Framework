@@ -79,6 +79,13 @@
   <WFL_Prof_Vacant>Vacant</WFL_Prof_Vacant>
   <WFL_Prof_MakeMain>Make this their main profession</WFL_Prof_MakeMain>
   <WFL_Prof_Remove>Remove this assignment</WFL_Prof_Remove>
+  <WFL_Prof_WorkApply>Set work priorities from professions</WFL_Prof_WorkApply>
+  <WFL_Prof_WorkUndo>Undo those priority changes</WFL_Prof_WorkUndo>
+  <WFL_Prof_WorkApplied>Work priorities suggested ({0} changed).</WFL_Prof_WorkApplied>
+  <WFL_Prof_WorkUndone>Work priorities put back ({0} changed).</WFL_Prof_WorkUndone>
+  <WFL_Prof_WorkHelp>Turns on, or raises, the work each colonist's professions are about: main profession first, side professions next. It never switches work off, never overrides a priority you set by hand since, and can be undone.</WFL_Prof_WorkHelp>
+  <WFL_Prof_Follow>Follow</WFL_Prof_Follow>
+  <WFL_Prof_FollowTip>Keep this colonist's work priorities in step with their professions. It suggests again only when their professions change, and never overrides what you set by hand.</WFL_Prof_FollowTip>
   <WFL_Prof_BarTip>Progress toward: {0}</WFL_Prof_BarTip>
   <WFL_Prof_BarDone>Everything in this career is earned.</WFL_Prof_BarDone>
   <WFL_Prof_NextStep>the next step</WFL_Prof_NextStep>

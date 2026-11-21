@@ -42,6 +42,15 @@ namespace FamilyLife.Domain
             if (Funding == PayrollFunding.Manual) { int i = Order.IndexOf(role ?? ""); return i >= 0 ? i : Order.Count; }
             return 0;
         }
+        /// <summary>
+        /// 0 pays the fixed silver rates below. Above 0, each payday's wage pool is this share of the colony's wealth a year (paydays are 8 a year), divided among the work done in proportion to what the rates say it
+        /// earned, so pay grows and shrinks with the colony. Never more than <see cref="MaxWealthShare"/> a year, and no worker is paid more than <see cref="MaxWealthScale"/> times the fixed rate.
+        /// </summary>
+        public int WealthSharePercent;
+        public const int MaxWealthShare = 50, PaydaysPerYear = 8; public const double MaxWealthScale = 4.0;
+        /// <summary>Whether a worker who holds almost nothing while the colony is wealthy feels it (see <see cref="WealthGap"/>).</summary>
+        public bool GapMood = true;
+        public long PoolPerPayday(long colonyWealth) => WealthSharePercent <= 0 || colonyWealth <= 0 ? 0 : colonyWealth * Math.Min(MaxWealthShare, WealthSharePercent) / 100 / PaydaysPerYear;
         public readonly Dictionary<string, int> Rates = new Dictionary<string, int>(StringComparer.Ordinal);
         public readonly Dictionary<string, int> DailyUnits = new Dictionary<string, int>(StringComparer.Ordinal);
         /// <summary>Silver paid per unit of finished work in this role (0 = unpaid).</summary>
@@ -98,7 +107,7 @@ namespace FamilyLife.Domain
         /// earlier shortfalls) is checked against <paramref name="funds"/> and the treasury's balance; if the money is short everyone is paid the same fraction, and the rest stays owed as a wage
         /// debt. Money only moves from the treasury to the workers: payroll never creates silver.
         /// </summary>
-        public List<PayrollReport> SettleDue(Ledger ledger, int today, int funds)
+        public List<PayrollReport> SettleDue(Ledger ledger, int today, int funds, long colonyWealth = -1)
         {
             var done = new List<PayrollReport>();
             if (LastSettledPayday < 0) LastSettledPayday = today - 1;          // a new payroll starts from now, with no back pay for days it did not watch
@@ -106,7 +115,7 @@ namespace FamilyLife.Domain
             foreach (int payday in PayCalendar.PaydaysBetween(LastSettledPayday, today).ToList())
             {
                 if (++guard > 16) break;
-                done.Add(Settle(ledger, payday, funds));
+                done.Add(Settle(ledger, payday, funds, colonyWealth));
                 LastSettledPayday = payday;
             }
             foreach (var k in keys.Where(kv => today - kv.Value > KeyMemoryDays).Select(kv => kv.Key).ToList()) keys.Remove(k);
@@ -119,15 +128,16 @@ namespace FamilyLife.Domain
         /// the player's <see cref="PayrollFunding"/> policy: the same fraction for everyone, essential roles first, or a manual priority order; within one tier everyone gets the same fraction.
         /// Payroll only ever moves silver out of the community treasury: household and personal accounts are never touched to cover it.
         /// </summary>
-        private PayrollReport Settle(Ledger ledger, int payday, int funds)
+        private PayrollReport Settle(Ledger ledger, int payday, int funds, long colonyWealth = -1)
         {
             var report = new PayrollReport { Payday = payday };
             string key = "payroll:" + payday;
-            var due = earned.Where(e => e.Day < payday).ToList();
+            var raw = earned.Where(e => e.Day < payday).ToList();
+            var due = colonyWealth >= 0 && Policy.WealthSharePercent > 0 ? ScaleToPool(raw, Policy.PoolPerPayday(colonyWealth)) : raw;          // pay linked to the colony's wealth: the same work, valued by what the colony can afford
             var dues = new Dictionary<(int pawn, int tier), int>(); var ordinaryOnly = new Dictionary<(int pawn, int tier), bool>();
             foreach (var e in due) { var k = (e.Pawn, Policy.TierOf(e.Role)); dues[k] = (dues.TryGetValue(k, out var v) ? v : 0) + e.Silver; ordinaryOnly[k] = (!ordinaryOnly.TryGetValue(k, out var o) || o) && Labour.IsOrdinary(e.Role); }
             foreach (var d in ledger.Debts.Where(x => x.Active && x.Kind == DebtKind.Wage && x.Debtor == Ledger.CommunityId)) { int p = AccountPawn(d.Creditor); if (p > 0) { var k = (p, d.Tier); dues[k] = (dues.TryGetValue(k, out var v) ? v : 0) + d.Outstanding; if (!ordinaryOnly.ContainsKey(k)) ordinaryOnly[k] = d.Ordinary; } }
-            if (dues.Count == 0 || ledger.Applied(key)) { RemoveSettled(due); Remember(report); return report; }
+            if (dues.Count == 0 || ledger.Applied(key)) { RemoveSettled(raw); Remember(report); return report; }
 
             int remaining = Math.Max(0, Math.Min(funds, ledger.Available(Ledger.CommunityId)));
             var pay = new Dictionary<(int pawn, int tier), int>();
@@ -157,8 +167,19 @@ namespace FamilyLife.Domain
                 if (p < d) missed[g.Key] = Missed(g.Key) + 1; else missed.Remove(g.Key);
             }
             report.TotalDue = (int)dues.Values.Sum(v => (long)v); report.TotalPaid = pay.Values.Sum();
-            RemoveSettled(due); Remember(report);
+            RemoveSettled(raw); Remember(report);
             return report;
+        }
+
+        /// <summary>
+        /// The earnings re-valued so that together they come to the pool: the same share of the pool for the same share of work. A pool larger than <see cref="WagePolicy.MaxWealthScale"/> times the fixed amount is not all
+        /// paid out, and a pool of nothing pays nothing. Each earning is rounded down, so the total never exceeds the pool.
+        /// </summary>
+        internal static List<Earning> ScaleToPool(List<Earning> raw, long pool)
+        {
+            long total = raw.Sum(e => (long)e.Silver); if (total <= 0) return raw;
+            double factor = Math.Min(WagePolicy.MaxWealthScale, Math.Max(0, pool) / (double)total);
+            return raw.Select(e => new Earning { Pawn = e.Pawn, Day = e.Day, Role = e.Role, Key = e.Key, Silver = (int)Math.Floor(e.Silver * factor) }).Where(e => e.Silver > 0).ToList();
         }
 
         /// <summary>Consecutive paydays on which this worker was paid less than they were owed. The game layer turns this into consequences; here it is only a count.</summary>
@@ -192,7 +213,7 @@ namespace FamilyLife.Domain
 
         public string Encode()
         {
-            var w = new StateWriter().Int("last", LastSettledPayday + 1).Int("cap", Policy.PawnDailyCap).Int("ocap", Policy.OrdinaryDailyCap + 1).Int("fund", (int)Policy.Funding);
+            var w = new StateWriter().Int("last", LastSettledPayday + 1).Int("cap", Policy.PawnDailyCap).Int("ocap", Policy.OrdinaryDailyCap + 1).Int("fund", (int)Policy.Funding).Int("wshare", Policy.WealthSharePercent).Int("nogap", Policy.GapMood ? 0 : 1);
             w.Strings("ess", Policy.Essential.OrderBy(x => x, StringComparer.Ordinal).ToList()); w.Strings("ord", Policy.Order.ToList()); w.Strings("miss", missed.OrderBy(k => k.Key).Select(k => k.Key + "|" + k.Value).ToList());
             w.Strings("rate", Policy.Rates.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => k.Key + "|" + k.Value).ToList());
             w.Strings("units", Policy.DailyUnits.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => k.Key + "|" + k.Value).ToList());
@@ -206,6 +227,7 @@ namespace FamilyLife.Domain
         {
             var b = new PayrollBook(); b.LastSettledPayday = r.Int("last") - 1; b.Policy.PawnDailyCap = r.Has("cap") ? r.Int("cap") : WagePolicy.DefaultPawnDailyCap; b.Policy.OrdinaryDailyCap = r.Has("ocap") ? r.Int("ocap") - 1 : WagePolicy.DefaultOrdinaryDailyCap;
             b.Policy.Funding = r.Has("fund") ? (PayrollFunding)Math.Max(0, Math.Min(2, r.Int("fund"))) : PayrollFunding.Proportional;
+            b.Policy.WealthSharePercent = Math.Max(0, Math.Min(WagePolicy.MaxWealthShare, r.Int("wshare"))); b.Policy.GapMood = r.Int("nogap") == 0;
             foreach (var s in r.Strings("ess")) b.Policy.Essential.Add(s); foreach (var s in r.Strings("ord")) b.Policy.Order.Add(s);
             foreach (var s in r.Strings("miss")) { var p = s.Split((char)124); if (p.Length == 2) b.missed[I(p[0])] = I(p[1]); }
             foreach (var s in r.Strings("rate")) { var p = s.Split('|'); if (p.Length == 2) b.Policy.Rates[p[0]] = I(p[1]); }

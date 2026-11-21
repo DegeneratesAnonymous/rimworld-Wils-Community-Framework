@@ -8,6 +8,14 @@
     <flashColor>(0.78, 0.8, 0.84)</flashColor>
     <arriveSound>LetterArrive</arriveSound>
   </LetterDef>
+  <!-- A family's wish to go camping; Plan the trip opens the planning window. -->
+  <LetterDef>
+    <defName>WFL_CampInvite</defName>
+    <letterClass>FamilyLife.ChoiceLetter_CampInvite</letterClass>
+    <color>(0.78, 0.8, 0.84)</color>
+    <flashColor>(0.78, 0.8, 0.84)</flashColor>
+    <arriveSound>LetterArrive</arriveSound>
+  </LetterDef>
   <!-- One notice that a saved game refers to a module that is not installed (nothing is lost; see ModuleNotice). -->
   <LetterDef>
     <defName>WFL_ModuleAbsent</defName>

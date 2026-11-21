@@ -172,6 +172,7 @@ namespace FamilyLife
         {
             var reg = c.Registry; var pay = reg.Payroll(); var pol = pay.Policy;
             y = CommunityPageLayout.Help(r, y, "WFL_Tr_PayrollHelp".Translate()) + 4f;
+            y = WealthPay(r, c, y);
             y = Heading(r, y + 4f, "WFL_Tr_FundingTitle".Translate());
             foreach (PayrollFunding f in Enum.GetValues(typeof(PayrollFunding))) { if (Widgets.RadioButtonLabeled(new Rect(4f, y, r.width - 16f, 24f), ("WFL_Tr_Funding_" + f).Translate(), pol.Funding == f)) pol.Funding = f; y += 26f; }
             y = CommunityPageLayout.Help(r, y, "WFL_Tr_FundingNote".Translate());
@@ -205,6 +206,21 @@ namespace FamilyLife
             y = Heading(r, y, "WFL_Tr_PastPayments".Translate());
             foreach (var rep in pay.Reports.AsEnumerable().Reverse()) y = Line(r, y, "WFL_Tr_PaydayLine".Translate(rep.Payday % PayCalendar.DaysPerYear + 1, rep.TotalDue, rep.TotalPaid, rep.Shortfall > 0 ? (string)"WFL_Tr_ShortBy".Translate(rep.Shortfall) : ""), true);
             return y;
+        }
+
+        /// <summary>Pay linked to the colony's wealth, and how far colonists' own money is from it. The share is the player's choice; 0 keeps the fixed rates below.</summary>
+        private static float WealthPay(Rect r, FamilyComponent c, float y)
+        {
+            var reg = c.Registry; var pol = reg.Payroll().Policy; var l = reg.Ledger();
+            y = Heading(r, y + 4f, "WFL_Tr_WealthPayTitle".Translate());
+            long wealth = TreasuryService.ColonyWealth(); var people = TreasuryService.GapColonists(c); int n = people.Count;
+            y = Line(r, y, "WFL_Tr_WealthPayShare".Translate(pol.WealthSharePercent));
+            pol.WealthSharePercent = (int)Widgets.HorizontalSlider(new Rect(4f, y, 280f, 20f), pol.WealthSharePercent, 0f, WagePolicy.MaxWealthShare, true, null, null, null, 1f); y += 26f;
+            y = Line(r, y, pol.WealthSharePercent <= 0 ? (string)"WFL_Tr_WealthPayOff".Translate() : (string)"WFL_Tr_WealthPayOn".Translate(wealth, pol.PoolPerPayday(wealth)), true);
+            long per = WealthGap.PerColonist(wealth, n), held = n == 0 ? 0 : people.Sum(p => (long)l.Balance(Ledger.IdFor(AccountKind.Person, p.thingIDNumber))) / n;
+            y = Line(r, y, "WFL_Tr_WealthGapLine".Translate(held, per, per > 0 ? Mathf.RoundToInt(held * 100f / per) : 0), true);
+            bool gap = pol.GapMood; Widgets.CheckboxLabeled(new Rect(4f, y, 420f, 24f), "WFL_Tr_GapMood".Translate(), ref gap); pol.GapMood = gap; y += 28f;
+            return CommunityPageLayout.Help(r, y, "WFL_Tr_GapMoodNote".Translate());
         }
 
         private static readonly Dictionary<string, string> rateBuffers = new Dictionary<string, string>();

@@ -38,6 +38,7 @@ namespace FamilyLife
                 return report;
             });
             FamilyFramework.CrossTraining.Add(Id + ".cross.teaching", Id, new CrossTrainingRule { From = IntelligenceCareers.Career, To = "wils.education.teaching", KindPrefix = null, Share = .2f });
+            FamilyFramework.WorkFocus.Add(Id + ".work", Id, new WorkFocusRule { Career = IntelligenceCareers.Career, WorkTypes = new[] { "Research" } });
             CareerService.Registered(Id);
         }
     }

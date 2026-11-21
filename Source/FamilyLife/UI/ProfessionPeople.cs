@@ -74,6 +74,10 @@ namespace FamilyLife
             }
             y = CommunityStaffing.Draw(r, y, c, null);
             if (people.Count == 0) return CommunityPageLayout.Line(r, y, "WFL_Prof_NoPeople".Translate(), true);
+            var focus = reg.WorkFocus();
+            y = CommunityPageLayout.Button(r, y, "WFL_Prof_WorkApply".Translate(), () => { int n = WorkFocusGame.ApplyAll(c); Messages.Message("WFL_Prof_WorkApplied".Translate(n), MessageTypeDefOf.TaskCompletion, false); });
+            y = CommunityPageLayout.Button(r, y, "WFL_Prof_WorkUndo".Translate(), () => { int n = WorkFocusGame.UndoAll(c); Messages.Message("WFL_Prof_WorkUndone".Translate(n), MessageTypeDefOf.TaskCompletion, false); });
+            y = CommunityPageLayout.Help(r, y, "WFL_Prof_WorkHelp".Translate());
             y = CommunityPageLayout.Line(r, y, "WFL_Prof_PeopleKey".Translate(), true);
             float nameW = Mathf.Max(120f, r.width * .17f), mainW = Mathf.Max(200f, r.width * .32f);
             foreach (var kv in people.OrderByDescending(p => p.Value.Any(h => h.Gain > 0)).ThenBy(p => p.Key.LabelShort))
@@ -82,7 +86,11 @@ namespace FamilyLife
                 float sideX = nameW + mainW + 8f, sideW = Mathf.Max(120f, (r.width - sideX) / 2f - 4f); int perRow = Mathf.Max(1, Mathf.FloorToInt((r.width - sideX) / (sideW + 4f))); int rows = Math.Max(1, (sides.Count + perRow - 1) / perRow);
                 float h0 = Mathf.Max(48f, rows * 26f + 8f); var row = new Rect(0f, y, r.width, h0);
                 Widgets.DrawBoxSolid(row, new Color(1f, 1f, 1f, .035f)); if (Mouse.IsOver(row)) Widgets.DrawHighlight(row);
-                CommunityWidgets.NameButton(new Rect(6f, y, nameW - 8f, h0), pawn);
+                CommunityWidgets.NameButton(new Rect(6f, y, nameW - 8f, h0 - 22f), pawn);
+                bool follows = focus.IsFollowing(pawn.thingIDNumber), wasFollowing = follows; var followBox = new Rect(8f, y + h0 - 22f, nameW - 12f, 20f);
+                Text.Font = GameFont.Tiny; Widgets.CheckboxLabeled(followBox, "WFL_Prof_Follow".Translate(), ref follows, false, null, null, true); Text.Font = GameFont.Small;
+                TooltipHandler.TipRegion(followBox, "WFL_Prof_FollowTip".Translate());
+                if (follows != wasFollowing) { focus.Follow(pawn.thingIDNumber, follows); if (follows) WorkFocusGame.Apply(c, pawn); }
                 var card = new Rect(nameW, y + 4f, mainW, h0 - 8f); Widgets.DrawBoxSolid(card, new Color(Gold.r, Gold.g, Gold.b, .10f)); Widgets.DrawBox(card);
                 GUI.color = Gold; Text.Font = GameFont.Tiny; Widgets.Label(new Rect(card.x + 6f, card.y + 1f, card.width - 12f, 16f), "★ " + "WFL_Prof_Main".Translate() + ": " + CareerService.TitleOf(main.Role, reg)); Text.Font = GameFont.Small; GUI.color = Color.white;
                 XpBar(new Rect(card.x + 6f, card.yMax - 20f, card.width - 12f, 16f), main, "");

@@ -36,6 +36,7 @@ namespace FamilyLife
             {
                 var report=new CleanupReport(Id);report.Step("Remove automatic hunt designations",()=>AutomaticHunting.RemoveAll(c)+" automatic target(s) released; careers and policy retained");return report;
             });
+            FamilyFramework.WorkFocus.Add(Id + ".work", Id, new WorkFocusRule { Career = "wils.agriculture.agriculture", WorkTypes = new[] { "Growing", "PlantCutting", "Hunting", "Handling" } });
             CareerService.Registered(Id);
         }
     }
