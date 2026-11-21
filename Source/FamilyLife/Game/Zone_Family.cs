@@ -186,7 +186,7 @@ namespace FamilyLife
             if (existing != null && existing.GetType() != zoneTypeToPlace) return false;
             if (c.Fogged(Map)) return false;
             if (c.InNoZoneEdgeArea(Map)) return "TooCloseToMapEdge".Translate();
-            if (c.Impassable(Map)) return false;
+            if (ZoneCells.SolidAt(c, Map)) return false;
             return true;
         }
     }
@@ -218,6 +218,19 @@ namespace FamilyLife
             foreach (var c in cells)
                 if (CanDesignateCell(c).Accepted && !target.ContainsCell(c)) { if (Map.zoneManager.ZoneAt(c) == null) { target.AddCell(c); added++; } }
             Finalize(added > 0);
+        }
+    }
+}
+
+namespace FamilyLife
+{
+    /// <summary>Which cells a home-style zone refuses. Furniture does not count, only walls and solid rock.</summary>
+    public static class ZoneCells
+    {
+        public static bool SolidAt(IntVec3 c, Verse.Map map)
+        {
+            var edifice = c.GetEdifice(map);
+            return edifice != null && (edifice.def.Fillage == FillCategory.Full || edifice.def.building?.isNaturalRock == true);
         }
     }
 }

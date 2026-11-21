@@ -310,7 +310,7 @@ namespace FamilyLife
             if (existing != null && existing.GetType() != zoneTypeToPlace) return false;
             if (c.Fogged(Map)) return false;
             if (c.InNoZoneEdgeArea(Map)) return "TooCloseToMapEdge".Translate();
-            if (c.Impassable(Map)) return false;
+            if (ZoneCells.SolidAt(c, Map)) return false;
             return true;
         }
     }
