@@ -180,6 +180,7 @@ namespace FamilyLife
             if (component.Registry.GetLineage(R.FamilyOf(adult.thingIDNumber))?.CultureOf(Dim.Scholarly) > 22)
                 yield return new Need { Kind = SupplyKind.Book, Target = 1, Urgency = 0.1f, ForPawn = adult };
         }
+        internal static bool HomeFloorFree(Map map, IntVec3 c, Pawn actor) => c.InBounds(map) && c.Standable(map) && !c.IsForbidden(actor) && actor.CanReserve(c) && !c.GetThingList(map).Any(t => t.def.category == ThingCategory.Item);
         private bool Destination(Pawn actor, Area home, Thing thing, out IntVec3 cell)
         {
             cell = IntVec3.Invalid;
@@ -187,6 +188,13 @@ namespace FamilyLife
                 foreach (var c in group.CellsList)
                     if (home[c] && !c.IsForbidden(actor) && StoreUtility.IsGoodStoreCell(c, actor.Map, thing, actor, Faction.OfPlayer) && actor.CanReserve(c))
                     { cell = c; return true; }
+            // A family zone with no shelf or stockpile in it still serves as the household's store: any free floor cell inside it will do.
+            int looked = 0;
+            foreach (var c in home.ActiveCells.OrderBy(x => x.DistanceToSquared(actor.Position)))
+            {
+                if (++looked > 400) break;
+                if (HomeFloorFree(actor.Map, c, actor) ) { cell = c; return true; }
+            }
             return false;
         }
         internal void Tick(int now)
