@@ -21,6 +21,8 @@
   <WFL_TZ_Office>Business waiting at the office: {0}.</WFL_TZ_Office>
   <WFL_TZ_MissingSilver>Accounts claim {0} more silver than is in storage.</WFL_TZ_MissingSilver>
   <WFL_TZ_Secondary>A treasury already exists on this map; this zone is not used.</WFL_TZ_Secondary>
+  <WFL_TZ_Expand>Expand zone</WFL_TZ_Expand>
+  <WFL_TZ_ExpandDesc>Paint more cells into this treasury zone. Tables, seats and shelves can be painted over.</WFL_TZ_ExpandDesc>
   <WFL_TZ_Open>Open the Treasury</WFL_TZ_Open>
   <WFL_TZ_OpenDesc>Open the Treasury page of the Community window.</WFL_TZ_OpenDesc>
   <WFL_Tr_Valuables>Recognised valuables (stored wealth, never spendable silver)</WFL_Tr_Valuables>

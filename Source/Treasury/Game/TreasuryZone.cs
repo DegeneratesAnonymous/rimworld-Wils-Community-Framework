@@ -106,6 +106,13 @@ namespace FamilyLife
             foreach (var g in base.GetGizmos()) yield return g;
             yield return new Command_Action
             {
+                defaultLabel = "WFL_TZ_Expand".Translate(), defaultDesc = "WFL_TZ_ExpandDesc".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
+                defaultIconColor = new Color(0.95f, 0.8f, 0.3f),
+                action = () => Find.DesignatorManager.Select(new Designator_ZoneExpand_Treasury(this))
+            };
+            yield return new Command_Action
+            {
                 defaultLabel = "WFL_TZ_Open".Translate(), defaultDesc = "WFL_TZ_OpenDesc".Translate(),
                 icon = ContentFinder<Texture2D>.Get("UI/Commands/AssignOwner", false) ?? BaseContent.BadTex,
                 action = () => MainTabWindow_Community.Open(TreasuryService.PageId)
@@ -131,7 +138,7 @@ namespace FamilyLife
             zoneTypeToPlace = typeof(Zone_Treasury);
             defaultLabel = "WFL_TreasuryZone".Translate();
             defaultDesc = "WFL_TreasuryZoneDesc".Translate();
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; defaultIconColor = new Color(0.95f, 0.8f, 0.3f);
             hotKey = null;
         }
 
@@ -146,6 +153,36 @@ namespace FamilyLife
             if (c.InNoZoneEdgeArea(Map)) return "TooCloseToMapEdge".Translate();
             if (c.Impassable(Map)) return false;
             return true;
+        }
+    }
+
+    /// <summary>Adds cells to one chosen treasury zone, from the zone's Expand button. Furniture may be painted over.</summary>
+    public class Designator_ZoneExpand_Treasury : Designator_ZoneAdd_Treasury
+    {
+        private readonly Zone_Treasury target;
+
+        public Designator_ZoneExpand_Treasury() { }
+        public Designator_ZoneExpand_Treasury(Zone_Treasury zone)
+        {
+            target = zone;
+            defaultLabel = "WFL_TZ_Expand".Translate();
+            defaultDesc = "WFL_TZ_ExpandDesc".Translate();
+        }
+
+        public override AcceptanceReport CanDesignateCell(IntVec3 c)
+        {
+            var ok = base.CanDesignateCell(c);
+            if (!ok.Accepted) return ok;
+            return target == null || target.Map == Map;
+        }
+
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells)
+        {
+            if (target == null || target.Map != Map) return;
+            int added = 0;
+            foreach (var c in cells)
+                if (CanDesignateCell(c).Accepted && Map.zoneManager.ZoneAt(c) == null) { target.AddCell(c); added++; }
+            Finalize(added > 0);
         }
     }
 }

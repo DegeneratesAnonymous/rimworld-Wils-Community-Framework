@@ -169,7 +169,7 @@ namespace FamilyLife
             zoneTypeToPlace = typeof(Zone_Family);
             defaultLabel = "WFL_FamilyZone".Translate();
             defaultDesc = "WFL_FamilyZoneDesc".Translate();
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; defaultIconColor = new Color(0.95f, 0.65f, 0.45f);
             hotKey = null;
         }
 

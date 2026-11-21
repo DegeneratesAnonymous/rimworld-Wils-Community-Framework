@@ -298,7 +298,7 @@ namespace FamilyLife
         {
             zoneTypeToPlace = typeof(Zone_TrainingYard);
             defaultLabel = "WFL_Military_TrainingYard".Translate(); defaultDesc = "WFL_Military_TrainingYardDesc".Translate();
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; hotKey = null;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; hotKey = null; defaultIconColor = new Color(0.85f, 0.35f, 0.3f);
         }
 
         protected override Zone MakeNewZone() => new Zone_TrainingYard(Find.CurrentMap.zoneManager);
