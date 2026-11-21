@@ -123,6 +123,13 @@ namespace FamilyLife
             foreach (var g in base.GetGizmos()) yield return g;
             yield return new Command_Action
             {
+                defaultLabel = "WFL_ZoneExpand".Translate(),
+                defaultDesc = "WFL_ZoneExpandDesc".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
+                action = () => Find.DesignatorManager.Select(new Designator_ZoneExpand_Family(this))
+            };
+            yield return new Command_Action
+            {
                 defaultLabel = "WFL_ZoneDealBeds".Translate(),
                 defaultDesc = "WFL_ZoneDealBedsDesc".Translate(),
                 icon = ContentFinder<Texture2D>.Get("UI/Commands/AssignOwner", false) ?? BaseContent.BadTex,
@@ -181,6 +188,36 @@ namespace FamilyLife
             if (c.InNoZoneEdgeArea(Map)) return "TooCloseToMapEdge".Translate();
             if (c.Impassable(Map)) return false;
             return true;
+        }
+    }
+
+    /// <summary>Adds cells to one chosen family zone (furniture may be painted over), from the zone's Expand button.</summary>
+    public class Designator_ZoneExpand_Family : Designator_ZoneAdd_Family
+    {
+        private readonly Zone_Family target;
+
+        public Designator_ZoneExpand_Family() { }
+        public Designator_ZoneExpand_Family(Zone_Family zone)
+        {
+            target = zone;
+            defaultLabel = "WFL_ZoneExpand".Translate();
+            defaultDesc = "WFL_ZoneExpandDesc".Translate();
+        }
+
+        public override AcceptanceReport CanDesignateCell(IntVec3 c)
+        {
+            var ok = base.CanDesignateCell(c);
+            if (!ok.Accepted) return ok;
+            return target == null || target.Map == Map;
+        }
+
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells)
+        {
+            if (target == null || target.Map != Map) return;
+            int added = 0;
+            foreach (var c in cells)
+                if (CanDesignateCell(c).Accepted && !target.ContainsCell(c)) { if (Map.zoneManager.ZoneAt(c) == null) { target.AddCell(c); added++; } }
+            Finalize(added > 0);
         }
     }
 }
