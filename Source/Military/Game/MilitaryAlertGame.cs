@@ -303,6 +303,8 @@ namespace FamilyLife
 
         protected override Zone MakeNewZone() => new Zone_TrainingYard(Find.CurrentMap.zoneManager);
 
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any); Finalize(any); }
+
         public override AcceptanceReport CanDesignateCell(IntVec3 c)
         {
             if (!c.InBounds(Map)) return false;

@@ -175,6 +175,8 @@ namespace FamilyLife
 
         protected override Zone MakeNewZone() => new Zone_Family(Find.CurrentMap.zoneManager);
 
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any); Finalize(any); }
+
         /// <summary>
         /// A home has beds, tables and other furniture in it, so unlike the game's own zones this one can be painted over things. Only fog,
         /// the map edge, another kind of zone and solid blocks such as walls are refused.
@@ -227,6 +229,22 @@ namespace FamilyLife
     /// <summary>Which cells a home-style zone refuses. Furniture does not count, only walls and solid rock.</summary>
     public static class ZoneCells
     {
+        /// <summary>Paints cells into the zone under them (or touching them), or a new one. Done here so nothing but <paramref name="ok"/> decides what a cell may hold.</summary>
+        public static void Paint(Map map, IEnumerable<IntVec3> cells, System.Type type, System.Func<IntVec3, bool> ok, System.Func<Zone> make, out bool any)
+        {
+            any = false; var list = cells.Where(ok).ToList(); if (list.Count == 0) return;
+            Zone zone = null;
+            foreach (var c in list) { var z = map.zoneManager.ZoneAt(c); if (z != null && z.GetType() == type) { zone = z; break; } }
+            if (zone == null)
+                foreach (var c in list)
+                {
+                    foreach (var d in GenAdj.CardinalDirections) { var n = c + d; if (!n.InBounds(map)) continue; var z = map.zoneManager.ZoneAt(n); if (z != null && z.GetType() == type) { zone = z; break; } }
+                    if (zone != null) break;
+                }
+            if (zone == null) { zone = make(); map.zoneManager.RegisterZone(zone); Find.Selector.Select(zone, false); }
+            foreach (var c in list) if (map.zoneManager.ZoneAt(c) == null) { zone.AddCell(c); any = true; }
+        }
+
         public static bool SolidAt(IntVec3 c, Verse.Map map)
         {
             var edifice = c.GetEdifice(map);
