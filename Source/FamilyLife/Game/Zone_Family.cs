@@ -232,7 +232,10 @@ namespace FamilyLife
         /// <summary>Paints cells into the zone under them (or touching them), or a new one. Done here so nothing but <paramref name="ok"/> decides what a cell may hold.</summary>
         public static void Paint(Map map, IEnumerable<IntVec3> cells, System.Type type, System.Func<IntVec3, bool> ok, System.Func<Zone> make, out bool any)
         {
-            any = false; var list = cells.Where(ok).ToList(); if (list.Count == 0) return;
+            any = false; var all = cells.ToList(); var list = all.Where(ok).ToList();
+            var refused = all.Except(list).Take(6).Select(c => c + " (" + (c.GetEdifice(map)?.def.defName ?? "no building") + ", zone " + (map.zoneManager.ZoneAt(c)?.GetType().Name ?? "none") + ")").ToList();
+            if (all.Count > list.Count) Log.Message("[Wil's Family Life] Zone painting refused " + (all.Count - list.Count) + " of " + all.Count + " cells, for example: " + string.Join(", ", refused));
+            if (list.Count == 0) return;
             Zone zone = null;
             foreach (var c in list) { var z = map.zoneManager.ZoneAt(c); if (z != null && z.GetType() == type) { zone = z; break; } }
             if (zone == null)
