@@ -567,6 +567,8 @@ namespace FamilyLife.Domain
             Scribe_Collections.Look(ref Incidents, "incidents", LookMode.Deep);
             Scribe_Collections.Look(ref Plots, "plots", LookMode.Deep);
             Scribe_Collections.Look(ref Claims, "stockClaims", LookMode.Deep);
+            Scribe_Collections.Look(ref FamilyStores, "familyStores", LookMode.Value);
+            if (FamilyStores == null) FamilyStores = new List<int>();
             Scribe_Collections.Look(ref Requests, "supplyRequests", LookMode.Deep);
             Scribe_Values.Look(ref NextIncidentId, "nextIncidentId", 1);
             Scribe_Values.Look(ref NextPlotId, "nextPlotId", 1);

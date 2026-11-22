@@ -29,17 +29,26 @@ namespace FamilyLife
 
         public static int Count(Zone zone) => StorageIn(zone).Count();
 
+        /// <summary>Makes one filter accept only what the profile lists.</summary>
+        public static void Set(ThingFilter filter, StorageProfile profile)
+        {
+            filter.SetDisallowAll();
+            foreach (var name in profile.Categories) { var d = DefDatabase<ThingCategoryDef>.GetNamedSilentFail(name); if (d != null) filter.SetAllow(d, true); }
+            foreach (var name in profile.Defs) { var d = DefDatabase<ThingDef>.GetNamedSilentFail(name); if (d != null) filter.SetAllow(d, true); }
+        }
+
+        /// <summary>True when the filter already accepts nothing the profile does not list.</summary>
+        public static bool Matches(ThingFilter filter, StorageProfile profile)
+        {
+            var wanted = new ThingFilter(); Set(wanted, profile);
+            return filter.AllowedThingDefs.All(d => wanted.Allows(d));
+        }
+
         /// <summary>Makes every shelf and storage building inside the zone accept only what the profile lists. Returns how many were set.</summary>
         public static int Apply(Zone zone, StorageProfile profile)
         {
             int n = 0;
-            foreach (var p in StorageIn(zone).ToList())
-            {
-                var filter = p.GetStoreSettings().filter; filter.SetDisallowAll();
-                foreach (var name in profile.Categories) { var d = DefDatabase<ThingCategoryDef>.GetNamedSilentFail(name); if (d != null) filter.SetAllow(d, true); }
-                foreach (var name in profile.Defs) { var d = DefDatabase<ThingDef>.GetNamedSilentFail(name); if (d != null) filter.SetAllow(d, true); }
-                n++;
-            }
+            foreach (var p in StorageIn(zone).ToList()) { Set(p.GetStoreSettings().filter, profile); n++; }
             return n;
         }
 
