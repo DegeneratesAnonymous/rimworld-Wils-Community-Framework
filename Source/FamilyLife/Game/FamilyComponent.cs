@@ -101,6 +101,7 @@ namespace FamilyLife
         /// <summary>A new game or a loaded one: registration closes (once per session), then each module's on/off state follows what this save recorded, then running modules check their saved state against the world.</summary>
         public override void FinalizeInit() { base.FinalizeInit(); FamilyFramework.FinalizeStartup(); FamilyFramework.ApplyLifecycle(this); Registry.ProfessionsAssigned = true; CareerService.OnLoaded(this); }
 
+        public override void GameComponentUpdate() { try { FamilyZoneOutline.Draw(); } catch (System.Exception) { } }
         public override void GameComponentTick()
         {
             using var measurement = Performance.Measure("Family tick");
