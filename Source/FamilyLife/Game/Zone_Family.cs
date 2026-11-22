@@ -258,33 +258,6 @@ namespace FamilyLife
 
 namespace FamilyLife
 {
-    /// <summary>The game draws a zone's tint underneath furniture, so beds and tables look left out. This outlines the furniture cells a family zone holds.</summary>
-    internal static class FamilyZoneOutline
-    {
-        private static int built = -999; private static Verse.Map builtFor;
-        private static readonly System.Collections.Generic.List<KeyValuePair<System.Collections.Generic.List<IntVec3>, UnityEngine.Color>> cache = new System.Collections.Generic.List<KeyValuePair<System.Collections.Generic.List<IntVec3>, UnityEngine.Color>>();
-
-        public static void Draw()
-        {
-            var map = Find.CurrentMap;
-            if (!FamilyZoneView.Show || map == null || Current.ProgramState != ProgramState.Playing) return;
-            if (builtFor != map || UnityEngine.Time.frameCount - built > 90)
-            {
-                built = UnityEngine.Time.frameCount; builtFor = map; cache.Clear();
-                foreach (var z in map.zoneManager.AllZones)
-                {
-                    if (!(z is Zone_Family) || z.Hidden) continue;
-                    var under = z.Cells.Where(c => c.InBounds(map) && c.GetThingList(map).Any(t => t is Building)).ToList();
-                    if (under.Count > 0) cache.Add(new KeyValuePair<System.Collections.Generic.List<IntVec3>, UnityEngine.Color>(under, new UnityEngine.Color(z.color.r, z.color.g, z.color.b, 0.7f)));
-                }
-            }
-            foreach (var e in cache) GenDraw.DrawFieldEdges(e.Key, e.Value);
-        }
-    }
-}
-
-namespace FamilyLife
-{
     /// <summary>
     /// The game refuses to put a zone cell under a building whose definition says zones cannot overlap it, which covers most furniture, and only logs an error.
     /// Our home-style zones are meant to hold furniture, so they add such a cell the same way the game does, minus that refusal.
