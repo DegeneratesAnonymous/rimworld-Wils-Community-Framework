@@ -72,13 +72,14 @@ namespace FamilyLife
                 {
                     var estate = r.OpenEstate(owner, id => FindThing(c, r, id, owner).Exists, now);
                     if (estate == null) continue;
-                    Messages.Message("WFL_Estate_Opened".Translate(FamilyUi.NameOf(r, owner), estate.Items.Count), MessageTypeDefOf.NeutralEvent, false);
+                    StoryLetters.Send("WFL_Estate_OpenedTitle".Translate(FamilyUi.NameOf(r, owner)), "WFL_Estate_Opened".Translate(FamilyUi.NameOf(r, owner), estate.Items.Count), LetterDefOf.NeutralEvent, c.TryGetPawn(owner));
                     // Worn things stay on the body: the game never strips or buries anyone to hand something down.
                     if (estate.Items.Any(i => FindThing(c, r, i.ThingId, owner, i.DefName).OnCorpse))
                         Messages.Message("WFL_Estate_OnBody".Translate(FamilyUi.NameOf(r, owner)), MessageTypeDefOf.NeutralEvent, false);
                 }
                 r.AdvanceEstates(now, Context(c));
                 ReportMilestones(c, r, now);
+                StoryLetters.Announce(c, r);
             }
             using (c.Performance.Measure("Estates: delivery")) Deliver(c, r, now);
         }
@@ -282,7 +283,7 @@ namespace FamilyLife
             foreach (var estate in r.Estates.Where(e => e.Stage == EstateStage.Resolved && now - e.ClosedTick < 2 * ActivityTuning.TicksPerDay && told.Add(estate0(e))).ToList())
             {
                 int got = estate.Items.Count(i => i.Outcome == ItemOutcome.Delivered), lost = estate.Items.Count(i => i.Outcome == ItemOutcome.Lost);
-                Messages.Message("WFL_Estate_Settled".Translate(FamilyUi.NameOf(r, estate.DeceasedId), got, lost), MessageTypeDefOf.NeutralEvent, false);
+                StoryLetters.Send("WFL_Estate_SettledTitle".Translate(FamilyUi.NameOf(r, estate.DeceasedId)), "WFL_Estate_Settled".Translate(FamilyUi.NameOf(r, estate.DeceasedId), got, lost), lost > 0 ? LetterDefOf.NegativeEvent : LetterDefOf.PositiveEvent, null);
             }
         }
 

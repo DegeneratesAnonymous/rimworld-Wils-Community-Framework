@@ -374,6 +374,12 @@
   <WFL_Estate_History>Past estates</WFL_Estate_History>
   <WFL_Estate_HistoryLine>The estate of {0}: {1} delivered, {2} lost ({3}).</WFL_Estate_HistoryLine>
   <WFL_Estate_Opened>{0} has died. Their {1} keepsake(s) will be sorted out by the family.</WFL_Estate_Opened>
+  <WFL_Estate_OpenedTitle>{0} has died</WFL_Estate_OpenedTitle>
+  <WFL_Estate_SettledTitle>The estate of {0} is settled</WFL_Estate_SettledTitle>
+  <WFL_Theft_Title>{0} took from {1}</WFL_Theft_Title>
+  <WFL_Theft_Text>{0} took {2} of {1}'s family supplies. It was not asked for and it was not freely given. {1} will remember it, and so may anyone who saw.</WFL_Theft_Text>
+  <WFL_Restitution_Title>{0} made it right with {1}</WFL_Restitution_Title>
+  <WFL_Restitution_Text>{0} returned {2} to {1}. The wrong is not forgotten, but the family can start to move on.</WFL_Restitution_Text>
   <WFL_Estate_Settled>The estate of {0} is settled: {1} item(s) delivered, {2} lost.</WFL_Estate_Settled>
   <WFL_Estate_Received>{0} has taken {1}, left by {2}.</WFL_Estate_Received>
   <WFL_EstateStage_Mourning>mourning</WFL_EstateStage_Mourning>
