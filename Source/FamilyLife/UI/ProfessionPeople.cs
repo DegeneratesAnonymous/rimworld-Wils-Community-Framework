@@ -22,7 +22,7 @@ namespace FamilyLife
         private static CareerFocus FocusOf(FamilyComponent c, Pawn pawn, ProfessionRole role)
         {
             var def = CareerService.Career(role.Career); if (def == null) return new CareerFocus();
-            return CareerFocus.Of(c.Registry.Careers().Progress(pawn.thingIDNumber, def, CareerService.SkillsOf(pawn)), role.Specialty);
+            return CareerFocus.Of(c.Registry.Careers().Progress(pawn.thingIDNumber, def, CareerService.SkillsOf(pawn), CareerService.LoadPenalty(pawn, role.Career)), role.Specialty);
         }
 
         private static readonly Dictionary<int, KeyValuePair<int, List<Held>>> heldCache = new Dictionary<int, KeyValuePair<int, List<Held>>>();
@@ -93,6 +93,7 @@ namespace FamilyLife
                 if (follows != wasFollowing) { focus.Follow(pawn.thingIDNumber, follows); if (follows) WorkFocusGame.Apply(c, pawn); }
                 var card = new Rect(nameW, y + 4f, mainW, h0 - 8f); Widgets.DrawBoxSolid(card, new Color(Gold.r, Gold.g, Gold.b, .10f)); Widgets.DrawBox(card);
                 GUI.color = Gold; Text.Font = GameFont.Tiny; Widgets.Label(new Rect(card.x + 6f, card.y + 1f, card.width - 12f, 16f), "★ " + "WFL_Prof_Main".Translate() + ": " + CareerService.TitleOf(main.Role, reg)); Text.Font = GameFont.Small; GUI.color = Color.white;
+                RoleLoadUi.Chip(new Rect(card.xMax - 130f, card.y + 1f, 124f, 16f), reg, pawn.thingIDNumber);
                 XpBar(new Rect(card.x + 6f, card.yMax - 20f, card.width - 12f, 16f), main, "");
                 if (Widgets.ButtonInvisible(card)) ChipMenu(c, pawn, main);
                 for (int i = 0; i < sides.Count; i++)

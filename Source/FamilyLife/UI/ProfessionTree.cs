@@ -84,7 +84,7 @@ namespace FamilyLife
                         CommunityWidgets.NameButton(new Rect(0f, y, body.width * .5f, 36f), pawn);
                         string label = held ? "WFL_Prof_Remove".Translate().ToString() : check == AssignResult.Assigned ? "WFL_Career_Assign".Translate().ToString() : "WFL_Career_Needs_Short".Translate().ToString();
                         var action = new Rect(body.width * .55f, y, body.width * .45f, 32f);
-                        if (held || check == AssignResult.Assigned) { if (Widgets.ButtonText(action, label)) { if (held) reg.Assignments().Unassign(person.Id, role.Id); else reg.Assignments().Assign(person.Id, role, reg.Careers(), FrameworkServices.Now); } }
+                        if (held || check == AssignResult.Assigned) { if (Widgets.ButtonText(action, label)) { if (held) reg.Assignments().Unassign(person.Id, role.Id); else RoleLoadUi.Assign(reg, pawn, person.Id, role, () => reg.Assignments().Assign(person.Id, role, reg.Careers(), FrameworkServices.Now)); } }
                         else CommunityWidgets.Cell(action, label, CommunityWidgets.Muted);
                         y += 40f;
                     }
@@ -328,7 +328,7 @@ namespace FamilyLife
                 int id = p.Id; bool already = book.IsAssigned(id, role.Id); var check = AssignmentBook.Check(role, ledger, id); var lv = levels(p);
                 string skill = skills.Count == 0 ? "" : skills.Count == 1 ? " (" + lv[0] + ")" : " (" + string.Join(", ", skills.Select((k, i) => (DefDatabase<SkillDef>.GetNamedSilentFail(k)?.skillLabel ?? k).CapitalizeFirst() + " " + lv[i])) + ")";
                 string label = CommunityCorePages.NameOf(c, id) + skill + (already ? " [" + "WFL_Career_Assigned".Translate() + "]" : check != AssignResult.Assigned ? " [" + "WFL_Career_Needs_Short".Translate() + "]" : "");
-                options.Add(new FloatMenuOption(label, already ? (Action)(() => book.Unassign(id, role.Id)) : check == AssignResult.Assigned ? () => book.Assign(id, role, ledger, Find.TickManager.TicksGame) : (Action)null));
+                options.Add(new FloatMenuOption(label, already ? (Action)(() => book.Unassign(id, role.Id)) : check == AssignResult.Assigned ? () => RoleLoadUi.Assign(c.Registry, c.TryGetPawn(id), id, role, () => book.Assign(id, role, ledger, Find.TickManager.TicksGame)) : (Action)null));
             }
             if (options.Count == 0) options.Add(new FloatMenuOption("WFL_ZoneNoFamilies".Translate(), null));
             return options;

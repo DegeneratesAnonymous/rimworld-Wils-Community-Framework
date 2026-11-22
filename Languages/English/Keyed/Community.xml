@@ -72,6 +72,13 @@
   <WFL_Prof_ViewRoles>By role</WFL_Prof_ViewRoles>
   <WFL_Prof_Main>Main</WFL_Prof_Main>
   <WFL_Prof_NoSide>No side professions</WFL_Prof_NoSide>
+  <WFL_Load_Open>Open</WFL_Load_Open>
+  <WFL_Load_Full>Full</WFL_Load_Full>
+  <WFL_Load_Over>Overloaded</WFL_Load_Over>
+  <WFL_Load_Tip_Open>Carries {0} of {1} professions their skill (best {2}) can support, so there is room for another. Each profession already held raises what a new qualified role asks of their skills by {3} levels.</WFL_Load_Tip_Open>
+  <WFL_Load_Tip_Full>Carries {0} of {1} professions their skill (best {2}) can support. Another is possible but will ask {3} more skill levels for each profession already held.</WFL_Load_Tip_Full>
+  <WFL_Load_Tip_Over>Carries {0} professions but their skill (best {2}) supports {1}. Nothing is taken away, but this person is stretched thin; consider handing one on.</WFL_Load_Tip_Over>
+  <WFL_Load_Confirm>{0} already holds {1} of the {2} professions their skill supports. Another one stretches them thin, and a new qualified role also asks {3} more skill levels for each profession already held. Assign it anyway?</WFL_Load_Confirm>
   <WFL_Prof_PeopleKey>Gold box: main profession. Bars show progress toward the next step of that career; a green arrow means experience came in recently. Click a profession to make it main or remove it.</WFL_Prof_PeopleKey>
   <WFL_Prof_RoleKey>Each role and who holds it. A star marks someone's main profession. Bars show progress; green arrows mean recent experience.</WFL_Prof_RoleKey>
   <WFL_Prof_NoPeople>Nobody has a profession yet. Use Quick setup, or assign people on the Career paths view.</WFL_Prof_NoPeople>

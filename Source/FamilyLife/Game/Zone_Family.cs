@@ -123,6 +123,12 @@ namespace FamilyLife
             foreach (var g in base.GetGizmos()) yield return g;
             yield return new Command_Action
             {
+                defaultLabel = "WFL_ZS_Button".Translate(), defaultDesc = "WFL_ZS_ButtonDesc_Family".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
+                action = () => ZoneStorage.Offer(this, ZoneStorage.Family)
+            };
+            yield return new Command_Action
+            {
                 defaultLabel = "WFL_ZoneExpand".Translate(),
                 defaultDesc = "WFL_ZoneExpandDesc".Translate(),
                 icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
@@ -175,7 +181,7 @@ namespace FamilyLife
 
         protected override Zone MakeNewZone() => new Zone_Family(Find.CurrentMap.zoneManager);
 
-        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any); Finalize(any); }
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any, zone => ZoneStorage.OfferNew(zone, ZoneStorage.Family)); Finalize(any); }
 
         /// <summary>
         /// A home has beds, tables and other furniture in it, so unlike the game's own zones this one can be painted over things. Only fog,
@@ -230,7 +236,7 @@ namespace FamilyLife
     public static class ZoneCells
     {
         /// <summary>Paints cells into the zone under them (or touching them), or a new one. Done here so nothing but <paramref name="ok"/> decides what a cell may hold.</summary>
-        public static void Paint(Map map, IEnumerable<IntVec3> cells, System.Type type, System.Func<IntVec3, bool> ok, System.Func<Zone> make, out bool any)
+        public static void Paint(Map map, IEnumerable<IntVec3> cells, System.Type type, System.Func<IntVec3, bool> ok, System.Func<Zone> make, out bool any, System.Action<Zone> onNew = null)
         {
             any = false; var all = cells.ToList(); var list = all.Where(ok).ToList();
             var refused = all.Except(list).Take(6).Select(c => c + " (" + (c.GetEdifice(map)?.def.defName ?? "no building") + ", zone " + (map.zoneManager.ZoneAt(c)?.GetType().Name ?? "none") + ")").ToList();
@@ -244,8 +250,9 @@ namespace FamilyLife
                     foreach (var d in GenAdj.CardinalDirections) { var n = c + d; if (!n.InBounds(map)) continue; var z = map.zoneManager.ZoneAt(n); if (z != null && z.GetType() == type) { zone = z; break; } }
                     if (zone != null) break;
                 }
-            if (zone == null) { zone = make(); map.zoneManager.RegisterZone(zone); Find.Selector.Select(zone, false); }
+            bool created = false; if (zone == null) { zone = make(); created = true; map.zoneManager.RegisterZone(zone); Find.Selector.Select(zone, false); }
             foreach (var c in list) if (map.zoneManager.ZoneAt(c) == null) { zone.AddCell(c); any = true; }
+            if (created && any) onNew?.Invoke(zone);
         }
 
         public static bool SolidAt(IntVec3 c, Verse.Map map)

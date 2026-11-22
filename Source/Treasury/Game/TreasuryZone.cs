@@ -106,6 +106,12 @@ namespace FamilyLife
             foreach (var g in base.GetGizmos()) yield return g;
             yield return new Command_Action
             {
+                defaultLabel = "WFL_ZS_Button".Translate(), defaultDesc = "WFL_ZS_ButtonDesc_Treasury".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
+                action = () => ZoneStorage.Offer(this, ZoneStorage.Treasury)
+            };
+            yield return new Command_Action
+            {
                 defaultLabel = "WFL_TZ_Expand".Translate(), defaultDesc = "WFL_TZ_ExpandDesc".Translate(),
                 icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
                 defaultIconColor = new Color(0.95f, 0.8f, 0.3f),
@@ -144,7 +150,7 @@ namespace FamilyLife
 
         protected override Zone MakeNewZone() => new Zone_Treasury(Find.CurrentMap.zoneManager);
 
-        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any); Finalize(any); }
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any, zone => ZoneStorage.OfferNew(zone, ZoneStorage.Treasury)); Finalize(any); }
 
         public override AcceptanceReport CanDesignateCell(IntVec3 c)
         {
