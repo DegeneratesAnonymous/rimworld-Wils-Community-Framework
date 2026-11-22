@@ -138,6 +138,12 @@ namespace FamilyLife
             {
                 ledger.NoteQualified(pawn.thingIDNumber, gained, now);
                 Note(pawn.LabelShort + " qualified: " + gained);
+                var earned = Activities.Thought("WFL_CareerEarned");
+                if (earned != null && pawn.needs?.mood?.thoughts?.memories != null && !pawn.Dead)
+                {
+                    var mem = (Thought_Memory)ThoughtMaker.MakeThought(earned, gained.Contains(":") ? 1 : 0);
+                    pawn.needs.mood.thoughts.memories.TryGainMemory(mem);
+                }
                 Messages.Message("WFL_Career_Qualified".Translate(pawn.LabelShort, Describe(gained)), pawn, MessageTypeDefOf.PositiveEvent, false);
             }
         }

@@ -550,4 +550,25 @@
     <stackLimit>1</stackLimit>
     <stages><li><label>took part in the assembly</label><description>The whole colony stood together and chose its own way. I had a say.</description><baseMoodEffect>8</baseMoodEffect></li></stages>
   </ThoughtDef>
+
+  <!-- Earned a profession for good. Stage 0 is a first qualification, stage 1 a specialty. Short and modest: the title itself is the reward. -->
+  <ThoughtDef>
+    <defName>WFL_CareerEarned</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>6</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li><label>earned a title</label><description>I trained for this and now it is mine. People will call me by it.</description><baseMoodEffect>4</baseMoodEffect></li>
+      <li><label>master of a craft</label><description>I have gone beyond the basics. Others will come to me for this.</description><baseMoodEffect>6</baseMoodEffect></li>
+    </stages>
+  </ThoughtDef>
+
+  <!-- Holding more professions than their skill can carry. Ends the moment they drop one or their skill grows. Mild: it is a nudge, never a penalty to work. -->
+  <ThoughtDef>
+    <defName>WFL_StretchedThin</defName>
+    <workerClass>FamilyLife.ThoughtWorker_StretchedThin</workerClass>
+    <stages>
+      <li><label>stretched thin</label><description>I am asked to do more kinds of work than I can do well. I never feel on top of any of it.</description><baseMoodEffect>-3</baseMoodEffect></li>
+    </stages>
+  </ThoughtDef>
 </Defs>
