@@ -284,6 +284,7 @@ namespace FamilyLife
     public class Zone_TrainingYard : Zone
     {
         public Zone_TrainingYard() { }
+        public override void AddCell(IntVec3 c) => ZoneForce.Add(this, c, base.AddCell);
         public Zone_TrainingYard(ZoneManager zoneManager) : base("WFL_Military_TrainingYard".Translate(), zoneManager) { }
         protected override Color NextZoneColor => new Color(0.75f, 0.35f, 0.3f, 0.05f);
         protected override Material CreateMaterial() { var m = SolidColorMaterials.SimpleSolidColorMaterial(new Color(color.r, color.g, color.b, 0.06f)); m.renderQueue = 3600; return m; }

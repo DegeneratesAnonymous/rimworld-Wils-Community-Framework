@@ -49,7 +49,7 @@ namespace FamilyLife
 
         public override void AddCell(IntVec3 c)
         {
-            base.AddCell(c);
+            ZoneForce.Add(this, c, base.AddCell);
             GuestPasses.Invalidate(Map);
             var area = LinkedArea;
             if (area != null) area[c] = true;
@@ -279,6 +279,29 @@ namespace FamilyLife
                 }
             }
             foreach (var e in cache) GenDraw.DrawFieldEdges(e.Key, e.Value);
+        }
+    }
+}
+
+namespace FamilyLife
+{
+    /// <summary>
+    /// The game refuses to put a zone cell under a building whose definition says zones cannot overlap it, which covers most furniture, and only logs an error.
+    /// Our home-style zones are meant to hold furniture, so they add such a cell the same way the game does, minus that refusal.
+    /// </summary>
+    public static class ZoneForce
+    {
+        private static readonly System.Reflection.MethodInfo Grid = typeof(ZoneManager).GetMethod("AddZoneGridCell", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+        private static readonly System.Reflection.FieldInfo Shuffled = typeof(Zone).GetField("cellsShuffled", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        public static void Add(Zone zone, IntVec3 c, System.Action<IntVec3> normal)
+        {
+            if (Grid == null || zone.Map == null || zone.cells.Contains(c) || !zone.Map.thingGrid.ThingsListAt(c).Any(t => !t.def.CanOverlapZones)) { normal(c); return; }
+            zone.cells.Add(c);
+            Grid.Invoke(zone.zoneManager, new object[] { zone, c });
+            zone.Map.mapDrawer.MapMeshDirty(c, MapMeshFlagDefOf.Zone);
+            AutoHomeAreaMaker.Notify_ZoneCellAdded(c, zone);
+            Shuffled?.SetValue(zone, false);
         }
     }
 }

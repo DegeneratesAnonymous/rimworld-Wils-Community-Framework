@@ -120,7 +120,7 @@ namespace FamilyLife
         }
 
         public override void PostRegister() { base.PostRegister(); NoteZone(); }
-        public override void AddCell(IntVec3 c) { base.AddCell(c); Status.Computed = -99999; }
+        public override void AddCell(IntVec3 c) { ZoneForce.Add(this, c, base.AddCell); Status.Computed = -99999; }
         public override void RemoveCell(IntVec3 c) { base.RemoveCell(c); Status.Computed = -99999; }
         /// <summary>Deleting the zone removes only the zone. Accounts, debts and payroll live in the ledger and are untouched.</summary>
         public override void Delete(bool playSound) { var st = FamilyComponent.Current?.Registry.Treasury(); if (st != null && st.PrimaryZoneId == ID) st.PrimaryZoneId = 0; base.Delete(playSound); }
