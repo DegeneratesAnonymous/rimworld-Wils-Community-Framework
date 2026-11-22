@@ -12,8 +12,8 @@ namespace FamilyLife.Domain
             Id=Career,ModuleId=Module,LabelKey="WFL_Crafting_Career",
             Level2Branches=new Dictionary<string,CareerRule>
             {
-                {"Smith",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Crafting",8)},
-                {"Tailor",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Crafting",8)}
+                {"Smith",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Crafting",6)},
+                {"Tailor",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Crafting",6)}
             },
             Specialties=new Dictionary<string,CareerRule>
             {

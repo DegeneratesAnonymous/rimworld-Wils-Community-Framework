@@ -14,7 +14,7 @@ namespace FamilyLife.Domain
         public const string Healer = "wils.care.healer";
         public const string Doctor = "wils.care.doctor";
         /// <summary>Doctor: Medicine 6 and a hundred points of care experience (about a dozen check-ups). Preliminary balance values.</summary>
-        public const int DoctorMedicine = 6, DoctorExperience = 100;
+        public const int DoctorMedicine = 6, DoctorExperience = 120;
         public const int CheckupPoints = 8;
     }
 
@@ -59,7 +59,7 @@ namespace FamilyLife.Domain
         public static CareSpecialty ByKey(string key) => All.FirstOrDefault(s => s.Key == key);
         public static IEnumerable<string> RoleIds => All.Select(s => s.RoleId);
         /// <summary>General care experience and specialty experience a specialist needs, on top of Doctor and the skills.</summary>
-        public const int GeneralExperience = 150, SpecialtyExperience = 60, ActivityPoints = 10;
+        public const int GeneralExperience = 250, SpecialtyExperience = 60, ActivityPoints = 10;
 
         public static CareerRule Rule(CareSpecialty s)
         {

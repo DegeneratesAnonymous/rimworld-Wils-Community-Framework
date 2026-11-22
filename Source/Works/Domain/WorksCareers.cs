@@ -21,23 +21,23 @@ namespace FamilyLife.Domain
         public static CareerDefinition BuilderDefinition() => new CareerDefinition
         {
             Id = Builder, ModuleId = Module, LabelKey = "WFL_Works_Builder",
-            Level2 = new CareerRule { GeneralXp = 120 }.Skill("Construction", 5),
+            Level2 = new CareerRule { GeneralXp = 120 }.Skill("Construction", 6),
             Specialties = new Dictionary<string, CareerRule>
             {
-                { "Mason", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Construction", 8) },
-                { "Carpenter", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Construction", 8).Skill("Crafting", 4) },
-                { "Engineer", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Construction", 8).Skill("Intellectual", 6) }
+                { "Mason", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Construction", 10) },
+                { "Carpenter", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Construction", 10).Skill("Crafting", 4) },
+                { "Engineer", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Construction", 10).Skill("Intellectual", 6) }
             }
         };
 
         public static CareerDefinition MinerDefinition() => new CareerDefinition
         {
             Id = Miner, ModuleId = Module, LabelKey = "WFL_Works_Miner",
-            Level2 = new CareerRule { GeneralXp = 120 }.Skill("Mining", 5),
+            Level2 = new CareerRule { GeneralXp = 120 }.Skill("Mining", 6),
             Specialties = new Dictionary<string, CareerRule>
             {
-                { "Prospector", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Mining", 8).Skill("Intellectual", 4) },
-                { "Quarryman", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Mining", 8) },
+                { "Prospector", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Mining", 10).Skill("Intellectual", 4) },
+                { "Quarryman", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Mining", 10) },
                 { "Tunneller", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Mining", 10) }
             }
         };
