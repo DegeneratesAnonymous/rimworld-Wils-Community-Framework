@@ -24,6 +24,28 @@ namespace FamilyLife
 
         /// <summary>Gates that are full right now, per store. Refreshed hourly; read on every storage decision, so it stays a plain lookup.</summary>
         private static readonly Dictionary<int, HashSet<StoreGate>> closed = new Dictionary<int, HashSet<StoreGate>>();
+        /// <summary>The household members who would read a book kept in each store.</summary>
+        private static readonly Dictionary<int, List<Pawn>> readers = new Dictionary<int, List<Pawn>>();
+
+        /// <summary>What a book still has to teach this household: skill experience for any member below the skill ceiling, and a small constant for books that give something else. Zero means it is finished with.</summary>
+        internal static float BookValue(Thing book, IEnumerable<Pawn> household)
+        {
+            var comp = (book as ThingWithComps)?.GetComp<CompBook>(); if (comp == null) return 0f;
+            float value = 0f;
+            foreach (var doer in comp.Doers)
+            {
+                var skillDoer = doer as BookOutcomeDoerGainSkillExp;
+                if (skillDoer == null) { value += .25f; continue; }
+                foreach (var pair in skillDoer.Values)
+                    foreach (var p in household)
+                    {
+                        var skill = p.skills?.GetSkill(pair.Key);
+                        if (skill == null || skill.TotallyDisabled) continue;
+                        if (skill.Level < (p.DevelopmentalStage.Juvenile() ? ActivityTuning.StoryMaxChildSkill : 20)) value += pair.Value;
+                    }
+            }
+            return value;
+        }
 
         public static Zone_Family ZoneOf(Building_Storage b)
         {
@@ -46,7 +68,7 @@ namespace FamilyLife
             }
             else
             {
-                r.FamilyStores.Remove(b.thingIDNumber); closed.Remove(b.thingIDNumber);
+                r.FamilyStores.Remove(b.thingIDNumber); closed.Remove(b.thingIDNumber); readers.Remove(b.thingIDNumber);
                 foreach (var t in Contents(b)) r.ForgetStock(t.thingIDNumber);
             }
         }
@@ -83,6 +105,10 @@ namespace FamilyLife
 
         private static float Amount(Thing t, StoreGate gate) =>
             gate == StoreGate.Perishable || gate == StoreGate.Durable ? t.stackCount * Math.Max(0f, t.GetStatValue(StatDefOf.Nutrition)) : t.stackCount;
+
+        /// <summary>A book the household has finished with does not count as held, so a better one can take its place.</summary>
+        private static float Amount(Thing t, StoreGate gate, List<Pawn> household) =>
+            gate == StoreGate.Book && BookValue(t, household) <= 0f ? 0f : Amount(t, gate);
 
         private static IEnumerable<ThingDef> Descendants(string category) =>
             DefDatabase<ThingCategoryDef>.GetNamedSilentFail(category)?.DescendantThingDefs ?? Enumerable.Empty<ThingDef>();
@@ -135,7 +161,7 @@ namespace FamilyLife
                 foreach (var t in Contents(s))
                 {
                     var g = GateOf(t); if (g == null) continue;
-                    held[g.Value] = (held.TryGetValue(g.Value, out var h) ? h : 0f) + Amount(t, g.Value);
+                    held[g.Value] = (held.TryGetValue(g.Value, out var h) ? h : 0f) + Amount(t, g.Value, members);
                 }
             float Held(StoreGate g) => held.TryGetValue(g, out var h) ? h : 0f;
             float food = Held(StoreGate.Perishable) + Held(StoreGate.Durable);
@@ -170,7 +196,7 @@ namespace FamilyLife
                 if (!StockLimits.Open(food, foodCap)) { shut.Add(StoreGate.Durable); shut.Add(StoreGate.Perishable); }
                 else if (!StockLimits.Open(Held(StoreGate.Perishable), StockLimits.PerishableFoodCap(members.Count, family.FoodReserveDays, mealDays))) shut.Add(StoreGate.Perishable);
                 foreach (var pair in caps) if (!StockLimits.Open(Held(pair.Key), pair.Value)) shut.Add(pair.Key);
-                closed[s.thingIDNumber] = shut;
+                closed[s.thingIDNumber] = shut; readers[s.thingIDNumber] = members;
 
                 foreach (var t in Contents(s))
                     if (r.ClaimFor(t.thingIDNumber) == null && settings.filter.Allows(t))
@@ -181,13 +207,13 @@ namespace FamilyLife
         /// <summary>The hourly pass: a store that was destroyed or left the family zone is dropped; each household's remaining stores are re-planned against what it needs now.</summary>
         public static void Maintain(FamilyComponent c)
         {
-            var r = c.Registry; if (r.FamilyStores.Count == 0) { closed.Clear(); return; }
+            var r = c.Registry; if (r.FamilyStores.Count == 0) { closed.Clear(); readers.Clear(); return; }
             var live = new Dictionary<int, Building_Storage>();
             foreach (var map in Verse.Find.Maps)
                 foreach (var b in map.listerBuildings.allBuildingsColonist.OfType<Building_Storage>())
                     if (r.FamilyStores.Contains(b.thingIDNumber)) live[b.thingIDNumber] = b;
             r.FamilyStores.RemoveAll(id => !live.TryGetValue(id, out var b) || ZoneOf(b) == null);
-            foreach (var id in closed.Keys.ToList()) if (!r.FamilyStores.Contains(id)) closed.Remove(id);
+            foreach (var id in closed.Keys.ToList()) if (!r.FamilyStores.Contains(id)) { closed.Remove(id); readers.Remove(id); }
             foreach (var group in live.Values.Where(b => r.FamilyStores.Contains(b.thingIDNumber)).GroupBy(b => ZoneOf(b)?.Family(r)).Where(g => g.Key != null))
                 Refresh(c, group.Key, group.ToList());
         }
@@ -196,8 +222,10 @@ namespace FamilyLife
         internal static bool Refuses(Building_Storage b, Thing t)
         {
             if (b == null || t == null || !closed.TryGetValue(b.thingIDNumber, out var shut) || shut.Count == 0) return false;
-            if (t.Spawned && t.Map == b.Map && b.OccupiedRect().Contains(t.Position)) return false;
             var gate = GateOf(t);
+            // A book with nothing left to teach this household is not wanted, even on the shelf: it leaves and a better one can come in.
+            if (gate == StoreGate.Book && readers.TryGetValue(b.thingIDNumber, out var household) && household.Count > 0 && BookValue(t, household) <= 0f) return true;
+            if (t.Spawned && t.Map == b.Map && b.OccupiedRect().Contains(t.Position)) return false;
             return gate != null && shut.Contains(gate.Value);
         }
     }
