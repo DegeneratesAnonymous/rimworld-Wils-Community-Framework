@@ -247,6 +247,7 @@ namespace FamilyLife
                 foreach (var d in Descendants("Books")) defs.Add(d);
                 foreach (var d in fuelDefs) defs.Add(d);
 
+                foreach (var inside in Contents(s)) defs.Add(inside.def);   // what is already on the shelf stays allowed, so a changed filter never makes pawns carry it out and back
                 settings.filter.SetDisallowAll();
                 foreach (var d in defs) settings.filter.SetAllow(d, true);
                 if (settings.Priority < StoragePriority.Preferred) settings.Priority = StoragePriority.Preferred;

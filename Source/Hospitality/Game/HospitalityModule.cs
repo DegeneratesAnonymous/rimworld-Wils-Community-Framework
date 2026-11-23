@@ -24,6 +24,7 @@ namespace FamilyLife
             foreach(var specialty in new[]{"Artisan","Bartender","Innkeeper"}) CareerService.RegisterRole(new ProfessionRole{Id=CulinaryCareers.Role(specialty),ModuleId=Id,Career=CulinaryCareers.Career,Level=3,Specialty=specialty,BonusKey="WFL_H_"+specialty+"Bonus"});
             FamilyFramework.WorkFocus.Add(Id + ".work", Id, new WorkFocusRule { Career = "wils.hospitality.cooking", WorkTypes = new[] { "Cooking" } });
             CareerService.Registered(Id);
+            FamilyFramework.Commerce.RegisterDirectory(Id, b => FamilyComponent.Current?.Registry.Establishments().ById(b)?.Name, b => FamilyComponent.Current?.Registry.Establishments().ById(b)?.OwnerId ?? 0);
             FamilyFramework.Pages.Register(new CommunityPage<Func<Rect,FamilyComponent,float>>{Id="wils.hospitality.establishments",ModuleId=Id,LabelKey="WFL_H_Establishments",Order=140,Icon="WilsFamilyLife/Pages/establishments",Render=EstablishmentPage.Draw,Status=()=>FamilyFramework.Commerce.Bank==null?1:0});
             FamilyFramework.Roster.Register(new WorkItem{Id="wils.hospitality.work",ModuleId=Id,Interval=600,Run=HospitalityService.Tick});
             FamilyFramework.ExternalCommerceAllowed.Add("wils.hospitality.external",Id,HospitalityInterop.Permit);

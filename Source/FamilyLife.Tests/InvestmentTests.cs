@@ -91,5 +91,21 @@ namespace FamilyLife.Tests
             Assert.Equal(book.Stakes[0].Capital, back.Stakes[0].Capital);
             Assert.Equal(book.NextId, back.NextId);
         }
+
+        [Fact] public void The_players_limits_are_respected_and_survive_a_save()
+        {
+            var l = Setup(5000, 1500); var book = new InvestmentBook { MaxStake = 150, MaxOutsideBp = 1000 };
+            var s = book.Open(l, 7, 1, 1000, 2);
+            Assert.NotNull(s); Assert.True(s.Capital <= 150); Assert.True(book.HeldBp(1) <= 1000);
+            book.ClosedBusinesses.Add(2); book.InvestorsMayInvest = false;
+            var back = InvestmentBook.Decode(new StateReader(book.Encode()));
+            Assert.Equal(150, back.MaxStake); Assert.Equal(1000, back.MaxOutsideBp); Assert.Contains(2, back.ClosedBusinesses); Assert.False(back.InvestorsMayInvest);
+        }
+
+        [Fact] public void A_business_closed_to_investors_is_never_picked_or_opened()
+        {
+            var l = Setup(600, 900); var book = new InvestmentBook(); book.ClosedBusinesses.Add(1);
+            Assert.Equal(0, book.Pick(l, 7)); Assert.Null(book.Open(l, 7, 1, 200, 2));
+        }
     }
 }

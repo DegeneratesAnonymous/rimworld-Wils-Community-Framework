@@ -33,13 +33,13 @@ namespace FamilyLife.Domain
         public static int Surplus(int available, int owed, int outsideCapital) => Math.Max(0, available - owed - Reserve(outsideCapital));
         public static int Pool(int surplus) => surplus * PayoutPercent / 100;
         public static int Dividend(int pool, int shareBp) => (int)((long)Math.Max(0, pool) * Math.Max(0, shareBp) / 10000);
-        public static int Capacity(int heldBp) => Math.Max(0, MaxOutsideBp - Math.Max(0, heldBp));
+        public static int Capacity(int heldBp, int maxOutsideBp = MaxOutsideBp) => Math.Max(0, maxOutsideBp - Math.Max(0, heldBp));
 
         /// <summary>The most capital that fits in the room left, given the business's value.</summary>
         public static int MaxCapitalFor(int capacityBp, int value) => capacityBp >= 10000 ? int.MaxValue : (int)((long)capacityBp * Math.Max(1, value) / (10000 - capacityBp));
 
         /// <summary>What an investor is willing to put into one stake: half of what they hold above their own reserve, up to the cap.</summary>
-        public static int Stake(int personalAvailable) => Math.Max(0, Math.Min(MaxPerStake, (personalAvailable - KeepPersonal) / 2));
+        public static int Stake(int personalAvailable, int maxStake = MaxPerStake) => Math.Max(0, Math.Min(maxStake, (personalAvailable - KeepPersonal) / 2));
     }
 
     public sealed class InvestmentBook : IModuleState
@@ -47,6 +47,10 @@ namespace FamilyLife.Domain
         public const string StateId = "wils.treasury.investments";
         public int NextId = 1;
         public readonly List<Stake> Stakes = new List<Stake>();
+        // The player's say: whether investors may invest at all, the most one stake can be, the most of a business outsiders may hold (basis points), and businesses closed to investors.
+        public bool InvestorsMayInvest = true;
+        public int MaxStake = InvestmentRules.MaxPerStake, MaxOutsideBp = InvestmentRules.MaxOutsideBp;
+        public readonly HashSet<int> ClosedBusinesses = new HashSet<int>();
 
         public IEnumerable<Stake> Live => Stakes.Where(s => !s.Closed);
         public int HeldBp(int business) => Live.Where(s => s.Business == business).Sum(s => s.ShareBp);
@@ -60,7 +64,7 @@ namespace FamilyLife.Domain
             int best = 0, bestSurplus = InvestmentRules.MinSurplus - 1;
             foreach (var a in ledger.Accounts.Where(a => a.Kind == AccountKind.Business && !a.Closed).OrderBy(a => a.Owner))
             {
-                if (Holds(investor, a.Owner) || InvestmentRules.Capacity(HeldBp(a.Owner)) <= 0) continue;
+                if (ClosedBusinesses.Contains(a.Owner) || Holds(investor, a.Owner) || InvestmentRules.Capacity(HeldBp(a.Owner), MaxOutsideBp) <= 0) continue;
                 int surplus = InvestmentRules.Surplus(ledger.Available(a.Id), ledger.Liabilities(a.Id), OutsideCapital(a.Owner));
                 if (surplus > bestSurplus) { best = a.Owner; bestSurplus = surplus; }
             }
@@ -71,11 +75,11 @@ namespace FamilyLife.Domain
         public Stake Open(Ledger ledger, int investor, int business, int silver, int day)
         {
             var biz = ledger.Get(Ledger.IdFor(AccountKind.Business, business));
-            if (biz == null || biz.Closed || Holds(investor, business)) return null;
+            if (biz == null || biz.Closed || ClosedBusinesses.Contains(business) || Holds(investor, business)) return null;
             string person = Ledger.IdFor(AccountKind.Person, investor); ledger.Ensure(AccountKind.Person, investor);
             int value = InvestmentRules.Value(ledger.Available(biz.Id), ledger.Liabilities(biz.Id));
-            int room = InvestmentRules.Capacity(HeldBp(business));
-            silver = Math.Min(Math.Min(silver, ledger.Available(person)), InvestmentRules.MaxCapitalFor(room, value));
+            int room = InvestmentRules.Capacity(HeldBp(business), MaxOutsideBp);
+            silver = Math.Min(Math.Min(Math.Min(silver, MaxStake), ledger.Available(person)), InvestmentRules.MaxCapitalFor(room, value));
             if (silver < InvestmentRules.MinCapital) return null;
             int share = InvestmentRules.ShareBp(silver, value);
             if (share <= 0) return null;
@@ -122,7 +126,7 @@ namespace FamilyLife.Domain
         public string Encode()
         {
             var w = new StateWriter();
-            w.Int("next", NextId);
+            w.Int("next", NextId); w.Bool("off", !InvestorsMayInvest); w.Int("maxstake", MaxStake); w.Int("maxbp", MaxOutsideBp); w.Ints("closed", ClosedBusinesses.OrderBy(x => x).ToList());
             w.Strings("stake", Stakes.Select(s => string.Join("|", s.Id, s.Investor, s.Business, s.Capital, s.ShareBp, s.OpenedDay, s.LastPayoutDay, s.Received, s.Closed ? 1 : 0)).ToList());
             return w.ToString();
         }
@@ -130,6 +134,10 @@ namespace FamilyLife.Domain
         public static InvestmentBook Decode(StateReader r)
         {
             var b = new InvestmentBook { NextId = Math.Max(1, r.Int("next", 1)) };
+            b.InvestorsMayInvest = !r.Bool("off");
+            b.MaxStake = r.Has("maxstake") ? Math.Max(InvestmentRules.MinCapital, r.Int("maxstake")) : InvestmentRules.MaxPerStake;
+            b.MaxOutsideBp = r.Has("maxbp") ? Math.Max(0, Math.Min(5000, r.Int("maxbp"))) : InvestmentRules.MaxOutsideBp;
+            foreach (int id in r.Ints("closed")) b.ClosedBusinesses.Add(id);
             foreach (var s in r.Strings("stake"))
             {
                 var p = s.Split('|'); if (p.Length < 9) continue;

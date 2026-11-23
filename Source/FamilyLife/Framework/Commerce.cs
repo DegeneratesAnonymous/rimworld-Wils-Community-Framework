@@ -53,6 +53,20 @@ namespace FamilyLife.Framework
             owner = moduleId; factory = provider ?? throw new ArgumentNullException(nameof(provider));
         }
         public ICommerceBank Bank => factory != null && enabled(owner) ? factory() : null;
+
+        // Optional: a module that runs businesses can say what each is called and who owns it, so other modules (a treasurer's books, an investor's stake) can name them.
+        private readonly Dictionary<string, KeyValuePair<Func<int, string>, Func<int, int>>> directories = new Dictionary<string, KeyValuePair<Func<int, string>, Func<int, int>>>();
+        public void RegisterDirectory(string moduleId, Func<int, string> name, Func<int, int> ownerPawn = null) { directories[moduleId] = new KeyValuePair<Func<int, string>, Func<int, int>>(name, ownerPawn); }
+        public string NameOf(int business)
+        {
+            foreach (var d in directories) { if (!enabled(d.Key) || d.Value.Key == null) continue; try { var n = d.Value.Key(business); if (!string.IsNullOrEmpty(n)) return n; } catch (Exception) { } }
+            return null;
+        }
+        public int OwnerPawnOf(int business)
+        {
+            foreach (var d in directories) { if (!enabled(d.Key) || d.Value.Value == null) continue; try { int o = d.Value.Value(business); if (o > 0) return o; } catch (Exception) { } }
+            return 0;
+        }
     }
 
 }

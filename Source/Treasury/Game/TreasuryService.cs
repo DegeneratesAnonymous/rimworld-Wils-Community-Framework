@@ -23,6 +23,8 @@ namespace FamilyLife
         public static int Today() => FrameworkServices.EconomyDay;
 
         public static List<Resident> Residents(FamilyRegistry r) => r.Persons.Where(p => p.InColony).Select(p => new Resident(p.Id, p.HouseholdId)).ToList();
+        /// <summary>What a business is called, from the module that runs it when there is one.</summary>
+        public static string BusinessName(int business) => FamilyFramework.Commerce.NameOf(business) ?? "WFL_Tr_Business".Translate(business).ToString();
         public static string PersonAccount(FamilyRegistry r, int pawnId) { r.Ledger().Ensure(AccountKind.Person, pawnId); return Ledger.IdFor(AccountKind.Person, pawnId); }
 
         /// <summary>Assigned colonists in a role (assignment already implies the qualification the role needs).</summary>

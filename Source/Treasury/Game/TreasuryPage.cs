@@ -35,7 +35,7 @@ namespace FamilyLife
                 case AccountKind.Community: return "WFL_Tr_Community".Translate();
                 case AccountKind.Person: return NameOfPawn(c, a.Owner);
                 case AccountKind.Household: { var h = c.Registry.GetHousehold(a.Owner); var first = h?.ResidentIds.FirstOrDefault(); return "WFL_Tr_Household".Translate(first.HasValue ? NameOfPawn(c, first.Value) : "#" + a.Owner); }
-                default: return "WFL_Tr_Business".Translate(a.Owner);
+                default: return TreasuryService.BusinessName(a.Owner);
             }
         }
 
@@ -253,6 +253,18 @@ namespace FamilyLife
         {
             var reg = c.Registry; var l = reg.Ledger(); var book = reg.Investments();
             y = Line(r, y, "WFL_Tr_InvestIntro".Translate());
+            bool may = book.InvestorsMayInvest; Widgets.CheckboxLabeled(new Rect(4f, y, 360f, 24f), "WFL_Tr_InvestAllow".Translate(), ref may); book.InvestorsMayInvest = may; y += 28f;
+            y = Line(r, y, "WFL_Tr_InvestMaxStake".Translate(book.MaxStake));
+            book.MaxStake = (int)Widgets.HorizontalSlider(new Rect(4f, y, 240f, 20f), book.MaxStake, InvestmentRules.MinCapital, 1000f, true, null, null, null, 25f); y += 26f;
+            y = Line(r, y, "WFL_Tr_InvestMaxShare".Translate(book.MaxOutsideBp / 100));
+            book.MaxOutsideBp = (int)Widgets.HorizontalSlider(new Rect(4f, y, 240f, 20f), book.MaxOutsideBp / 100, 5f, 49f, true, null, null, null, 1f) * 100; y += 26f;
+            foreach (var biz in l.Accounts.Where(a => a.Kind == AccountKind.Business && !a.Closed).OrderBy(a => a.Owner).ToList())
+            {
+                bool openTo = !book.ClosedBusinesses.Contains(biz.Owner);
+                Widgets.CheckboxLabeled(new Rect(4f, y, 360f, 24f), "WFL_Tr_OpenToInvestors".Translate(TreasuryService.BusinessName(biz.Owner)), ref openTo);
+                if (openTo) book.ClosedBusinesses.Remove(biz.Owner); else book.ClosedBusinesses.Add(biz.Owner);
+                y += 26f;
+            }
             y = Line(r, y, "WFL_Tr_Investors".Translate(Names(c, TreasuryRoles.Investor)));
             if (TreasuryService.Holders(reg, TreasuryRoles.Investor).Count == 0) y = Line(r, y, "WFL_Tr_InvestLocked".Translate(), true);
             foreach (var s in book.Live.OrderBy(x => x.Business).ThenBy(x => x.Id).ToList())

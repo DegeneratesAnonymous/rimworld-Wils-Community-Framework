@@ -6,6 +6,10 @@
   <WFL_Treasury_InvestorBonus>Puts their own silver into the community's profitable businesses and takes a share of what they earn.</WFL_Treasury_InvestorBonus>
   <WFL_Tr_Investments>Investments</WFL_Tr_Investments>
   <WFL_Tr_InvestIntro>Investors back profitable businesses with their own silver. A business pays them a share of its spare silver every few days, keeps a reserve first, and never gives up more than two fifths of itself.</WFL_Tr_InvestIntro>
+  <WFL_Tr_InvestAllow>Investors may invest</WFL_Tr_InvestAllow>
+  <WFL_Tr_InvestMaxStake>Largest single stake: {0} silver</WFL_Tr_InvestMaxStake>
+  <WFL_Tr_InvestMaxShare>Most of a business outside investors may hold together: {0}%</WFL_Tr_InvestMaxShare>
+  <WFL_Tr_OpenToInvestors>Open to investors: {0}</WFL_Tr_OpenToInvestors>
   <WFL_Tr_Investors>Investors: {0}</WFL_Tr_Investors>
   <WFL_Tr_InvestLocked>No Investor is assigned. A qualified Tax Collector can earn the Investor specialty (Professions page).</WFL_Tr_InvestLocked>
   <WFL_Tr_StakeLine>{0} holds a stake in {1}: {2} silver for {3}% of it. Dividends received: {4}.</WFL_Tr_StakeLine>
