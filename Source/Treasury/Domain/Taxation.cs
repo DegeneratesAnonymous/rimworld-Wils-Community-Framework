@@ -11,6 +11,9 @@ namespace FamilyLife.Domain
         public const string Career = "wils.treasury", Treasurer = "wils.treasury.treasurer", TaxCollector = "wils.treasury.taxcollector";
         /// <summary>Tax Collector qualification. Configurable here and balanced by changing these three numbers.</summary>
         public static int CollectorSocial = 7, CollectorMelee = 6, CollectorExperience = 120;
+        /// <summary>Investor (level 3, after Tax Collector): puts their own silver into profitable businesses and takes a share of the profit.</summary>
+        public const string Investor = "wils.treasury.investor", InvestorSpecialty = "Investor";
+        public static int InvestorIntellectual = 8, InvestorSocial = 6, InvestorGeneralXp = 250, InvestorSpecialtyXp = 60, InvestPoints = 8;
         public const int DutyPoints = 6;
     }
 

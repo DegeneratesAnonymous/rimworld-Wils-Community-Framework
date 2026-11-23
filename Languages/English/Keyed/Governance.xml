@@ -134,6 +134,8 @@
   <WFL_Plan_Confirm>Confirm these choices</WFL_Plan_Confirm>
   <WFL_Plan_Close>Close</WFL_Plan_Close>
   <WFL_S_Governance>Leadership, institutions and house politics</WFL_S_Governance>
+  <WFL_S_Intrigue>House intrigue (opt-in): theft, schemes and political movements</WFL_S_Intrigue>
+  <WFL_S_IntrigueTip>Lets members steal from their own house, plot against its head and push political movements. Off by default; duties, elections and succession work without it.</WFL_S_IntrigueTip>
   <WFL_S_GovernanceTip>Lets Steward duties, succession, elections, schemes and house crime play out on their own. Turn off to keep only the records.</WFL_S_GovernanceTip>
   <WFL_Coup_Confronted>{0} confronted {1}.</WFL_Coup_Confronted>
   <WFL_Protection_Waiting>{0} has received a protection offer. Their answer is waiting in Families.</WFL_Protection_Waiting>

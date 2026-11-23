@@ -28,9 +28,11 @@ namespace FamilyLife
             FamilyFramework.Commerce.Register(Id, () => FamilyComponent.Current == null ? null : new BusinessBank(FamilyComponent.Current.Registry.Ledger()));
 
             // The career: Treasurer is level 1 (anyone may be assigned); Tax Collector is level 2 and earned. Both are ordinary career roles, so assignment, progress and wages need nothing special.
-            CareerService.RegisterCareer(new CareerDefinition { Id = TreasuryRoles.Career, ModuleId = Id, Level2 = new CareerRule { GeneralXp = TreasuryRoles.CollectorExperience }.Skill("Social", TreasuryRoles.CollectorSocial).Skill("Melee", TreasuryRoles.CollectorMelee) });
+            CareerService.RegisterCareer(new CareerDefinition { Id = TreasuryRoles.Career, ModuleId = Id, Level2 = new CareerRule { GeneralXp = TreasuryRoles.CollectorExperience }.Skill("Social", TreasuryRoles.CollectorSocial).Skill("Melee", TreasuryRoles.CollectorMelee),
+                Specialties = { [TreasuryRoles.InvestorSpecialty] = new CareerRule { GeneralXp = TreasuryRoles.InvestorGeneralXp, SpecialtyXp = TreasuryRoles.InvestorSpecialtyXp }.Skill("Intellectual", TreasuryRoles.InvestorIntellectual).Skill("Social", TreasuryRoles.InvestorSocial) } });
             CareerService.RegisterRole(new ProfessionRole { Id = TreasuryRoles.Treasurer, ModuleId = Id, Career = TreasuryRoles.Career, Level = 1 });
             CareerService.RegisterRole(new ProfessionRole { Id = TreasuryRoles.TaxCollector, ModuleId = Id, Career = TreasuryRoles.Career, Level = 2 });
+            CareerService.RegisterRole(new ProfessionRole { Id = TreasuryRoles.Investor, ModuleId = Id, Career = TreasuryRoles.Career, Level = 3, Specialty = TreasuryRoles.InvestorSpecialty, BonusKey = "WFL_Treasury_InvestorBonus" });
             FamilyFramework.HealthChecks.Add(Id + ".health", Id, c => TreasuryHealth.Check(c, Id));
             CareerService.Registered(Id);
 
@@ -46,6 +48,7 @@ namespace FamilyLife
             FamilyFramework.Roster.Register(new WorkItem { Id = "wils.treasury.periodic", ModuleId = Id, Interval = 2500, Run = TreasuryService.Periodic });
             FamilyFramework.Roster.Register(new WorkItem { Id = "wils.treasury.office", ModuleId = Id, Interval = 600, Run = TreasuryOffice.Run });
             FamilyFramework.Roster.Register(new WorkItem { Id = "wils.treasury.tax", ModuleId = Id, Interval = 1500, Run = TreasuryService.TaxPass });
+            FamilyFramework.Roster.Register(new WorkItem { Id = "wils.treasury.investing", ModuleId = Id, Interval = 2500, Run = TreasuryInvesting.Run });
             FamilyFramework.Meetings.Register(new MeetingDefinition { Id = "wils.treasury.collection", ModuleId = Id, JobDefName = "WFL_TaxVisit", Ticks = 240, ListenerSlackTicks = 900, Complete = (speaker, other, id, now) => TreasuryTaxVisit.OnCollectionVisit(speaker, other, id, now) });
             FamilyFramework.Removal.Add("wils.treasury.removal", Id, c =>
             {

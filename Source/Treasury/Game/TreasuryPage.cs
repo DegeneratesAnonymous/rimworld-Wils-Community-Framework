@@ -16,7 +16,7 @@ namespace FamilyLife
     {
         private static int sub;
         private static string transferFrom, transferTo; private static string amountText = "10"; private static int amount = 10;
-        private static readonly string[] Tabs = { "WFL_Tr_Overview", "WFL_Tr_Accounts", "WFL_Tr_Payroll", "WFL_Tr_Taxation", "WFL_Tr_Debts", "WFL_Tr_Transactions", "WFL_Tr_Budget" };
+        private static readonly string[] Tabs = { "WFL_Tr_Overview", "WFL_Tr_Accounts", "WFL_Tr_Payroll", "WFL_Tr_Taxation", "WFL_Tr_Debts", "WFL_Tr_Transactions", "WFL_Tr_Budget", "WFL_Tr_Investments" };
 
         /// <summary>The number shown on the page's navigation entry: wages owed plus overdue tax, so something needing the player's eye is visible without opening it.</summary>
         public static int Attention()
@@ -57,6 +57,7 @@ namespace FamilyLife
                 case 3: return Taxation(r, c, y);
                 case 4: return Debts(r, c, y);
                 case 6: return Budget(r, c, y);
+                case 7: return Investments(r, c, y);
                 default: return Transactions(r, c, y);
             }
         }
@@ -245,6 +246,22 @@ namespace FamilyLife
             y = Line(r, y, "WFL_Tr_Legitimacy".Translate(tax.Legitimacy));
             y = Heading(r, y + 6f, "WFL_Tr_Taxation".Translate());
             foreach (var d in l.Debts.Where(x => x.Active && x.Kind == DebtKind.Tax).OrderBy(x => x.DueDay)) y = Line(r, y, "WFL_Tr_TaxLine".Translate(NameOf(c, d.Debtor), d.Outstanding, d.DueDay % PayCalendar.DaysPerYear + 1) + (d.DueDay < today ? "  !" : ""));
+            return y;
+        }
+
+        private static float Investments(Rect r, FamilyComponent c, float y)
+        {
+            var reg = c.Registry; var l = reg.Ledger(); var book = reg.Investments();
+            y = Line(r, y, "WFL_Tr_InvestIntro".Translate());
+            y = Line(r, y, "WFL_Tr_Investors".Translate(Names(c, TreasuryRoles.Investor)));
+            if (TreasuryService.Holders(reg, TreasuryRoles.Investor).Count == 0) y = Line(r, y, "WFL_Tr_InvestLocked".Translate(), true);
+            foreach (var s in book.Live.OrderBy(x => x.Business).ThenBy(x => x.Id).ToList())
+            {
+                y = Line(r, y, "WFL_Tr_StakeLine".Translate(NameOfPawn(c, s.Investor), NameOf(c, Ledger.IdFor(AccountKind.Business, s.Business)), s.Capital, (s.ShareBp / 100f).ToString("0.#"), s.Received));
+                if (Widgets.ButtonText(new Rect(r.width - 130f, y - 24f, 120f, 22f), "WFL_Tr_BuyBack".Translate()) && !book.Exit(l, s, TreasuryService.Today()))
+                    Messages.Message("WFL_Tr_BuyBackFail".Translate(), MessageTypeDefOf.RejectInput, false);
+            }
+            if (!book.Live.Any()) y = Line(r, y, "WFL_Tr_NoStakes".Translate(), true);
             return y;
         }
 

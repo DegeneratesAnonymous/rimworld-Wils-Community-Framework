@@ -70,8 +70,10 @@ namespace FamilyLife
             var lineage = component?.Registry.Lineages.FirstOrDefault(l => l.ZoneAreaId != 0 && l.ZoneAreaId == areaId && l.ZoneMapId == Map.uniqueID);
             var area = LinkedArea;
             if (component != null && lineage != null && area != null) FamilyZones.Release(component, lineage, area);
-            if (area != null) area.Delete();
-            areaId = 0;
+            // Forget the link first so nothing can reach this area through a half-deleted zone, then remove only an area the game lets us delete
+            // and that is still registered. The map's own Home area and other fixed areas are never touched; the game logs an error if asked to delete one.
+            var map = Map; areaId = 0;
+            if (area != null && area.Mutable && map != null && map.areaManager.AllAreas.Contains(area)) area.Delete();
             base.Delete(playSound);
         }
 

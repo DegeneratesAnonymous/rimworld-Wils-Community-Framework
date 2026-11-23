@@ -2,6 +2,18 @@
 <LanguageData>
   <wils.treasury.treasurer_label>Treasurer</wils.treasury.treasurer_label>
   <wils.treasury.taxcollector_label>Tax Collector</wils.treasury.taxcollector_label>
+  <wils.treasury.investor_label>Investor</wils.treasury.investor_label>
+  <WFL_Treasury_InvestorBonus>Puts their own silver into the community's profitable businesses and takes a share of what they earn.</WFL_Treasury_InvestorBonus>
+  <WFL_Tr_Investments>Investments</WFL_Tr_Investments>
+  <WFL_Tr_InvestIntro>Investors back profitable businesses with their own silver. A business pays them a share of its spare silver every few days, keeps a reserve first, and never gives up more than two fifths of itself.</WFL_Tr_InvestIntro>
+  <WFL_Tr_Investors>Investors: {0}</WFL_Tr_Investors>
+  <WFL_Tr_InvestLocked>No Investor is assigned. A qualified Tax Collector can earn the Investor specialty (Professions page).</WFL_Tr_InvestLocked>
+  <WFL_Tr_StakeLine>{0} holds a stake in {1}: {2} silver for {3}% of it. Dividends received: {4}.</WFL_Tr_StakeLine>
+  <WFL_Tr_NoStakes>Nobody has invested yet.</WFL_Tr_NoStakes>
+  <WFL_Tr_BuyBack>Buy back</WFL_Tr_BuyBack>
+  <WFL_Tr_BuyBackFail>The business cannot spare that silver without touching wages or its reserve.</WFL_Tr_BuyBackFail>
+  <WFL_Tr_StakeOpened>{0} invested {1} silver in {2} for {3}% of it.</WFL_Tr_StakeOpened>
+  <WFL_Tr_Dividend>{0} received {1} silver from their share of {2}.</WFL_Tr_Dividend>
   <WFL_Treasury_Page>Treasury</WFL_Treasury_Page>
   <WFL_ModuleName_wils_treasury>Treasury</WFL_ModuleName_wils_treasury>
   <WFL_ModuleInactive_wils_treasury>Accounts, payroll and taxation are inactive; the saved accounts are kept.</WFL_ModuleInactive_wils_treasury>

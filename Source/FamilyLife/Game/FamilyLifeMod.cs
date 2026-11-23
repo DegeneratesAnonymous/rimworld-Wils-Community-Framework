@@ -25,6 +25,8 @@ namespace FamilyLife
         public bool traditions = true;
         public bool ceremonies=true;
         public bool governance=true;
+        /// <summary>Opt-in: theft inside houses, schemes against the head, and political movements. Duties, elections and succession belong to governance and stay on.</summary>
+        public bool intrigue=false;
         public bool visitingKin=true;
         public bool camping=true;
         public bool holdClasses=true;
@@ -80,6 +82,7 @@ namespace FamilyLife
             Scribe_Values.Look(ref traditions, "traditions", true);
             Scribe_Values.Look(ref ceremonies,"ceremonies",true);
             Scribe_Values.Look(ref governance,"governance",true);
+            Scribe_Values.Look(ref intrigue,"intrigue",false);
             Scribe_Values.Look(ref visitingKin,"visitingKin",true);
             Scribe_Values.Look(ref camping,"camping",true);
             Scribe_Values.Look(ref holdClasses,"holdClasses",true);
@@ -167,6 +170,7 @@ namespace FamilyLife
             list.CheckboxLabeled("WFL_S_Traditions".Translate(), ref Settings.traditions, "WFL_S_TraditionsTip".Translate());
             list.CheckboxLabeled("WFL_S_Ceremonies".Translate(),ref Settings.ceremonies,"WFL_S_CeremoniesTip".Translate());
             list.CheckboxLabeled("WFL_S_Governance".Translate(),ref Settings.governance,"WFL_S_GovernanceTip".Translate());
+            if(Settings.governance)list.CheckboxLabeled("WFL_S_Intrigue".Translate(),ref Settings.intrigue,"WFL_S_IntrigueTip".Translate());
             if(Settings.ceremonies)list.CheckboxLabeled("WFL_S_VisitingKin".Translate(),ref Settings.visitingKin,"WFL_S_VisitingKinTip".Translate());
             list.CheckboxLabeled("WFL_S_Classes".Translate(),ref Settings.holdClasses,"WFL_S_ClassesTip".Translate());
             if(Settings.holdClasses)
