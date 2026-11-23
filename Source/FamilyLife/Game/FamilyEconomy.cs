@@ -184,7 +184,8 @@ namespace FamilyLife
         private bool Destination(Pawn actor, Area home, Thing thing, out IntVec3 cell)
         {
             cell = IntVec3.Invalid;
-            foreach (var group in actor.Map.haulDestinationManager.AllGroupsListForReading)
+            // The household's own toggled stores come first; they already refuse what the family does not need.
+            foreach (var group in actor.Map.haulDestinationManager.AllGroupsListForReading.OrderBy(g => g.parent is Thing th && R.FamilyStores.Contains(th.thingIDNumber) ? 0 : 1))
                 foreach (var c in group.CellsList)
                     if (home[c] && !c.IsForbidden(actor) && StoreUtility.IsGoodStoreCell(c, actor.Map, thing, actor, Faction.OfPlayer) && actor.CanReserve(c))
                     { cell = c; return true; }
