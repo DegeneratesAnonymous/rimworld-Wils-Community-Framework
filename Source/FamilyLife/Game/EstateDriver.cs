@@ -80,6 +80,7 @@ namespace FamilyLife
                 r.AdvanceEstates(now, Context(c));
                 ReportMilestones(c, r, now);
                 StoryLetters.Announce(c, r);
+                StoryLetters.AnnounceDisputes(c, r);
             }
             using (c.Performance.Measure("Estates: delivery")) Deliver(c, r, now);
         }

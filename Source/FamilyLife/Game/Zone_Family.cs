@@ -151,6 +151,7 @@ namespace FamilyLife
             };
             yield return new Command_Action
             {
+                tutorTag = "WFL_ChooseFamily",
                 defaultLabel = "WFL_ZoneChooseFamily".Translate(),
                 defaultDesc = "WFL_ZoneChooseFamilyDesc".Translate(),
                 icon = ContentFinder<Texture2D>.Get("UI/Commands/AssignOwner", false) ?? BaseContent.BadTex,

@@ -318,7 +318,7 @@ namespace FamilyLife
                     {
                         defaultLabel = "WFL_FS_Label".Translate(),
                         defaultDesc = "WFL_FS_Desc".Translate(),
-                        icon = FamilyStores.Icon,
+                        icon = FamilyStores.Icon, tutorTag = "WFL_FamilyStorage",
                         isActive = () => FamilyStores.IsOn(c.Registry, b),
                         toggleAction = () => FamilyStores.Set(c, b, !FamilyStores.IsOn(c.Registry, b)),
                     };

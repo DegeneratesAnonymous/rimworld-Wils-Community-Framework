@@ -105,6 +105,7 @@ namespace FamilyLife
             {
                 var offer = new Rect(0f, y, w, 64f); Widgets.DrawBoxSolid(offer, new Color(.2f, .18f, .12f)); Widgets.DrawBoxSolid(new Rect(0f, y, 5f, offer.height), FamilyKit.Gold);
                 Text.Anchor = TextAnchor.MiddleLeft; Widgets.Label(new Rect(16f, y, w - 330f, offer.height), "WFL_Quick_Offer".Translate()); Text.Anchor = TextAnchor.UpperLeft;
+                UIHighlighter.HighlightOpportunity(new Rect(w - 300f, y + 16f, 190f, 32f), TourTags.QuickSetup);
                 if (Widgets.ButtonText(new Rect(w - 300f, y + 16f, 190f, 32f), "WFL_Quick_Open".Translate())) Find.WindowStack.Add(new Window_QuickSetup(c));
                 if (Widgets.ButtonText(new Rect(w - 104f, y + 16f, 94f, 32f), "WFL_Quick_Dismiss".Translate())) Window_QuickSetup.Dismiss(reg);
                 y += offer.height + 10f;
@@ -243,6 +244,7 @@ namespace FamilyLife
             GUI.color = Color.gray; Widgets.Label(new Rect(0f, y, r.width, 22f), "WFL_UX_StaffingKey".Translate().ToString()); GUI.color = Color.white; 
             y += 28f;
             var qs = new Rect(0f, y, Mathf.Min(r.width, 200f), 30f);
+            UIHighlighter.HighlightOpportunity(qs, TourTags.QuickSetup);
             if (Widgets.ButtonText(qs, "WFL_Quick_Open".Translate())) Find.WindowStack.Add(new Window_QuickSetup(c));
             TooltipHandler.TipRegion(qs, "WFL_Quick_OpenTip".Translate());
             y += 30f;

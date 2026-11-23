@@ -12,6 +12,9 @@ namespace FamilyLife
     internal static class StoryLetters
     {
         private static int announcedUpTo = -1;
+        /// <summary>Disputes already told about this session, as "estate:thing". Seeded from the save on first sight so loading never replays them.</summary>
+        private static readonly System.Collections.Generic.HashSet<string> disputesTold = new System.Collections.Generic.HashSet<string>();
+        private static bool disputesSeeded;
 
         public static void Send(TaggedString title, TaggedString text, LetterDef def, Pawn who)
         {
@@ -34,6 +37,23 @@ namespace FamilyLife
                     (theft ? "WFL_Theft_Text" : "WFL_Restitution_Text").Translate(actor, victim, i.Amount),
                     theft ? LetterDefOf.NegativeEvent : LetterDefOf.PositiveEvent, c.TryGetPawn(theft ? i.VictimId : i.ActorId));
             }
+        }
+
+        /// <summary>Tells the player when two people both claim a keepsake and the family has to settle it. Told once per keepsake.</summary>
+        public static void AnnounceDisputes(FamilyComponent c, FamilyRegistry r)
+        {
+            foreach (var estate in r.Estates.Where(e => e.Open).ToList())
+                foreach (var item in estate.Items.Where(i => i.Contested && !i.Terminal && i.Claims.Count >= 2).ToList())
+                {
+                    string key = estate.Id + ":" + item.ThingId;
+                    if (!disputesTold.Add(key) || !disputesSeeded) continue;
+                    var lead = item.Claims.OrderByDescending(x => x.Strength).Take(2).ToList();
+                    if (r.GetPerson(lead[0].ClaimantId)?.InColony != true && r.GetPerson(lead[1].ClaimantId)?.InColony != true) continue;
+                    Send("WFL_Dispute_Title".Translate(item.Label, FamilyUi.NameOf(r, estate.DeceasedId)),
+                        "WFL_Dispute_Text".Translate(FamilyUi.NameOf(r, lead[0].ClaimantId), FamilyUi.NameOf(r, lead[1].ClaimantId), item.Label, FamilyUi.NameOf(r, estate.DeceasedId)),
+                        LetterDefOf.NegativeEvent, c.TryGetPawn(lead[0].ClaimantId) ?? c.TryGetPawn(lead[1].ClaimantId));
+                }
+            disputesSeeded = true;
         }
     }
 }

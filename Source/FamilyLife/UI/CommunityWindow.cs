@@ -47,7 +47,7 @@ namespace FamilyLife
             selected = page.Id;
 
             var nav = new Rect(0f, 0f, NavWidth, inRect.height);
-            Widgets.DrawBoxSolid(nav, new Color(0.10f, 0.10f, 0.11f, 0.95f));
+            Widgets.DrawMenuSection(nav);   // the game's own panel style, so this tab matches Work, Animals and the others
             float y = 6f; string lastGroup = null;
             Text.Font = GameFont.Small;
             var statuses = pages.Select(p => FamilyFramework.Pages.StatusOf(p)).ToList();

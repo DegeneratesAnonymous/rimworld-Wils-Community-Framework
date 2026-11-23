@@ -140,7 +140,8 @@
   <WFL_GS_Offer>Would you like a short guide to setting up families, homes and roles? It takes five steps, ticks them off as you do them, and you can close it any time. You will only be asked once.</WFL_GS_Offer>
   <WFL_GS_Yes>Show me around</WFL_GS_Yes>
   <WFL_GS_No>No thanks</WFL_GS_No>
-  <WFL_GS_Intro>Each step ticks itself off when your colony has it. Press the button beside a step to be taken there.</WFL_GS_Intro>
+  <WFL_GS_Intro>Each step ticks itself off when your colony has it. Press the button beside a step to be taken there; the next step also glows in the game itself.</WFL_GS_Intro>
+  <WFL_GS_Glow>The next step glows in the game's own interface: look for the pulsing button.</WFL_GS_Glow>
   <WFL_GS_Show>Show me</WFL_GS_Show>
   <WFL_GS_Again>Open again</WFL_GS_Again>
   <WFL_GS_Progress>{0} of {1} steps done</WFL_GS_Progress>
@@ -155,6 +156,14 @@
   <WFL_GS_RolesWhy>Quick setup suggests an entry-level profession for each adult from what they are good at.</WFL_GS_RolesWhy>
   <WFL_GS_Window>Look over your families</WFL_GS_Window>
   <WFL_GS_WindowWhy>The families window shows relationships, the household and its stores in one place.</WFL_GS_WindowWhy>
+  <WFL_S_ZoneStorage>New zones with storage inside: {0}</WFL_S_ZoneStorage>
+  <WFL_S_ZoneStorage_0>ask each time</WFL_S_ZoneStorage_0>
+  <WFL_S_ZoneStorage_1>always set it</WFL_S_ZoneStorage_1>
+  <WFL_S_ZoneStorage_2>never ask</WFL_S_ZoneStorage_2>
+  <WFL_ZS_Yes>Yes, set it</WFL_ZS_Yes>
+  <WFL_ZS_NotNow>Not now</WFL_ZS_NotNow>
+  <WFL_ZS_Always>Always do this</WFL_ZS_Always>
+  <WFL_ZS_Never>Never ask again</WFL_ZS_Never>
   <WFL_S_Governance>Leadership, institutions and house politics</WFL_S_Governance>
   <WFL_S_Intrigue>House intrigue (opt-in): theft, schemes and political movements</WFL_S_Intrigue>
   <WFL_S_IntrigueTip>Lets members steal from their own house, plot against its head and push political movements. Off by default; duties, elections and succession work without it.</WFL_S_IntrigueTip>
@@ -398,6 +407,8 @@
   <WFL_Estate_History>Past estates</WFL_Estate_History>
   <WFL_Estate_HistoryLine>The estate of {0}: {1} delivered, {2} lost ({3}).</WFL_Estate_HistoryLine>
   <WFL_Estate_Opened>{0} has died. Their {1} keepsake(s) will be sorted out by the family.</WFL_Estate_Opened>
+  <WFL_Dispute_Title>{0} of {1} is contested</WFL_Dispute_Title>
+  <WFL_Dispute_Text>{0} and {1} both claim {2}, a keepsake of {3}. The family will try to talk it through; if they cannot agree, it goes to the head of the house to decide. Open the Families window to see the claims.</WFL_Dispute_Text>
   <WFL_Estate_OpenedTitle>{0} has died</WFL_Estate_OpenedTitle>
   <WFL_Estate_SettledTitle>The estate of {0} is settled</WFL_Estate_SettledTitle>
   <WFL_Theft_Title>{0} took from {1}</WFL_Theft_Title>

@@ -16,15 +16,15 @@ namespace FamilyLife
     {
         private const string OfferedKey = "gettingstarted:offered";
 
-        private sealed class Step { public string Key; public Func<FamilyComponent, bool> Done; public Action<FamilyComponent> Go; }
+        private sealed class Step { public string Key; public Func<FamilyComponent, bool> Done; public Action<FamilyComponent> Go; public Func<IEnumerable<string>> Glow; }
 
         private static readonly List<Step> Steps = new List<Step>
         {
-            new Step { Key = "Zone", Done = c => Find.Maps.Any(m => m.zoneManager.AllZones.OfType<Zone_Family>().Any()), Go = c => FamilyZones.StartPainting() },
-            new Step { Key = "Family", Done = c => c.Registry.LineagesWithZones().Any(), Go = c => OpenFamilies() },
-            new Step { Key = "Storage", Done = c => c.Registry.FamilyStores.Count > 0, Go = c => Messages.Message("WFL_GS_StorageHint".Translate(), MessageTypeDefOf.NeutralEvent, false) },
-            new Step { Key = "Roles", Done = c => c.Registry.Assignments().Count > 0, Go = c => Find.WindowStack.Add(new Window_QuickSetup(c)) },
-            new Step { Key = "Window", Done = c => Find.WindowStack.WindowOfType<Window_Families>() != null || opened, Go = c => OpenFamilies() },
+            new Step { Key = "Zone", Done = c => Find.Maps.Any(m => m.zoneManager.AllZones.OfType<Zone_Family>().Any()), Go = c => FamilyZones.StartPainting(), Glow = TourTags.ForZone },
+            new Step { Key = "Family", Done = c => c.Registry.LineagesWithZones().Any(), Go = c => OpenFamilies(), Glow = () => new[] { TourTags.ChooseFamily } },
+            new Step { Key = "Storage", Done = c => c.Registry.FamilyStores.Count > 0, Go = c => Messages.Message("WFL_GS_StorageHint".Translate(), MessageTypeDefOf.NeutralEvent, false), Glow = () => new[] { TourTags.FamilyStorage } },
+            new Step { Key = "Roles", Done = c => c.Registry.Assignments().Count > 0, Go = c => Find.WindowStack.Add(new Window_QuickSetup(c)), Glow = () => new[] { TourTags.CommunityTab, TourTags.QuickSetup } },
+            new Step { Key = "Window", Done = c => Find.WindowStack.WindowOfType<Window_Families>() != null || opened, Go = c => OpenFamilies(), Glow = () => new[] { TourTags.CommunityTab } },
         };
         private static bool opened;
 
@@ -54,11 +54,13 @@ namespace FamilyLife
             Text.Font = GameFont.Medium; Widgets.Label(new Rect(0f, 0f, inRect.width, 32f), "WFL_GS_Title".Translate()); Text.Font = GameFont.Small;
             float y = 40f;
             Widgets.Label(new Rect(0f, y, inRect.width, 44f), "WFL_GS_Intro".Translate()); y += 52f;
-            int done = 0;
+            int done = 0; bool lit = false;
             foreach (var step in Steps)
             {
                 bool ok = false; try { ok = step.Done(comp); } catch { }
                 if (ok) done++;
+                // The first step still to do glows where it lives: the button on the bottom bar, in the Architect menu, or on the selected building.
+                if (!ok && !lit && step.Glow != null) { lit = true; try { foreach (var tag in step.Glow()) if (!string.IsNullOrEmpty(tag)) UIHighlighter.HighlightTag(tag); } catch (Exception ex) { Log.Warning("[Wil's Family Life] Guide highlight skipped: " + ex.Message); } }
                 var row = new Rect(0f, y, inRect.width, 56f);
                 Widgets.DrawBoxSolid(new Rect(row.x, row.y, 4f, row.height - 6f), ok ? new Color(.45f, .8f, .45f) : new Color(.6f, .6f, .6f));
                 Widgets.Label(new Rect(14f, y, inRect.width - 150f, 24f), (ok ? "✓ " : "") + ("WFL_GS_" + step.Key).Translate());
@@ -67,6 +69,24 @@ namespace FamilyLife
                 y += 62f;
             }
             Widgets.Label(new Rect(0f, inRect.height - 28f, inRect.width, 24f), "WFL_GS_Progress".Translate(done, Steps.Count));
+        }
+    }
+
+    /// <summary>The names the game uses to make a button glow. Read from real instances, so they always match the game's own spelling for this version.</summary>
+    internal static class TourTags
+    {
+        public const string QuickSetup = "WFL_Tour_QuickSetup";
+        private static string Gizmo(string tutor) => new Command_Action { tutorTag = tutor }.HighlightTag;
+        public static string ChooseFamily => Gizmo("WFL_ChooseFamily");
+        public static string FamilyStorage => Gizmo("WFL_FamilyStorage");
+        public static string CommunityTab => CommunityDefOf.WFL_Community?.cachedHighlightTagClosed;
+        public static IEnumerable<string> ForZone()
+        {
+            yield return MainButtonDefOf.Architect?.cachedHighlightTagClosed;
+            var zone = DefDatabase<DesignationCategoryDef>.GetNamedSilentFail("Zone");
+            var field = zone == null ? null : HarmonyLib.AccessTools.Field(typeof(DesignationCategoryDef), "cachedHighlightClosedTag");
+            yield return field?.GetValue(zone) as string;
+            yield return new Designator_ZoneAdd_Family().HighlightTag;
         }
     }
 }

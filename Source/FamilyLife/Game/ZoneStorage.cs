@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace FamilyLife
@@ -59,7 +60,34 @@ namespace FamilyLife
             Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(("WFL_ZS_Ask_" + profile.Key).Translate(count), () => Messages.Message("WFL_ZS_Done".Translate(Apply(zone, profile)), MessageTypeDefOf.TaskCompletion, false)));
         }
 
-        /// <summary>Called once for a freshly painted zone: offers only when there is storage inside to set.</summary>
-        public static void OfferNew(Zone zone, StorageProfile profile) { if (Count(zone) > 0) Offer(zone, profile); }
+        /// <summary>Called once for a freshly painted zone, only when there is storage inside to set. The player's remembered answer (always / never) is followed; otherwise they are asked, and can make the answer stick.</summary>
+        public static void OfferNew(Zone zone, StorageProfile profile)
+        {
+            int count = Count(zone); if (count == 0) return;
+            int choice = FamilyLifeMod.Settings?.zoneStorageAuto ?? 0;
+            if (choice == 2) return;
+            if (choice == 1) { Messages.Message("WFL_ZS_Done".Translate(Apply(zone, profile)), MessageTypeDefOf.TaskCompletion, false); return; }
+            Find.WindowStack.Add(new Window_ZoneStorageOffer(zone, profile, count));
+        }
+    }
+
+    /// <summary>Asks whether to set a new zone's storage to what it keeps, with four answers: yes or not now for this zone, or always or never from now on (changeable in the mod settings).</summary>
+    public class Window_ZoneStorageOffer : Window
+    {
+        private readonly Zone zone; private readonly StorageProfile profile; private readonly int count;
+        public override Vector2 InitialSize => new Vector2(460f, 210f);
+        public Window_ZoneStorageOffer(Zone zone, StorageProfile profile, int count)
+        {
+            this.zone = zone; this.profile = profile; this.count = count; forcePause = false; absorbInputAroundWindow = false; doCloseX = true; draggable = true;
+        }
+        public override void DoWindowContents(Rect inRect)
+        {
+            Widgets.Label(new Rect(0f, 0f, inRect.width, 90f), ("WFL_ZS_Ask_" + profile.Key).Translate(count));
+            float w = (inRect.width - 12f) / 2f, y = inRect.height - 76f;
+            if (Widgets.ButtonText(new Rect(0f, y, w, 32f), "WFL_ZS_Yes".Translate())) { Messages.Message("WFL_ZS_Done".Translate(ZoneStorage.Apply(zone, profile)), MessageTypeDefOf.TaskCompletion, false); Close(); }
+            if (Widgets.ButtonText(new Rect(w + 12f, y, w, 32f), "WFL_ZS_NotNow".Translate())) Close();
+            if (Widgets.ButtonText(new Rect(0f, y + 38f, w, 32f), "WFL_ZS_Always".Translate())) { FamilyLifeMod.Settings.zoneStorageAuto = 1; FamilyLifeMod.Settings.Write(); Messages.Message("WFL_ZS_Done".Translate(ZoneStorage.Apply(zone, profile)), MessageTypeDefOf.TaskCompletion, false); Close(); }
+            if (Widgets.ButtonText(new Rect(w + 12f, y + 38f, w, 32f), "WFL_ZS_Never".Translate())) { FamilyLifeMod.Settings.zoneStorageAuto = 2; FamilyLifeMod.Settings.Write(); Close(); }
+        }
     }
 }
