@@ -27,6 +27,7 @@ namespace FamilyLife
         public bool governance=true;
         /// <summary>Opt-in: theft inside houses, schemes against the head, and political movements. Duties, elections and succession belong to governance and stay on.</summary>
         public bool intrigue=false;
+        public bool offerGuide=true;
         public bool visitingKin=true;
         public bool camping=true;
         public bool holdClasses=true;
@@ -83,6 +84,7 @@ namespace FamilyLife
             Scribe_Values.Look(ref ceremonies,"ceremonies",true);
             Scribe_Values.Look(ref governance,"governance",true);
             Scribe_Values.Look(ref intrigue,"intrigue",false);
+            Scribe_Values.Look(ref offerGuide,"offerGuide",true);
             Scribe_Values.Look(ref visitingKin,"visitingKin",true);
             Scribe_Values.Look(ref camping,"camping",true);
             Scribe_Values.Look(ref holdClasses,"holdClasses",true);
@@ -155,6 +157,8 @@ namespace FamilyLife
             var list = new Listing_Standard();
             Widgets.BeginScrollView(inRect, ref settingsScroll, new Rect(0, 0, inRect.width - 20, settingsHeight));
             list.Begin(new Rect(0, 0, inRect.width - 20, settingsHeight));
+            list.CheckboxLabeled("WFL_S_OfferGuide".Translate(),ref Settings.offerGuide,"WFL_S_OfferGuideTip".Translate());
+            if(FamilyComponent.Current!=null&&list.ButtonText("WFL_S_OpenGuide".Translate()))Find.WindowStack.Add(new Window_GettingStarted(FamilyComponent.Current));
             list.CheckboxLabeled("WFL_S_Activities".Translate(), ref Settings.familyActivities, "WFL_S_ActivitiesTip".Translate());
             if (Settings.familyActivities)
             {

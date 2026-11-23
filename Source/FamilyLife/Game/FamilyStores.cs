@@ -6,6 +6,7 @@ using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace FamilyLife
 {
@@ -26,8 +27,14 @@ namespace FamilyLife
         private static readonly Dictionary<int, HashSet<StoreGate>> closed = new Dictionary<int, HashSet<StoreGate>>();
         /// <summary>The household members who would read a book kept in each store.</summary>
         private static readonly Dictionary<int, List<Pawn>> readers = new Dictionary<int, List<Pawn>>();
+        /// <summary>Each toggled store and the household it serves, for the family's own pickup of meals and medicine.</summary>
+        private static readonly Dictionary<int, KeyValuePair<Building_Storage, int>> placed = new Dictionary<int, KeyValuePair<Building_Storage, int>>();
+        /// <summary>For books: the best value on offer elsewhere on the map. A shelved book worth under half of it is swapped out; a new one under four fifths of it is not taken.</summary>
+        private static readonly Dictionary<int, float> bestBook = new Dictionary<int, float>();
+        /// <summary>For clothing: how many spare pieces of each kind (layer and body part) the household needs, and how many it already holds.</summary>
+        private static readonly Dictionary<int, Dictionary<string, int>> apparelNeed = new Dictionary<int, Dictionary<string, int>>(), apparelHeld = new Dictionary<int, Dictionary<string, int>>();
 
-        /// <summary>What a book still has to teach this household: skill experience for any member below the skill ceiling, and a small constant for books that give something else. Zero means it is finished with.</summary>
+        /// <summary>What a book still has to teach this household, by the game's own rule for whether a reader can still gain from it (a book teaches only up to a level), plus a small constant for books that give something else. Zero means it is finished with.</summary>
         internal static float BookValue(Thing book, IEnumerable<Pawn> household)
         {
             var comp = (book as ThingWithComps)?.GetComp<CompBook>(); if (comp == null) return 0f;
@@ -41,10 +48,44 @@ namespace FamilyLife
                     {
                         var skill = p.skills?.GetSkill(pair.Key);
                         if (skill == null || skill.TotallyDisabled) continue;
-                        if (skill.Level < (p.DevelopmentalStage.Juvenile() ? ActivityTuning.StoryMaxChildSkill : 20)) value += pair.Value;
+                        if (CanProgress(p, pair.Key, skillDoer.Quality)) value += pair.Value;
                     }
             }
             return value;
+        }
+
+        /// <summary>The game's own test for whether a reader can still gain a skill from a book. It is private, so it is reached once by name; if a game version renames it, a plain level ceiling stands in.</summary>
+        private static readonly Func<Pawn, SkillDef, QualityCategory, bool> canProgress = Bind();
+        private static Func<Pawn, SkillDef, QualityCategory, bool> Bind()
+        {
+            try
+            {
+                var m = HarmonyLib.AccessTools.Method(typeof(BookOutcomeDoerGainSkillExp), "CanProgressSkill");
+                if (m != null && m.IsStatic) return (Func<Pawn, SkillDef, QualityCategory, bool>)Delegate.CreateDelegate(typeof(Func<Pawn, SkillDef, QualityCategory, bool>), m);
+            }
+            catch (Exception ex) { Log.Warning("[Wil's Family Life] Book progress check unavailable, using a level ceiling: " + ex.Message); }
+            return null;
+        }
+        private static bool CanProgress(Pawn p, SkillDef skill, QualityCategory quality) =>
+            canProgress != null ? canProgress(p, skill, quality) : (p.skills?.GetSkill(skill)?.Level ?? 20) < (p.DevelopmentalStage.Juvenile() ? ActivityTuning.StoryMaxChildSkill : 20);
+
+        /// <summary>One kind of clothing: which layers it covers and which body parts it is worn on.</summary>
+        internal static string ApparelKind(ThingDef d) => d.apparel == null ? "" :
+            string.Join(",", d.apparel.layers.Select(l => l.defName).OrderBy(x => x, StringComparer.Ordinal)) + "|" + string.Join(",", d.apparel.bodyPartGroups.Select(g => g.defName).OrderBy(x => x, StringComparer.Ordinal));
+
+        internal static bool IsInFamilyStore(Thing t)
+        {
+            if (t == null || !t.Spawned) return false;
+            foreach (var pair in placed.Values) if (pair.Key != null && pair.Key.Spawned && pair.Key.Map == t.Map && pair.Key.OccupiedRect().Contains(t.Position)) return true;
+            return false;
+        }
+
+        /// <summary>Things of one gate that a household's toggled stores hold on a map, for a family member to take from first.</summary>
+        internal static IEnumerable<Thing> HeldBy(int family, Map map, Func<Thing, bool> match)
+        {
+            foreach (var pair in placed.Values)
+                if (pair.Value == family && pair.Key != null && pair.Key.Spawned && pair.Key.Map == map)
+                    foreach (var t in Contents(pair.Key)) if (match(t)) yield return t;
         }
 
         public static Zone_Family ZoneOf(Building_Storage b)
@@ -68,10 +109,13 @@ namespace FamilyLife
             }
             else
             {
-                r.FamilyStores.Remove(b.thingIDNumber); closed.Remove(b.thingIDNumber); readers.Remove(b.thingIDNumber);
+                r.FamilyStores.Remove(b.thingIDNumber); Forget(b.thingIDNumber);
                 foreach (var t in Contents(b)) r.ForgetStock(t.thingIDNumber);
             }
         }
+
+        private static void Forget(int id) { closed.Remove(id); readers.Remove(id); placed.Remove(id); bestBook.Remove(id); apparelNeed.Remove(id); apparelHeld.Remove(id); }
+        private static void ForgetAll() { closed.Clear(); readers.Clear(); placed.Clear(); bestBook.Clear(); apparelNeed.Clear(); apparelHeld.Clear(); }
 
         private static Building_Storage StoreById(int id)
         {
@@ -149,20 +193,35 @@ namespace FamilyLife
             {
                 [StoreGate.Medicine] = StockLimits.MedicineCap(members.Count, family.MedicineReserve),
                 [StoreGate.Drug] = StockLimits.DrugCap(dependents),
-                [StoreGate.Apparel] = StockLimits.SpareApparelCap(members.Select(p => p.apparel?.WornApparelCount ?? 0)),
                 [StoreGate.Book] = StockLimits.BookCap,
                 [StoreGate.Fuel] = StockLimits.FuelCap(fuelRates, family.FuelReserveDays),
             };
             float foodCap = StockLimits.DurableFoodCap(members.Count, family.FoodReserveDays);
 
-            // What the household already keeps in its stores.
-            var held = new Dictionary<StoreGate, float>();
+            // One spare of each kind of clothing a member wears, matched to what they actually wear (a spare shirt for a shirt, spare trousers for trousers).
+            var need = new Dictionary<string, int>();
+            foreach (var p in members)
+                foreach (var worn in (p.apparel?.WornApparel ?? new List<Apparel>()).Take(4)) { var k = ApparelKind(worn.def); need[k] = (need.TryGetValue(k, out var n) ? n : 0) + 1; }
+
+            // What the household already keeps in its stores; a book it has finished with is let go, so it can pass to a household that can still learn from it.
+            var held = new Dictionary<StoreGate, float>(); var heldApparel = new Dictionary<string, int>();
             foreach (var s in stores)
                 foreach (var t in Contents(s))
                 {
                     var g = GateOf(t); if (g == null) continue;
                     held[g.Value] = (held.TryGetValue(g.Value, out var h) ? h : 0f) + Amount(t, g.Value, members);
+                    if (g == StoreGate.Apparel) { var k = ApparelKind(t.def); heldApparel[k] = (heldApparel.TryGetValue(k, out var n) ? n : 0) + t.stackCount; }
+                    if (g == StoreGate.Book && BookValue(t, members) <= 0f && r.ClaimFor(t.thingIDNumber) != null) r.ForgetStock(t.thingIDNumber);
                 }
+
+            // The best book on offer elsewhere, so the shelf holds the most useful one and not just the nearest.
+            float bestElsewhere = 0f; var inStores = new HashSet<int>(stores.SelectMany(s => Contents(s)).Select(t => t.thingIDNumber));
+            foreach (var t in map.listerThings.ThingsInGroup(ThingRequestGroup.HaulableEver))
+            {
+                if (!(t is ThingWithComps twc) || twc.GetComp<CompBook>() == null || inStores.Contains(t.thingIDNumber) || t.IsForbidden(Faction.OfPlayer)) continue;
+                var claim = r.ClaimFor(t.thingIDNumber); if (claim != null && claim.HolderFamily != family.Id) continue;
+                bestElsewhere = Math.Max(bestElsewhere, BookValue(t, members));
+            }
             float Held(StoreGate g) => held.TryGetValue(g, out var h) ? h : 0f;
             float food = Held(StoreGate.Perishable) + Held(StoreGate.Durable);
 
@@ -196,7 +255,8 @@ namespace FamilyLife
                 if (!StockLimits.Open(food, foodCap)) { shut.Add(StoreGate.Durable); shut.Add(StoreGate.Perishable); }
                 else if (!StockLimits.Open(Held(StoreGate.Perishable), StockLimits.PerishableFoodCap(members.Count, family.FoodReserveDays, mealDays))) shut.Add(StoreGate.Perishable);
                 foreach (var pair in caps) if (!StockLimits.Open(Held(pair.Key), pair.Value)) shut.Add(pair.Key);
-                closed[s.thingIDNumber] = shut; readers[s.thingIDNumber] = members;
+                closed[s.thingIDNumber] = shut; readers[s.thingIDNumber] = members; placed[s.thingIDNumber] = new KeyValuePair<Building_Storage, int>(s, family.Id);
+                bestBook[s.thingIDNumber] = bestElsewhere; apparelNeed[s.thingIDNumber] = need; apparelHeld[s.thingIDNumber] = heldApparel;
 
                 foreach (var t in Contents(s))
                     if (r.ClaimFor(t.thingIDNumber) == null && settings.filter.Allows(t))
@@ -207,13 +267,13 @@ namespace FamilyLife
         /// <summary>The hourly pass: a store that was destroyed or left the family zone is dropped; each household's remaining stores are re-planned against what it needs now.</summary>
         public static void Maintain(FamilyComponent c)
         {
-            var r = c.Registry; if (r.FamilyStores.Count == 0) { closed.Clear(); readers.Clear(); return; }
+            var r = c.Registry; if (r.FamilyStores.Count == 0) { ForgetAll(); return; }
             var live = new Dictionary<int, Building_Storage>();
             foreach (var map in Verse.Find.Maps)
                 foreach (var b in map.listerBuildings.allBuildingsColonist.OfType<Building_Storage>())
                     if (r.FamilyStores.Contains(b.thingIDNumber)) live[b.thingIDNumber] = b;
             r.FamilyStores.RemoveAll(id => !live.TryGetValue(id, out var b) || ZoneOf(b) == null);
-            foreach (var id in closed.Keys.ToList()) if (!r.FamilyStores.Contains(id)) { closed.Remove(id); readers.Remove(id); }
+            foreach (var id in closed.Keys.ToList()) if (!r.FamilyStores.Contains(id)) Forget(id);
             foreach (var group in live.Values.Where(b => r.FamilyStores.Contains(b.thingIDNumber)).GroupBy(b => ZoneOf(b)?.Family(r)).Where(g => g.Key != null))
                 Refresh(c, group.Key, group.ToList());
         }
@@ -221,12 +281,23 @@ namespace FamilyLife
         /// <summary>True when this store's gate for the thing is full, so the household takes no more of it. Things already inside, or being tidied there, are never refused.</summary>
         internal static bool Refuses(Building_Storage b, Thing t)
         {
-            if (b == null || t == null || !closed.TryGetValue(b.thingIDNumber, out var shut) || shut.Count == 0) return false;
-            var gate = GateOf(t);
-            // A book with nothing left to teach this household is not wanted, even on the shelf: it leaves and a better one can come in.
-            if (gate == StoreGate.Book && readers.TryGetValue(b.thingIDNumber, out var household) && household.Count > 0 && BookValue(t, household) <= 0f) return true;
-            if (t.Spawned && t.Map == b.Map && b.OccupiedRect().Contains(t.Position)) return false;
-            return gate != null && shut.Contains(gate.Value);
+            if (b == null || t == null || !closed.TryGetValue(b.thingIDNumber, out var shut)) return false;
+            var gate = GateOf(t); if (gate == null) return false;
+            bool inside = t.Spawned && t.Map == b.Map && b.OccupiedRect().Contains(t.Position);
+            if (gate == StoreGate.Book && readers.TryGetValue(b.thingIDNumber, out var household) && household.Count > 0)
+            {
+                // A book with nothing left to teach is not wanted, even on the shelf. One worth under half of a better book on offer is swapped out for it;
+                // and a book is only taken if it is close to the best on offer, so the shelf holds the most useful one and not just the nearest.
+                float value = BookValue(t, household); if (value <= 0f) return true;
+                bestBook.TryGetValue(b.thingIDNumber, out float best);
+                if (inside) return value * 2f < best;
+                if (value < best * .8f) return true;
+            }
+            if (inside) return false;
+            if (gate == StoreGate.Apparel)
+                return !(apparelNeed.TryGetValue(b.thingIDNumber, out var need) && apparelHeld.TryGetValue(b.thingIDNumber, out var heldNow)
+                    && need.TryGetValue(ApparelKind(t.def), out int wanted) && (heldNow.TryGetValue(ApparelKind(t.def), out int have) ? have : 0) < wanted);
+            return shut.Contains(gate.Value);
         }
     }
 
@@ -267,6 +338,58 @@ namespace FamilyLife
             if (!__result) return;
             try { if (__instance.owner is Building_Storage b && FamilyStores.Refuses(b, t)) __result = false; }
             catch (Exception ex) { HookSafety.Report("family storage limits", ex); }
+        }
+    }
+
+    /// <summary>A family member who goes looking for food takes it from their own household's store first, when it holds something at least as good as what they would have found.</summary>
+    [HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.TryFindBestFoodSourceFor))]
+    internal static class Patch_FamilyFoodFirst
+    {
+        private static void Postfix(Pawn getter, Pawn eater, bool desperate, ref Thing foodSource, ref ThingDef foodDef, ref bool __result)
+        {
+            if (!__result || desperate || eater == null || getter == null || foodSource == null || foodSource.def.ingestible == null) return;
+            try
+            {
+                var c = FamilyComponent.Current; if (c == null || c.Registry.FamilyStores.Count == 0 || eater.Map == null) return;
+                int family = c.Registry.FamilyOf(eater.thingIDNumber); if (family == 0 || FamilyStores.IsInFamilyStore(foodSource)) return;
+                var chosen = FoodUtility.GetFinalIngestibleDef(foodSource); if (chosen?.ingestible == null) return;
+                Thing best = null; float bestDistance = float.MaxValue;
+                foreach (var t in FamilyStores.HeldBy(family, eater.Map, x => x.def.ingestible != null && x.def.ingestible.preferability >= chosen.ingestible.preferability && !x.IsForbidden(getter)))
+                {
+                    if (!FoodUtility.WillEat(eater, t, getter, false) || !getter.CanReserve(t) || !getter.CanReach(t, Verse.AI.PathEndMode.Touch, Danger.Some)) continue;
+                    float d = (t.Position - getter.Position).LengthHorizontalSquared;
+                    if (d < bestDistance) { best = t; bestDistance = d; }
+                }
+                if (best != null) { foodSource = best; foodDef = FoodUtility.GetFinalIngestibleDef(best); }
+            }
+            catch (Exception ex) { HookSafety.Report("family food first", ex); }
+        }
+    }
+
+    /// <summary>Whoever tends a family member reaches for that household's own medicine first, if it is at least as potent as what they would have used.</summary>
+    [HarmonyPatch(typeof(HealthAIUtility), nameof(HealthAIUtility.FindBestMedicine))]
+    internal static class Patch_FamilyMedicineFirst
+    {
+        private static void Postfix(Pawn healer, Pawn patient, bool onlyUseInventory, ref Thing __result)
+        {
+            if (onlyUseInventory || healer == null || patient == null || patient.Map == null) return;
+            try
+            {
+                var c = FamilyComponent.Current; if (c == null || c.Registry.FamilyStores.Count == 0) return;
+                int family = c.Registry.FamilyOf(patient.thingIDNumber); if (family == 0 || FamilyStores.IsInFamilyStore(__result)) return;
+                float chosen = __result == null ? 0f : __result.def.GetStatValueAbstract(StatDefOf.MedicalPotency);
+                Thing best = null; float bestPotency = -1f;
+                foreach (var t in FamilyStores.HeldBy(family, patient.Map, x => x.def.IsMedicine && !x.IsForbidden(healer)))
+                {
+                    float potency = t.def.GetStatValueAbstract(StatDefOf.MedicalPotency);
+                    if (__result != null && potency < chosen || potency <= bestPotency) continue;
+                    if (patient.playerSettings != null && !patient.playerSettings.medCare.AllowsMedicine(t.def)) continue;
+                    if (!healer.CanReserve(t) || !healer.CanReach(t, Verse.AI.PathEndMode.Touch, Danger.Some)) continue;
+                    best = t; bestPotency = potency;
+                }
+                if (best != null) __result = best;
+            }
+            catch (Exception ex) { HookSafety.Report("family medicine first", ex); }
         }
     }
 }

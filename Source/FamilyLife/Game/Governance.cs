@@ -84,6 +84,7 @@ namespace FamilyLife
             Safe(() => KinVisitDriver.Run(c, now), "kin visits");
             Safe(() => EstateDriver.Run(c, now), "estates");
             Safe(() => FamilyStores.Maintain(c), "family storage");
+            Safe(() => Window_GettingStarted.OfferOnce(c), "getting started");
             Safe(() => WorkFocusGame.Run(c, now), "work focus");
             GovernanceDriver.Run(c, now);
         }
