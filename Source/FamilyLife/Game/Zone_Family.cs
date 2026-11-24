@@ -277,6 +277,25 @@ namespace FamilyLife
         private static readonly System.Reflection.MethodInfo Grid = typeof(ZoneManager).GetMethod("AddZoneGridCell", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
         private static readonly System.Reflection.FieldInfo Shuffled = typeof(Zone).GetField("cellsShuffled", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
+        /// <summary>
+        /// When a save is loaded the game puts every zone cell back into its zone grid with the same refusal as above, so a cell under a building that cannot overlap zones
+        /// is left out of the grid and the zone stops covering it (the zone still lists the cell, but nothing is "in" it). Put those cells back.
+        /// </summary>
+        public static int Repair(Map map)
+        {
+            if (Grid == null || map == null) return 0;
+            int fixedCells = 0;
+            foreach (var zone in map.zoneManager.AllZones.OfType<Zone_Family>().ToList())
+                foreach (var c in zone.cells.ToList())
+                {
+                    if (!c.InBounds(map) || map.zoneManager.ZoneAt(c) != null) continue;
+                    Grid.Invoke(zone.zoneManager, new object[] { zone, c });
+                    map.mapDrawer.MapMeshDirty(c, MapMeshFlagDefOf.Zone);
+                    fixedCells++;
+                }
+            return fixedCells;
+        }
+
         public static void Add(Zone zone, IntVec3 c, System.Action<IntVec3> normal)
         {
             if (Grid == null || zone.Map == null || zone.cells.Contains(c) || !zone.Map.thingGrid.ThingsListAt(c).Any(t => !t.def.CanOverlapZones)) { normal(c); return; }

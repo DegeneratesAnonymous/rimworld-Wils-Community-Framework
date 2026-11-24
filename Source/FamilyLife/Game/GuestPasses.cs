@@ -439,6 +439,12 @@ namespace FamilyLife
 
         public override void StartedNewGame() => GuestPasses.Reset();
         public override void LoadedGame() => GuestPasses.Reset();
+
+        public override void FinalizeInit()
+        {
+            try { foreach (var map in Find.Maps) { int n = ZoneForce.Repair(map); if (n > 0) Log.Message("[Wil's Family Life] Restored " + n + " family zone cells under furniture after loading."); } }
+            catch (System.Exception ex) { HookSafety.Report("family zone repair", ex); }
+        }
     }
 
     /// <summary>The map toggle for family zones, kept beside the game's own zone toggle.</summary>
