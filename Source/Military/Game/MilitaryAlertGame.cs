@@ -284,6 +284,7 @@ namespace FamilyLife
     public class Zone_TrainingYard : Zone
     {
         public Zone_TrainingYard() { }
+        public override void AddCell(IntVec3 c) => ZoneForce.Add(this, c, base.AddCell);
         public Zone_TrainingYard(ZoneManager zoneManager) : base("WFL_Military_TrainingYard".Translate(), zoneManager) { }
         protected override Color NextZoneColor => new Color(0.75f, 0.35f, 0.3f, 0.05f);
         protected override Material CreateMaterial() { var m = SolidColorMaterials.SimpleSolidColorMaterial(new Color(color.r, color.g, color.b, 0.06f)); m.renderQueue = 3600; return m; }
@@ -298,10 +299,12 @@ namespace FamilyLife
         {
             zoneTypeToPlace = typeof(Zone_TrainingYard);
             defaultLabel = "WFL_Military_TrainingYard".Translate(); defaultDesc = "WFL_Military_TrainingYardDesc".Translate();
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; hotKey = null;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; hotKey = null; defaultIconColor = new Color(0.85f, 0.35f, 0.3f);
         }
 
         protected override Zone MakeNewZone() => new Zone_TrainingYard(Find.CurrentMap.zoneManager);
+
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any); Finalize(any); }
 
         public override AcceptanceReport CanDesignateCell(IntVec3 c)
         {
@@ -310,7 +313,7 @@ namespace FamilyLife
             if (existing != null && existing.GetType() != zoneTypeToPlace) return false;
             if (c.Fogged(Map)) return false;
             if (c.InNoZoneEdgeArea(Map)) return "TooCloseToMapEdge".Translate();
-            if (c.Impassable(Map)) return false;
+            if (ZoneCells.SolidAt(c, Map)) return false;
             return true;
         }
     }

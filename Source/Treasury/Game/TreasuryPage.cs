@@ -16,7 +16,7 @@ namespace FamilyLife
     {
         private static int sub;
         private static string transferFrom, transferTo; private static string amountText = "10"; private static int amount = 10;
-        private static readonly string[] Tabs = { "WFL_Tr_Overview", "WFL_Tr_Accounts", "WFL_Tr_Payroll", "WFL_Tr_Taxation", "WFL_Tr_Debts", "WFL_Tr_Transactions", "WFL_Tr_Budget" };
+        private static readonly string[] Tabs = { "WFL_Tr_Overview", "WFL_Tr_Accounts", "WFL_Tr_Payroll", "WFL_Tr_Taxation", "WFL_Tr_Debts", "WFL_Tr_Transactions", "WFL_Tr_Budget", "WFL_Tr_Investments" };
 
         /// <summary>The number shown on the page's navigation entry: wages owed plus overdue tax, so something needing the player's eye is visible without opening it.</summary>
         public static int Attention()
@@ -35,7 +35,7 @@ namespace FamilyLife
                 case AccountKind.Community: return "WFL_Tr_Community".Translate();
                 case AccountKind.Person: return NameOfPawn(c, a.Owner);
                 case AccountKind.Household: { var h = c.Registry.GetHousehold(a.Owner); var first = h?.ResidentIds.FirstOrDefault(); return "WFL_Tr_Household".Translate(first.HasValue ? NameOfPawn(c, first.Value) : "#" + a.Owner); }
-                default: return "WFL_Tr_Business".Translate(a.Owner);
+                default: return TreasuryService.BusinessName(a.Owner);
             }
         }
 
@@ -48,16 +48,7 @@ namespace FamilyLife
 
         public static float Draw(Rect r, FamilyComponent c)
         {
-            float y = 0f; float x = 0f;
-            for (int i = 0; i < Tabs.Length; i++)
-            {
-                var label = Tabs[i].Translate(); float w = Mathf.Min(r.width, Mathf.Max(90f, Text.CalcSize(label).x + 20f));
-                if (x > 0f && x + w > r.width) { x = 0f; y += 34f; }
-                var tab = new Rect(x, y, w, 30f);
-                if (Widgets.ButtonText(tab, label, true, true, i == sub ? new Color(0.9f, 0.74f, 0.28f) : Color.white)) sub = i;
-                x += w + 4f;
-            }
-            y += 34f;
+            float y = CommunityPageLayout.Tabs(r, 0f, Tabs.Select(t => t.Translate().ToString()).ToList(), sub, i => sub = i);
             switch (sub)
             {
                 case 0: return Overview(r, c, y);
@@ -66,6 +57,7 @@ namespace FamilyLife
                 case 3: return Taxation(r, c, y);
                 case 4: return Debts(r, c, y);
                 case 6: return Budget(r, c, y);
+                case 7: return Investments(r, c, y);
                 default: return Transactions(r, c, y);
             }
         }
@@ -79,9 +71,25 @@ namespace FamilyLife
         private static float Overview(Rect r, FamilyComponent c, float y)
         {
             var reg = c.Registry; var l = reg.Ledger(); var pay = reg.Payroll(); int today = TreasuryService.Today(); var map = Find.AnyPlayerHomeMap;
+            y = CommunityStaffing.Draw(r, y, c, "wils.treasury");
+            int payday = PayCalendar.NextPayday(today + 1) - today;
+            int columns = r.width >= 600f ? 3 : 1;
+            float metricWidth = (r.width - (columns - 1) * 12f) / columns;
+            var metricLabels = new[] { "WFL_UX_Funds", "WFL_UX_Pending", "WFL_UX_Payday" };
+            var metricValues = new[] { l.Balance(Ledger.CommunityId).ToString(), pay.PendingTotal.ToString(), payday.ToString() };
+            for (int m = 0; m < 3; m++) {
+                GUI.BeginGroup(new Rect(m % columns * (metricWidth + 12f), y + m / columns * 90f, metricWidth, 90f));
+                try { CommunityStaffing.Metric(new Rect(0f, 0f, metricWidth, 90f), 0f, metricLabels[m].Translate(), metricValues[m]); } finally { GUI.EndGroup(); }
+            }
+            y += columns == 3 ? 90f : 270f;
+            y = Line(r, y, "WFL_UX_PayHint".Translate(), true);
             y = Line(r, y, "WFL_Tr_CommunityFunds".Translate(l.Balance(Ledger.CommunityId)));
             int physical = TreasuryService.PhysicalSilver(map);
             y = Line(r, y, "WFL_Tr_Claims".Translate(l.TotalClaims, physical));
+            float communityShare = l.TotalClaims <= 0 ? 0f : Mathf.Clamp01(l.Balance(Ledger.CommunityId) / (float)l.TotalClaims);
+            CommunityWidgets.Bar(new Rect(4f, y, r.width - 8f, 22f), communityShare, CommunityWidgets.Gold, "WFL_UX_Ownership".Translate(l.Balance(Ledger.CommunityId), l.TotalClaims));
+            y += 30f;
+            y = Line(r, y, "WFL_UX_OwnershipHint".Translate(), true);
             y = Line(r, y, "WFL_Tr_Owned".Translate(l.TotalClaims, l.TotalAvailable, l.Unbacked), l.Unbacked > 0);
             if (l.Unbacked > 0) y = Line(r, y, "WFL_Tr_Bearer".Translate(l.CommunityShare, l.SpilledToOwners), true);
             int owedWages = l.Debts.Where(d => d.Active && d.Kind == DebtKind.Wage).Sum(d => d.Outstanding);
@@ -165,6 +173,7 @@ namespace FamilyLife
         {
             var reg = c.Registry; var pay = reg.Payroll(); var pol = pay.Policy;
             y = CommunityPageLayout.Help(r, y, "WFL_Tr_PayrollHelp".Translate()) + 4f;
+            y = WealthPay(r, c, y);
             y = Heading(r, y + 4f, "WFL_Tr_FundingTitle".Translate());
             foreach (PayrollFunding f in Enum.GetValues(typeof(PayrollFunding))) { if (Widgets.RadioButtonLabeled(new Rect(4f, y, r.width - 16f, 24f), ("WFL_Tr_Funding_" + f).Translate(), pol.Funding == f)) pol.Funding = f; y += 26f; }
             y = CommunityPageLayout.Help(r, y, "WFL_Tr_FundingNote".Translate());
@@ -177,8 +186,8 @@ namespace FamilyLife
                 for (int i = 0; i < pol.Order.Count; i++)
                 {
                     var rl = roles.FirstOrDefault(x => x.Id == pol.Order[i]); Widgets.Label(new Rect(24f, y, 300f, 24f), (i + 1) + ". " + (rl == null ? pol.Order[i] : CareerService.TitleOf(rl, reg)));
-                    if (i > 0 && Widgets.ButtonText(new Rect(330f, y, 30f, 22f), "▲")) { var t = pol.Order[i]; pol.Order[i] = pol.Order[i - 1]; pol.Order[i - 1] = t; }
-                    if (i < pol.Order.Count - 1 && Widgets.ButtonText(new Rect(364f, y, 30f, 22f), "▼")) { var t = pol.Order[i]; pol.Order[i] = pol.Order[i + 1]; pol.Order[i + 1] = t; }
+                    if (i > 0 && Widgets.ButtonText(new Rect(330f, y, 30f, 22f), "â–²")) { var t = pol.Order[i]; pol.Order[i] = pol.Order[i - 1]; pol.Order[i - 1] = t; }
+                    if (i < pol.Order.Count - 1 && Widgets.ButtonText(new Rect(364f, y, 30f, 22f), "â–¼")) { var t = pol.Order[i]; pol.Order[i] = pol.Order[i + 1]; pol.Order[i + 1] = t; }
                     y += 26f;
                 }
             }
@@ -198,6 +207,21 @@ namespace FamilyLife
             y = Heading(r, y, "WFL_Tr_PastPayments".Translate());
             foreach (var rep in pay.Reports.AsEnumerable().Reverse()) y = Line(r, y, "WFL_Tr_PaydayLine".Translate(rep.Payday % PayCalendar.DaysPerYear + 1, rep.TotalDue, rep.TotalPaid, rep.Shortfall > 0 ? (string)"WFL_Tr_ShortBy".Translate(rep.Shortfall) : ""), true);
             return y;
+        }
+
+        /// <summary>Pay linked to the colony's wealth, and how far colonists' own money is from it. The share is the player's choice; 0 keeps the fixed rates below.</summary>
+        private static float WealthPay(Rect r, FamilyComponent c, float y)
+        {
+            var reg = c.Registry; var pol = reg.Payroll().Policy; var l = reg.Ledger();
+            y = Heading(r, y + 4f, "WFL_Tr_WealthPayTitle".Translate());
+            long wealth = TreasuryService.ColonyWealth(); var people = TreasuryService.GapColonists(c); int n = people.Count;
+            y = Line(r, y, "WFL_Tr_WealthPayShare".Translate(pol.WealthSharePercent));
+            pol.WealthSharePercent = (int)Widgets.HorizontalSlider(new Rect(4f, y, 280f, 20f), pol.WealthSharePercent, 0f, WagePolicy.MaxWealthShare, true, null, null, null, 1f); y += 26f;
+            y = Line(r, y, pol.WealthSharePercent <= 0 ? (string)"WFL_Tr_WealthPayOff".Translate() : (string)"WFL_Tr_WealthPayOn".Translate(wealth, pol.PoolPerPayday(wealth)), true);
+            long per = WealthGap.PerColonist(wealth, n), held = n == 0 ? 0 : people.Sum(p => (long)l.Balance(Ledger.IdFor(AccountKind.Person, p.thingIDNumber))) / n;
+            y = Line(r, y, "WFL_Tr_WealthGapLine".Translate(held, per, per > 0 ? Mathf.RoundToInt(held * 100f / per) : 0), true);
+            bool gap = pol.GapMood; Widgets.CheckboxLabeled(new Rect(4f, y, 420f, 24f), "WFL_Tr_GapMood".Translate(), ref gap); pol.GapMood = gap; y += 28f;
+            return CommunityPageLayout.Help(r, y, "WFL_Tr_GapMoodNote".Translate());
         }
 
         private static readonly Dictionary<string, string> rateBuffers = new Dictionary<string, string>();
@@ -225,6 +249,34 @@ namespace FamilyLife
             return y;
         }
 
+        private static float Investments(Rect r, FamilyComponent c, float y)
+        {
+            var reg = c.Registry; var l = reg.Ledger(); var book = reg.Investments();
+            y = Line(r, y, "WFL_Tr_InvestIntro".Translate());
+            bool may = book.InvestorsMayInvest; Widgets.CheckboxLabeled(new Rect(4f, y, 360f, 24f), "WFL_Tr_InvestAllow".Translate(), ref may); book.InvestorsMayInvest = may; y += 28f;
+            y = Line(r, y, "WFL_Tr_InvestMaxStake".Translate(book.MaxStake));
+            book.MaxStake = (int)Widgets.HorizontalSlider(new Rect(4f, y, 240f, 20f), book.MaxStake, InvestmentRules.MinCapital, 1000f, true, null, null, null, 25f); y += 26f;
+            y = Line(r, y, "WFL_Tr_InvestMaxShare".Translate(book.MaxOutsideBp / 100));
+            book.MaxOutsideBp = (int)Widgets.HorizontalSlider(new Rect(4f, y, 240f, 20f), book.MaxOutsideBp / 100, 5f, 49f, true, null, null, null, 1f) * 100; y += 26f;
+            foreach (var biz in l.Accounts.Where(a => a.Kind == AccountKind.Business && !a.Closed).OrderBy(a => a.Owner).ToList())
+            {
+                bool openTo = !book.ClosedBusinesses.Contains(biz.Owner);
+                Widgets.CheckboxLabeled(new Rect(4f, y, 360f, 24f), "WFL_Tr_OpenToInvestors".Translate(TreasuryService.BusinessName(biz.Owner)), ref openTo);
+                if (openTo) book.ClosedBusinesses.Remove(biz.Owner); else book.ClosedBusinesses.Add(biz.Owner);
+                y += 26f;
+            }
+            y = Line(r, y, "WFL_Tr_Investors".Translate(Names(c, TreasuryRoles.Investor)));
+            if (TreasuryService.Holders(reg, TreasuryRoles.Investor).Count == 0) y = Line(r, y, "WFL_Tr_InvestLocked".Translate(), true);
+            foreach (var s in book.Live.OrderBy(x => x.Business).ThenBy(x => x.Id).ToList())
+            {
+                y = Line(r, y, "WFL_Tr_StakeLine".Translate(NameOfPawn(c, s.Investor), NameOf(c, Ledger.IdFor(AccountKind.Business, s.Business)), s.Capital, (s.ShareBp / 100f).ToString("0.#"), s.Received));
+                if (Widgets.ButtonText(new Rect(r.width - 130f, y - 24f, 120f, 22f), "WFL_Tr_BuyBack".Translate()) && !book.Exit(l, s, TreasuryService.Today()))
+                    Messages.Message("WFL_Tr_BuyBackFail".Translate(), MessageTypeDefOf.RejectInput, false);
+            }
+            if (!book.Live.Any()) y = Line(r, y, "WFL_Tr_NoStakes".Translate(), true);
+            return y;
+        }
+
         private static float Debts(Rect r, FamilyComponent c, float y)
         {
             var l = c.Registry.Ledger();
@@ -244,3 +296,4 @@ namespace FamilyLife
         }
     }
 }
+

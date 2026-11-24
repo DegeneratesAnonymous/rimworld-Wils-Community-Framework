@@ -28,8 +28,16 @@ namespace FamilyLife
             }
             y+=36f;if(selected==0&&book.Businesses.Count>0){selected=book.Businesses[0].Id;rename=book.Businesses[0].Name;}
             var b=book.ById(selected);
-            if(b==null)return CommunityPageLayout.Line(new Rect(rect.x,rect.y+y,rect.width,rect.height-y),0f,"Create a restaurant, tavern, inn or shop to begin.",true)+y;
+            if(b==null)return CommunityPageLayout.Line(new Rect(rect.x,rect.y,rect.width,rect.height),y,"Create a restaurant, tavern, inn or shop to begin.",true);
             y=CommunityPageLayout.Section(rect,0f,y,rect.width,b.Kind+" summary",r=>Summary(r,c,b));
+            if (b.ServiceCells.Count == 0 || b.Staff.Count == 0) {
+                y=CommunityPageLayout.Section(rect,0f,y,rect.width,"WFL_UX_VenueSetup".Translate(),r=> {
+                    float h=CommunityPageLayout.Line(r,0f,(b.ServiceCells.Count>0 ? "✓ " : "1. ")+"WFL_UX_Premises".Translate());
+                    h=CommunityPageLayout.Line(r,h,(b.Staff.Count>0 ? "✓ " : "2. ")+"WFL_UX_StaffHours".Translate());
+                    h=CommunityPageLayout.Button(r,h,"WFL_UX_Premises".Translate(),()=>tab=1);
+                    return CommunityPageLayout.Button(r,h,"WFL_UX_StaffHours".Translate(),()=>tab=0);
+                });
+            }
             y=CommunityPageLayout.Tabs(new Rect(rect.x,rect.y,rect.width,rect.height),y,Tabs,tab,i=>tab=i);
             switch(tab)
             {
@@ -201,3 +209,4 @@ namespace FamilyLife
         public override void SelectedUpdate(){base.SelectedUpdate();var e=FamilyComponent.Current?.Registry.Establishments().ById(business);if(e!=null&&e.Map==Map.uniqueID)GenDraw.DrawFieldEdges(e.ServiceCells.Select(Map.cellIndices.IndexToCell).ToList());}
     }
 }
+

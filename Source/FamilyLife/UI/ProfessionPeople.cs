@@ -22,7 +22,7 @@ namespace FamilyLife
         private static CareerFocus FocusOf(FamilyComponent c, Pawn pawn, ProfessionRole role)
         {
             var def = CareerService.Career(role.Career); if (def == null) return new CareerFocus();
-            return CareerFocus.Of(c.Registry.Careers().Progress(pawn.thingIDNumber, def, CareerService.SkillsOf(pawn)), role.Specialty);
+            return CareerFocus.Of(c.Registry.Careers().Progress(pawn.thingIDNumber, def, CareerService.SkillsOf(pawn), CareerService.LoadPenalty(pawn, role.Career)), role.Specialty);
         }
 
         private static readonly Dictionary<int, KeyValuePair<int, List<Held>>> heldCache = new Dictionary<int, KeyValuePair<int, List<Held>>>();
@@ -49,7 +49,7 @@ namespace FamilyLife
         /// <summary>One bar: the fill, a label over it, and a green arrow with the recent gain when the person is learning.</summary>
         private static void XpBar(Rect r, Held h, string label)
         {
-            var color = h.Gain > 0 ? Gaining : CommunityWidgets.Level(h.Focus.Share);
+            var color = h.Gain > 0 ? Gaining : new Color(.38f, .64f, .85f);
             CommunityWidgets.Bar(r, h.Focus.Share, color, label + (h.Focus.Done ? "" : "  " + Mathf.RoundToInt(h.Focus.Share * 100f) + "%"));
             if (h.Gain > 0) { Text.Font = GameFont.Tiny; GUI.color = Gaining; Text.Anchor = TextAnchor.MiddleRight; Widgets.Label(new Rect(r.xMax - 46f, r.y, 44f, r.height), "▲+" + h.Gain); Text.Anchor = TextAnchor.UpperLeft; GUI.color = Color.white; Text.Font = GameFont.Small; }
             string tip = h.Focus.Done ? "WFL_Prof_BarDone".Translate().ToString() : "WFL_Prof_BarTip".Translate(h.Focus.Target == null ? "WFL_Prof_NextStep".Translate().ToString() : h.Focus.Target).ToString();
@@ -72,7 +72,12 @@ namespace FamilyLife
                 var pawn = c.TryGetPawn(id); if (pawn == null || pawn.Dead || reg.GetPerson(id)?.InColony != true) continue;
                 var held = HeldBy(c, pawn, now); if (held.Count > 0) people.Add(new KeyValuePair<Pawn, List<Held>>(pawn, held));
             }
+            y = CommunityStaffing.Draw(r, y, c, null);
             if (people.Count == 0) return CommunityPageLayout.Line(r, y, "WFL_Prof_NoPeople".Translate(), true);
+            var focus = reg.WorkFocus();
+            y = CommunityPageLayout.Button(r, y, "WFL_Prof_WorkApply".Translate(), () => { int n = WorkFocusGame.ApplyAll(c); Messages.Message("WFL_Prof_WorkApplied".Translate(n), MessageTypeDefOf.TaskCompletion, false); });
+            y = CommunityPageLayout.Button(r, y, "WFL_Prof_WorkUndo".Translate(), () => { int n = WorkFocusGame.UndoAll(c); Messages.Message("WFL_Prof_WorkUndone".Translate(n), MessageTypeDefOf.TaskCompletion, false); });
+            y = CommunityPageLayout.Help(r, y, "WFL_Prof_WorkHelp".Translate());
             y = CommunityPageLayout.Line(r, y, "WFL_Prof_PeopleKey".Translate(), true);
             float nameW = Mathf.Max(120f, r.width * .17f), mainW = Mathf.Max(200f, r.width * .32f);
             foreach (var kv in people.OrderByDescending(p => p.Value.Any(h => h.Gain > 0)).ThenBy(p => p.Key.LabelShort))
@@ -81,9 +86,14 @@ namespace FamilyLife
                 float sideX = nameW + mainW + 8f, sideW = Mathf.Max(120f, (r.width - sideX) / 2f - 4f); int perRow = Mathf.Max(1, Mathf.FloorToInt((r.width - sideX) / (sideW + 4f))); int rows = Math.Max(1, (sides.Count + perRow - 1) / perRow);
                 float h0 = Mathf.Max(48f, rows * 26f + 8f); var row = new Rect(0f, y, r.width, h0);
                 Widgets.DrawBoxSolid(row, new Color(1f, 1f, 1f, .035f)); if (Mouse.IsOver(row)) Widgets.DrawHighlight(row);
-                CommunityWidgets.NameButton(new Rect(6f, y, nameW - 8f, h0), pawn);
+                CommunityWidgets.NameButton(new Rect(6f, y, nameW - 8f, h0 - 22f), pawn);
+                bool follows = focus.IsFollowing(pawn.thingIDNumber), wasFollowing = follows; var followBox = new Rect(8f, y + h0 - 22f, nameW - 12f, 20f);
+                Text.Font = GameFont.Tiny; Widgets.CheckboxLabeled(followBox, "WFL_Prof_Follow".Translate(), ref follows, false, null, null, true); Text.Font = GameFont.Small;
+                TooltipHandler.TipRegion(followBox, "WFL_Prof_FollowTip".Translate());
+                if (follows != wasFollowing) { focus.Follow(pawn.thingIDNumber, follows); if (follows) WorkFocusGame.Apply(c, pawn); }
                 var card = new Rect(nameW, y + 4f, mainW, h0 - 8f); Widgets.DrawBoxSolid(card, new Color(Gold.r, Gold.g, Gold.b, .10f)); Widgets.DrawBox(card);
                 GUI.color = Gold; Text.Font = GameFont.Tiny; Widgets.Label(new Rect(card.x + 6f, card.y + 1f, card.width - 12f, 16f), "★ " + "WFL_Prof_Main".Translate() + ": " + CareerService.TitleOf(main.Role, reg)); Text.Font = GameFont.Small; GUI.color = Color.white;
+                RoleLoadUi.Chip(new Rect(card.xMax - 130f, card.y + 1f, 124f, 16f), reg, pawn.thingIDNumber);
                 XpBar(new Rect(card.x + 6f, card.yMax - 20f, card.width - 12f, 16f), main, "");
                 if (Widgets.ButtonInvisible(card)) ChipMenu(c, pawn, main);
                 for (int i = 0; i < sides.Count; i++)
@@ -106,7 +116,7 @@ namespace FamilyLife
             foreach (var role in roles)
             {
                 var holders = book.Holders(role.Id).Distinct().Select(id => c.TryGetPawn(id)).Where(p => p != null && !p.Dead && reg.GetPerson(p.thingIDNumber)?.InColony == true).ToList();
-                if (holders.Count == 0 && role.Level > 1) continue;          // list vacant entry roles (where to start) but not every locked higher tier
+                // The directory includes optional and unqualified roles so it can be searched by browsing.
                 if (role.Career != lastCareer) { lastCareer = role.Career; var def = CareerService.Career(role.Career); y += 4f; GUI.color = Gold; Widgets.Label(new Rect(0f, y, r.width, 24f), (def != null ? CareerService.CareerName(def, reg) : role.Career).ToUpperInvariant()); GUI.color = Color.white; y += 26f; }
                 int perRow = Mathf.Max(1, Mathf.FloorToInt((r.width - 200f) / 210f)); int rows = Math.Max(1, (holders.Count + perRow - 1) / perRow); float h0 = rows * 26f + 6f; var row = new Rect(0f, y, r.width, h0);
                 Widgets.DrawBoxSolid(row, new Color(1f, 1f, 1f, .035f));
@@ -125,3 +135,4 @@ namespace FamilyLife
         }
     }
 }
+

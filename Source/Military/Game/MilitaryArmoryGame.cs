@@ -14,6 +14,7 @@ namespace FamilyLife
     {
         public Zone_Armory() { }
         public Zone_Armory(StorageSettingsPreset preset, ZoneManager zoneManager) : base(preset, zoneManager) { }
+        protected override Color NextZoneColor => new Color(0.4f, 0.6f, 0.85f, 0.5f);
     }
 
     /// <summary>Architect &gt; Zone &gt; Armory. Painted like a stockpile, with its filter already set to weapons and armour (the usual stockpile settings can still be changed).</summary>
@@ -25,7 +26,7 @@ namespace FamilyLife
         {
             preset = StorageSettingsPreset.DefaultStockpile; zoneTypeToPlace = typeof(Zone_Armory);
             defaultLabel = "WFL_Military_Armory".Translate(); defaultDesc = "WFL_Military_ArmoryDesc".Translate();
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; hotKey = null;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; hotKey = null; defaultIconColor = new Color(0.45f, 0.65f, 0.9f);
         }
 
         protected override Zone MakeNewZone()

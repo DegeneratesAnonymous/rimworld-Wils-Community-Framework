@@ -38,6 +38,8 @@ namespace FamilyLife
                 report.Step("Clear in-memory records", () => { WorksStories.Reset(); WorksRoomGame.Reset(); WorksRoundGame.Reset(); WorksFamilyGame.Reset(); return "careers and experience retained; the round job ends by itself and adds no hediffs"; });
                 return report;
             });
+            FamilyFramework.WorkFocus.Add(Id + ".work.build", Id, new WorkFocusRule { Career = WorksCareers.Builder, WorkTypes = new[] { "Construction" } });
+            FamilyFramework.WorkFocus.Add(Id + ".work.mine", Id, new WorkFocusRule { Career = WorksCareers.Miner, WorkTypes = new[] { "Mining" } });
             CareerService.Registered(Id);
         }
 

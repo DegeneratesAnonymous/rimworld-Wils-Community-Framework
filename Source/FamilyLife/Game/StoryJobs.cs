@@ -81,7 +81,7 @@ namespace FamilyLife
             yield return new Toil { initAction = () =>
             {
                 var home = FamilyZones.AreaFor(Component.Registry.GetLineage(Component.Registry.FamilyOf(pawn.thingIDNumber)));
-                if (home?.Map != pawn.Map || !home[job.targetC.Cell] || job.targetC.Cell.IsForbidden(pawn) || pawn.carryTracker.CarriedThing == null || !StoreUtility.IsValidStorageFor(job.targetC.Cell, pawn.Map, pawn.carryTracker.CarriedThing) || !pawn.carryTracker.TryDropCarriedThing(job.targetC.Cell, ThingPlaceMode.Direct, out _))
+                if (home?.Map != pawn.Map || !home[job.targetC.Cell] || job.targetC.Cell.IsForbidden(pawn) || pawn.carryTracker.CarriedThing == null || !(StoreUtility.IsValidStorageFor(job.targetC.Cell, pawn.Map, pawn.carryTracker.CarriedThing) || FamilyEconomy.HomeFloorFree(pawn.Map, job.targetC.Cell, pawn)) || !pawn.carryTracker.TryDropCarriedThing(job.targetC.Cell, ThingPlaceMode.Direct, out _))
                 { EndJobWith(JobCondition.Incompletable); return; }
                 if(pawn.carryTracker.CarriedThing!=null) {EndJobWith(JobCondition.Incompletable);return;}
                 Request.State = SupplyState.Stored;

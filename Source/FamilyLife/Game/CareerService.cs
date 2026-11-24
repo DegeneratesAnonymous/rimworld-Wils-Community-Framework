@@ -134,19 +134,39 @@ namespace FamilyLife
 
         private static void Qualify(CareerLedger ledger, Pawn pawn, CareerDefinition def, int now)
         {
-            foreach (var gained in ledger.Evaluate(pawn.thingIDNumber, def, SkillsOf(pawn)))
+            foreach (var gained in ledger.Evaluate(pawn.thingIDNumber, def, SkillsOf(pawn), LoadPenalty(pawn, def.Id)))
             {
                 ledger.NoteQualified(pawn.thingIDNumber, gained, now);
                 Note(pawn.LabelShort + " qualified: " + gained);
+                var earned = Activities.Thought("WFL_CareerEarned");
+                if (earned != null && pawn.needs?.mood?.thoughts?.memories != null && !pawn.Dead)
+                {
+                    var mem = (Thought_Memory)ThoughtMaker.MakeThought(earned, gained.Contains(":") ? 1 : 0);
+                    pawn.needs.mood.thoughts.memories.TryGainMemory(mem);
+                }
                 Messages.Message("WFL_Career_Qualified".Translate(pawn.LabelShort, Describe(gained)), pawn, MessageTypeDefOf.PositiveEvent, false);
             }
         }
+
+                /// <summary>The distinct careers a person is assigned to now, other than <paramref name="except"/> (their own career's earlier steps are the same work, not another profession).</summary>
+        public static int OtherCareersHeld(Pawn pawn, string except)
+        {
+            var r = FamilyComponent.Current?.Registry; if (pawn == null || r == null) return 0;
+            return r.Assignments().RolesOf(pawn.thingIDNumber).Select(id => Professions.ById(id)?.Career).Where(cr => !string.IsNullOrEmpty(cr) && cr != except).Distinct().Count();
+        }
+        /// <summary>Extra skill levels a new qualification asks for, from the other professions this person already holds.</summary>
+        public static int LoadPenalty(Pawn pawn, string career) => RoleLoad.Penalty(OtherCareersHeld(pawn, career));
 
         private static readonly GainTracker gains = new GainTracker();
         /// <summary>Experience this person has gained in a career recently (0 when none), so pages can show who is learning.</summary>
         public static int RecentGain(int person, string career, int now) => gains.Recent(person, career, now);
 
-        public static string TitleOf(ProfessionRole role, FamilyRegistry r) => (role.TitleKey?.Invoke(r) ?? role.Id + "_label").Translate().ToString();
+        public static string TitleOf(ProfessionRole role, FamilyRegistry r)
+        {
+            string key = role.TitleKey?.Invoke(r) ?? role.Id + "_label";
+            string title = key.Translate().ToString();
+            return title == key ? "WFL_UX_UnknownRole".Translate().ToString() : title;
+        }
 
         /// <summary>A specialty benefit is active only while the qualified pawn is assigned to that exact specialty.</summary>
         public static bool IsAssignedSpecialist(Pawn pawn, string career, string specialty)
@@ -167,3 +187,4 @@ namespace FamilyLife
         }
     }
 }
+

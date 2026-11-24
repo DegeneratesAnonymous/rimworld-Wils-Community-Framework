@@ -53,7 +53,7 @@ namespace FamilyLife.Tests
         {
             var r = Colony(); var l = r.Careers();
             var def = new CareerDefinition { Id = CareRoles.Career, Level2 = new CareerRule { GeneralXp = CareRoles.DoctorExperience }.Skill("Medicine", CareRoles.DoctorMedicine) };
-            for (int i = 0; i < 13; i++) l.Award(2, def.Id, null, "care.checkup", "v" + i, CareRoles.CheckupPoints, 5 + i / 6);
+            for (int i = 0; i < 16; i++) l.Award(2, def.Id, null, "care.checkup", "v" + i, CareRoles.CheckupPoints, 5 + i / 6);
             Assert.Empty(l.Evaluate(2, def, s => 3));
             Assert.Single(l.Evaluate(2, def, s => 6));
         }

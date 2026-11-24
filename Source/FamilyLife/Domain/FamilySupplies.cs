@@ -28,6 +28,8 @@ namespace FamilyLife.Domain
     public sealed partial class FamilyRegistry
     {
         public List<StockClaim> Claims = new List<StockClaim>();
+        /// <summary>Storage buildings (by thing id) the family has taken over: the family keeps their filters and what is inside is the family's own.</summary>
+        public List<int> FamilyStores = new List<int>();
         public List<SupplyRequest> Requests = new List<SupplyRequest>();
         public int NextSupplyRequestId = 1;
         private readonly Dictionary<int, StockClaim> claimByThing = new Dictionary<int, StockClaim>();

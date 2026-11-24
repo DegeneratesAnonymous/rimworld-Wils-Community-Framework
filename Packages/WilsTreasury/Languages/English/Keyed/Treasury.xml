@@ -2,6 +2,22 @@
 <LanguageData>
   <wils.treasury.treasurer_label>Treasurer</wils.treasury.treasurer_label>
   <wils.treasury.taxcollector_label>Tax Collector</wils.treasury.taxcollector_label>
+  <wils.treasury.investor_label>Investor</wils.treasury.investor_label>
+  <WFL_Treasury_InvestorBonus>Puts their own silver into the community's profitable businesses and takes a share of what they earn.</WFL_Treasury_InvestorBonus>
+  <WFL_Tr_Investments>Investments</WFL_Tr_Investments>
+  <WFL_Tr_InvestIntro>Investors back profitable businesses with their own silver. A business pays them a share of its spare silver every few days, keeps a reserve first, and never gives up more than two fifths of itself.</WFL_Tr_InvestIntro>
+  <WFL_Tr_InvestAllow>Investors may invest</WFL_Tr_InvestAllow>
+  <WFL_Tr_InvestMaxStake>Largest single stake: {0} silver</WFL_Tr_InvestMaxStake>
+  <WFL_Tr_InvestMaxShare>Most of a business outside investors may hold together: {0}%</WFL_Tr_InvestMaxShare>
+  <WFL_Tr_OpenToInvestors>Open to investors: {0}</WFL_Tr_OpenToInvestors>
+  <WFL_Tr_Investors>Investors: {0}</WFL_Tr_Investors>
+  <WFL_Tr_InvestLocked>No Investor is assigned. A qualified Tax Collector can earn the Investor specialty (Professions page).</WFL_Tr_InvestLocked>
+  <WFL_Tr_StakeLine>{0} holds a stake in {1}: {2} silver for {3}% of it. Dividends received: {4}.</WFL_Tr_StakeLine>
+  <WFL_Tr_NoStakes>Nobody has invested yet.</WFL_Tr_NoStakes>
+  <WFL_Tr_BuyBack>Buy back</WFL_Tr_BuyBack>
+  <WFL_Tr_BuyBackFail>The business cannot spare that silver without touching wages or its reserve.</WFL_Tr_BuyBackFail>
+  <WFL_Tr_StakeOpened>{0} invested {1} silver in {2} for {3}% of it.</WFL_Tr_StakeOpened>
+  <WFL_Tr_Dividend>{0} received {1} silver from their share of {2}.</WFL_Tr_Dividend>
   <WFL_Treasury_Page>Treasury</WFL_Treasury_Page>
   <WFL_ModuleName_wils_treasury>Treasury</WFL_ModuleName_wils_treasury>
   <WFL_ModuleInactive_wils_treasury>Accounts, payroll and taxation are inactive; the saved accounts are kept.</WFL_ModuleInactive_wils_treasury>
@@ -21,6 +37,8 @@
   <WFL_TZ_Office>Business waiting at the office: {0}.</WFL_TZ_Office>
   <WFL_TZ_MissingSilver>Accounts claim {0} more silver than is in storage.</WFL_TZ_MissingSilver>
   <WFL_TZ_Secondary>A treasury already exists on this map; this zone is not used.</WFL_TZ_Secondary>
+  <WFL_TZ_Expand>Expand zone</WFL_TZ_Expand>
+  <WFL_TZ_ExpandDesc>Paint more cells into this treasury zone. Tables, seats and shelves can be painted over.</WFL_TZ_ExpandDesc>
   <WFL_TZ_Open>Open the Treasury</WFL_TZ_Open>
   <WFL_TZ_OpenDesc>Open the Treasury page of the Community window.</WFL_TZ_OpenDesc>
   <WFL_Tr_Valuables>Recognised valuables (stored wealth, never spendable silver)</WFL_Tr_Valuables>
@@ -56,6 +74,13 @@
   <WFL_Tr_TransferTo>To</WFL_Tr_TransferTo>
   <WFL_Tr_TransferDo>Move {0} silver</WFL_Tr_TransferDo>
   <WFL_Tr_TransferFailed>That transfer could not be made ({0}).</WFL_Tr_TransferFailed>
+  <WFL_Tr_WealthPayTitle>Pay linked to the colony's wealth</WFL_Tr_WealthPayTitle>
+  <WFL_Tr_WealthPayShare>Share of the colony's wealth paid out as wages each year: {0}%</WFL_Tr_WealthPayShare>
+  <WFL_Tr_WealthPayOff>Off. Wages use the fixed rates below.</WFL_Tr_WealthPayOff>
+  <WFL_Tr_WealthPayOn>On. The colony is worth {0} silver, so each payday's wage pool is about {1} silver, shared by the work done. Pay rises and falls with the colony.</WFL_Tr_WealthPayOn>
+  <WFL_Tr_WealthGapLine>Colonists hold {0} silver on average against {1} of the colony's wealth each ({2}%).</WFL_Tr_WealthGapLine>
+  <WFL_Tr_GapMood>Colonists mind being far poorer than the colony</WFL_Tr_GapMood>
+  <WFL_Tr_GapMoodNote>When a colonist holds only a tiny share of the colony's wealth per colonist, they feel left out: a small mood penalty, stronger the wider the gap. Only counts once the colony is worth about 1,500 silver per colonist. It never changes any balance.</WFL_Tr_GapMoodNote>
   <WFL_Tr_PayrollHelp>Wages are paid on the 1st and 8th of every quadrum from the treasury, for finished work by people assigned to a profession. If the money is short everyone receives the same share and the rest stays owed. Payroll never creates silver.</WFL_Tr_PayrollHelp>
   <WFL_Tr_RatePerUnit>{0}: silver per finished task</WFL_Tr_RatePerUnit>
   <WFL_Tr_DailyCap>Most any one person can earn in a day</WFL_Tr_DailyCap>

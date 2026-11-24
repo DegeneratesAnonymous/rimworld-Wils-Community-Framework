@@ -21,9 +21,9 @@ namespace FamilyLife.Domain
             Level2 = new CareerRule { GeneralXp = 120 }.Skill("Social", 6),
             Specialties = new Dictionary<string, CareerRule>
             {
-                { "Confessor", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Social", 8).Skill("Intellectual", 6) },
-                { "Overseer", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Social", 8).Skill("Melee", 6) },
-                { "ContainmentKeeper", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 8).Skill("Melee", 6) }
+                { "Confessor", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Social", 10).Skill("Intellectual", 6) },
+                { "Overseer", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Social", 10).Skill("Melee", 6) },
+                { "ContainmentKeeper", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 10).Skill("Melee", 6) }
             }
         };
 

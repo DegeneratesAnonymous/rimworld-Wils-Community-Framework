@@ -19,10 +19,10 @@ namespace FamilyLife
         public static readonly string[] Subjects = { "Shooting", "Melee", "Construction", "Mining", "Cooking", "Plants", "Animals", "Crafting", "Artistic", "Medicine", "Social", "Intellectual" };
         public static string SpecialistRole(string subject) => "wils.education.specialist." + subject.ToLowerInvariant();
         /// <summary>Subject specialist: a Teacher who also has real mastery (skill 12) and has taught the subject a good deal (150 points of that subject, 400 overall). Preliminary balance values.</summary>
-        public const int SpecialistSkill = 12, SpecialistSubjectExperience = 150, SpecialistExperience = 400;
+        public const int SpecialistSkill = 10, SpecialistSubjectExperience = 60, SpecialistExperience = 250;
 
         /// <summary>Teacher: enough social skill to hold a room, and about a dozen real lessons or classes of experience. No single subject is required: teaching is not only Intellectual.</summary>
-        public const int TeacherSocial = 4, TeacherExperience = 120;
+        public const int TeacherSocial = 6, TeacherExperience = 120;
         /// <summary>Experience for one pupil's finished class (scaled by attendance and delivery) or one-to-one lesson.</summary>
         public const int ClassPoints = 10, TutoringPoints = 8, AssistPoints = 6;
         /// <summary>A specialist who helps for at least half the instruction raises the class delivery by this much, once, whatever the number of helpers.</summary>

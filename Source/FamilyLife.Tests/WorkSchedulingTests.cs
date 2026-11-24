@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using FamilyLife.Domain;
 using Xunit;
 
@@ -12,10 +13,19 @@ namespace FamilyLife.Tests
         public void Disabled_performance_scopes_allocate_nothing()
         {
             var probe = new PerformanceProbe();
-            probe.Measure("disabled").Dispose();
+            // Compile and initialize the exact measured loop before taking the allocation baseline.
+            // Keeping it unoptimized avoids tiered-JIT/OSR bookkeeping in the measured interval.
+            MeasureDisabled(probe);
             long before = GC.GetAllocatedBytesForCurrentThread();
+            MeasureDisabled(probe);
+            long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+            Assert.Equal(0, allocated);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        private static void MeasureDisabled(PerformanceProbe probe)
+        {
             for (int i = 0; i < 10000; i++) probe.Measure("disabled").Dispose();
-            Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
         }
 
         [Fact]
@@ -166,3 +176,4 @@ namespace FamilyLife.Tests
         }
     }
 }
+

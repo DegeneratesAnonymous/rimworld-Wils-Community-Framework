@@ -17,13 +17,14 @@ namespace FamilyLife
         public static float Draw(Rect r, FamilyComponent c)
         {
             var reg = c.Registry; float w = CommunityPageLayout.ColumnWidth(r);
-            float top = CommunityPageLayout.Section(r, 0f, 0f, r.width, "WFL_Care_PatientsTitle".Translate(), a => CarePatients.Patients(a));
+            float staffing = CommunityStaffing.Draw(r, 0f, c, "wils.care");
+            float top = CommunityPageLayout.Section(r, 0f, staffing, r.width, "WFL_Care_PatientsTitle".Translate(), a => CarePatients.Patients(a));
             top = CommunityPageLayout.Section(r, 0f, top, r.width, "WFL_Care_OverviewTitle".Translate(), a => CarePatients.Overview(a));
             float left = CommunityPageLayout.Section(r, 0f, top, w, "WFL_Care_Practitioners".Translate(), a =>
             {
-                float y = 0f; var staff = CareCareers.Practitioners(reg).Where(id => reg.GetPerson(id)?.InColony == true).ToList();
+                float y = CommunityPageLayout.Line(a, 0f, "WFL_UX_CareHint".Translate(), true); var staff = CareCareers.Practitioners(reg).Where(id => reg.GetPerson(id)?.InColony == true).ToList();
                 if (staff.Count == 0) y = CommunityPageLayout.Line(a, y, "WFL_Care_None".Translate(), true);
-                foreach (int id in staff) y = CommunityPageLayout.Line(a, y, (c.TryGetPawn(id)?.LabelShort ?? "#" + id) + " - " + string.Join(", ", reg.Assignments().RolesOf(id).Select(x => { var role = CareerService.Professions.All.FirstOrDefault(p => p.Id == x); return role != null ? CareerService.TitleOf(role, reg) : x; })));
+                foreach (int id in staff) y = CommunityPageLayout.Line(a, y, (c.TryGetPawn(id)?.LabelShort ?? "#" + id) + " - " + string.Join(", ", reg.Assignments().RolesOf(id).Where(x => CareerService.Professions.ById(x)?.ModuleId == "wils.care").Select(x => { var role = CareerService.Professions.All.FirstOrDefault(p => p.Id == x); return role != null ? CareerService.TitleOf(role, reg) : "WFL_UX_MultipleRoles".Translate().ToString(); })));
                 return CommunityPageLayout.Line(a, y, "WFL_Care_Capacity".Translate(CheckupWorkload.CommunityLimit(false), CheckupWorkload.CommunityLimit(true)));
             });
             bool columns = CommunityPageLayout.TwoColumns(r);
@@ -39,3 +40,4 @@ namespace FamilyLife
         }
     }
 }
+

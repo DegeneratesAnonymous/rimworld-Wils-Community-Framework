@@ -74,6 +74,8 @@ namespace FamilyLife
         /// <summary>Findings about how a module is doing, shown on the Overview page (green: working well, amber: worth watching, red: needs attention). Each module adds its own; they are never saved.</summary>
         public static readonly ContributionList<Func<FamilyComponent, IEnumerable<HealthNote>>> HealthChecks;
         public static readonly ContributionList<CrossTrainingRule> CrossTraining;
+        /// <summary>Which of the game's work types a career is about, by career id and work-type name only. Used by "set work priorities from professions"; nothing is changed unless the player asks.</summary>
+        public static readonly ContributionList<WorkFocusRule> WorkFocus;
         public static readonly ContributionList<Action<Pawn, string, string, string, string, int>> WorkReported;          // a module reported finished professional work: (pawn, career, specialty, kind, activity key, tick)
         public static readonly ContributionList<Action<CommunityOffice>> DueNow;          // developer menu: brings a module's timers on a post due
         public static readonly ContributionList<Func<FamilyComponent, CleanupReport>> Removal;          // "prepare for removal": one per module
@@ -109,6 +111,7 @@ namespace FamilyLife
             FamilyEventsApplied = new ContributionList<Action<FamilyComponent, IList<FamilyEvent>, int>>(Catalog);
             WorkReported = new ContributionList<Action<Pawn, string, string, string, string, int>>(Catalog);
             CrossTraining = new ContributionList<CrossTrainingRule>(Catalog);
+            WorkFocus = new ContributionList<WorkFocusRule>(Catalog);
             HealthChecks = new ContributionList<Func<FamilyComponent, IEnumerable<HealthNote>>>(Catalog);
             Resets = new ContributionList<Action>(Catalog);
             Removal = new ContributionList<Func<FamilyComponent, CleanupReport>>(Catalog);

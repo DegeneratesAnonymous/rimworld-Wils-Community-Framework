@@ -39,7 +39,7 @@ namespace FamilyLife
                 bool can = assigned || check == AssignResult.Assigned;
                 if (can && Widgets.ButtonText(new Rect(view.width - 100f, y, 96f, 22f), (assigned ? "WFL_Career_Unassign" : "WFL_Career_Assign").Translate()))
                 {
-                    if (assigned) book.Unassign(id, role.Id); else book.Assign(id, role, ledger, Find.TickManager.TicksGame);
+                    if (assigned) book.Unassign(id, role.Id); else RoleLoadUi.Assign(reg, pawn, id, role, () => book.Assign(id, role, ledger, Find.TickManager.TicksGame));
                     CareerService.Event(pawn.LabelShort + (assigned ? " unassigned from " : " assigned to ") + role.Id);
                 }
                 y += 26f;
@@ -72,7 +72,7 @@ namespace FamilyLife
         private static void DrawProgress(Rect view, ref float y, Pawn pawn, FamilyRegistry reg, CareerLedger ledger, AssignmentBook book, CareerDefinition career)
         {
             int id = pawn.thingIDNumber;
-            var rows = ledger.Progress(id, career, CareerService.SkillsOf(pawn));
+            var rows = ledger.Progress(id, career, CareerService.SkillsOf(pawn), CareerService.LoadPenalty(pawn, career.Id));
             bool involved = ledger.GeneralXp(id, career.Id) > 0 || ledger.IsQualified(id, career.Id) || CareerService.Professions.All.Any(r => r.Career == career.Id && book.IsAssigned(id, r.Id));
             if (!involved) return;
             string careerName = CareerService.CareerName(career, reg);

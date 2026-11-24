@@ -15,9 +15,9 @@ namespace FamilyLife.Domain
             Id=Career,ModuleId=Module,LabelKey="WFL_Agriculture_Career",
             Level2Branches=new Dictionary<string,CareerRule>
             {
-                {"Farmer",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Plants",7)},
-                {"Hunter",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Shooting",7).Skill("Animals",4)},
-                {"Rancher",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Animals",7)}
+                {"Farmer",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Plants",6)},
+                {"Hunter",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Shooting",6).Skill("Animals",4)},
+                {"Rancher",new CareerRule{GeneralXp=120,SpecialtyXp=60}.Skill("Animals",6)}
             },
             Specialties=new Dictionary<string,CareerRule>
             {

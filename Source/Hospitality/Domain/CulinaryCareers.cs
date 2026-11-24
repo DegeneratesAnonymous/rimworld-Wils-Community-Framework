@@ -11,12 +11,12 @@ namespace FamilyLife.Domain
         public static CareerDefinition Definition() => new CareerDefinition
         {
             Id = Career, ModuleId = Module,
-            Level2 = new CareerRule { GeneralXp = 120 }.Skill("Cooking", 8),
+            Level2 = new CareerRule { GeneralXp = 120 }.Skill("Cooking", 6),
             Specialties = new System.Collections.Generic.Dictionary<string, CareerRule>
             {
                 { "Artisan", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Cooking", 10).Skill("Artistic", 6) },
-                { "Bartender", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Cooking", 8).Skill("Social", 6) },
-                { "Innkeeper", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Cooking", 8).Skill("Social", 8) }
+                { "Bartender", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Cooking", 10).Skill("Social", 6) },
+                { "Innkeeper", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Cooking", 10).Skill("Social", 8) }
             }
         };
         public static float Presentation(int cooking, int artistic, bool artisan) => Math.Max(0, cooking) + (artisan ? Math.Min(4f, Math.Max(0, artistic) * .25f) : 0);

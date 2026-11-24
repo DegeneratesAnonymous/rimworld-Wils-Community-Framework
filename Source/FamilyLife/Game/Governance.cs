@@ -78,11 +78,14 @@ namespace FamilyLife
             Safe(() => r.MaintainStewardDuties(now, id => Free(c, id)), "duties");
             Safe(() => r.PruneOffices(office => OfficeCellValid(c, office)), "offices");
             if (FamilyLifeMod.Settings == null || FamilyLifeMod.Settings.governance) Safe(() => r.MaintainSuccession(now), "succession");
-            Safe(() => r.MaintainCrime(now), "crime upkeep");
+            if (FamilyLifeMod.Settings != null && FamilyLifeMod.Settings.intrigue) Safe(() => r.MaintainCrime(now), "crime upkeep");
             Safe(() => OfficeDriver.Run(c, now), "community posts");
             Safe(() => CampingDriver.Run(c, now), "camping");
             Safe(() => KinVisitDriver.Run(c, now), "kin visits");
             Safe(() => EstateDriver.Run(c, now), "estates");
+            Safe(() => FamilyStores.Maintain(c), "family storage");
+            Safe(() => Window_GettingStarted.OfferOnce(c), "getting started");
+            Safe(() => WorkFocusGame.Run(c, now), "work focus");
             GovernanceDriver.Run(c, now);
         }
     }

@@ -49,7 +49,7 @@ namespace FamilyLife
 
         public override void AddCell(IntVec3 c)
         {
-            base.AddCell(c);
+            ZoneForce.Add(this, c, base.AddCell);
             GuestPasses.Invalidate(Map);
             var area = LinkedArea;
             if (area != null) area[c] = true;
@@ -70,8 +70,10 @@ namespace FamilyLife
             var lineage = component?.Registry.Lineages.FirstOrDefault(l => l.ZoneAreaId != 0 && l.ZoneAreaId == areaId && l.ZoneMapId == Map.uniqueID);
             var area = LinkedArea;
             if (component != null && lineage != null && area != null) FamilyZones.Release(component, lineage, area);
-            if (area != null) area.Delete();
-            areaId = 0;
+            // Forget the link first so nothing can reach this area through a half-deleted zone, then remove only an area the game lets us delete
+            // and that is still registered. The map's own Home area and other fixed areas are never touched; the game logs an error if asked to delete one.
+            var map = Map; areaId = 0;
+            if (area != null && area.Mutable && map != null && map.areaManager.AllAreas.Contains(area)) area.Delete();
             base.Delete(playSound);
         }
 
@@ -123,6 +125,19 @@ namespace FamilyLife
             foreach (var g in base.GetGizmos()) yield return g;
             yield return new Command_Action
             {
+                defaultLabel = "WFL_ZS_Button".Translate(), defaultDesc = "WFL_ZS_ButtonDesc_Family".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
+                action = () => ZoneStorage.Offer(this, ZoneStorage.Family)
+            };
+            yield return new Command_Action
+            {
+                defaultLabel = "WFL_ZoneExpand".Translate(),
+                defaultDesc = "WFL_ZoneExpandDesc".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
+                action = () => Find.DesignatorManager.Select(new Designator_ZoneExpand_Family(this))
+            };
+            yield return new Command_Action
+            {
                 defaultLabel = "WFL_ZoneDealBeds".Translate(),
                 defaultDesc = "WFL_ZoneDealBedsDesc".Translate(),
                 icon = ContentFinder<Texture2D>.Get("UI/Commands/AssignOwner", false) ?? BaseContent.BadTex,
@@ -136,6 +151,7 @@ namespace FamilyLife
             };
             yield return new Command_Action
             {
+                tutorTag = "WFL_ChooseFamily",
                 defaultLabel = "WFL_ZoneChooseFamily".Translate(),
                 defaultDesc = "WFL_ZoneChooseFamilyDesc".Translate(),
                 icon = ContentFinder<Texture2D>.Get("UI/Commands/AssignOwner", false) ?? BaseContent.BadTex,
@@ -162,11 +178,13 @@ namespace FamilyLife
             zoneTypeToPlace = typeof(Zone_Family);
             defaultLabel = "WFL_FamilyZone".Translate();
             defaultDesc = "WFL_FamilyZoneDesc".Translate();
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; defaultIconColor = new Color(0.95f, 0.65f, 0.45f);
             hotKey = null;
         }
 
         protected override Zone MakeNewZone() => new Zone_Family(Find.CurrentMap.zoneManager);
+
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any, zone => ZoneStorage.OfferNew(zone, ZoneStorage.Family)); Finalize(any); }
 
         /// <summary>
         /// A home has beds, tables and other furniture in it, so unlike the game's own zones this one can be painted over things. Only fog,
@@ -179,8 +197,94 @@ namespace FamilyLife
             if (existing != null && existing.GetType() != zoneTypeToPlace) return false;
             if (c.Fogged(Map)) return false;
             if (c.InNoZoneEdgeArea(Map)) return "TooCloseToMapEdge".Translate();
-            if (c.Impassable(Map)) return false;
+            if (ZoneCells.SolidAt(c, Map)) return false;
             return true;
+        }
+    }
+
+    /// <summary>Adds cells to one chosen family zone (furniture may be painted over), from the zone's Expand button.</summary>
+    public class Designator_ZoneExpand_Family : Designator_ZoneAdd_Family
+    {
+        private readonly Zone_Family target;
+
+        public Designator_ZoneExpand_Family() { }
+        public Designator_ZoneExpand_Family(Zone_Family zone)
+        {
+            target = zone;
+            defaultLabel = "WFL_ZoneExpand".Translate();
+            defaultDesc = "WFL_ZoneExpandDesc".Translate();
+        }
+
+        public override AcceptanceReport CanDesignateCell(IntVec3 c)
+        {
+            var ok = base.CanDesignateCell(c);
+            if (!ok.Accepted) return ok;
+            return target == null || target.Map == Map;
+        }
+
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells)
+        {
+            if (target == null || target.Map != Map) return;
+            int added = 0;
+            foreach (var c in cells)
+                if (CanDesignateCell(c).Accepted && !target.ContainsCell(c)) { if (Map.zoneManager.ZoneAt(c) == null) { target.AddCell(c); added++; } }
+            Finalize(added > 0);
+        }
+    }
+}
+
+namespace FamilyLife
+{
+    /// <summary>Which cells a home-style zone refuses. Furniture does not count, only walls and solid rock.</summary>
+    public static class ZoneCells
+    {
+        /// <summary>Paints cells into the zone under them (or touching them), or a new one. Done here so nothing but <paramref name="ok"/> decides what a cell may hold.</summary>
+        public static void Paint(Map map, IEnumerable<IntVec3> cells, System.Type type, System.Func<IntVec3, bool> ok, System.Func<Zone> make, out bool any, System.Action<Zone> onNew = null)
+        {
+            any = false; var all = cells.ToList(); var list = all.Where(ok).ToList();
+            var refused = all.Except(list).Take(6).Select(c => c + " (" + (c.GetEdifice(map)?.def.defName ?? "no building") + ", zone " + (map.zoneManager.ZoneAt(c)?.GetType().Name ?? "none") + ")").ToList();
+            if (all.Count > list.Count) Log.Message("[Wil's Family Life] Zone painting refused " + (all.Count - list.Count) + " of " + all.Count + " cells, for example: " + string.Join(", ", refused));
+            if (list.Count == 0) return;
+            Zone zone = null;
+            foreach (var c in list) { var z = map.zoneManager.ZoneAt(c); if (z != null && z.GetType() == type) { zone = z; break; } }
+            if (zone == null)
+                foreach (var c in list)
+                {
+                    foreach (var d in GenAdj.CardinalDirections) { var n = c + d; if (!n.InBounds(map)) continue; var z = map.zoneManager.ZoneAt(n); if (z != null && z.GetType() == type) { zone = z; break; } }
+                    if (zone != null) break;
+                }
+            bool created = false; if (zone == null) { zone = make(); created = true; map.zoneManager.RegisterZone(zone); Find.Selector.Select(zone, false); }
+            foreach (var c in list) if (map.zoneManager.ZoneAt(c) == null) { zone.AddCell(c); any = true; }
+            if (created && any) onNew?.Invoke(zone);
+        }
+
+        public static bool SolidAt(IntVec3 c, Verse.Map map)
+        {
+            var edifice = c.GetEdifice(map);
+            return edifice != null && (edifice.def.Fillage == FillCategory.Full || edifice.def.building?.isNaturalRock == true);
+        }
+    }
+}
+
+namespace FamilyLife
+{
+    /// <summary>
+    /// The game refuses to put a zone cell under a building whose definition says zones cannot overlap it, which covers most furniture, and only logs an error.
+    /// Our home-style zones are meant to hold furniture, so they add such a cell the same way the game does, minus that refusal.
+    /// </summary>
+    public static class ZoneForce
+    {
+        private static readonly System.Reflection.MethodInfo Grid = typeof(ZoneManager).GetMethod("AddZoneGridCell", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+        private static readonly System.Reflection.FieldInfo Shuffled = typeof(Zone).GetField("cellsShuffled", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        public static void Add(Zone zone, IntVec3 c, System.Action<IntVec3> normal)
+        {
+            if (Grid == null || zone.Map == null || zone.cells.Contains(c) || !zone.Map.thingGrid.ThingsListAt(c).Any(t => !t.def.CanOverlapZones)) { normal(c); return; }
+            zone.cells.Add(c);
+            Grid.Invoke(zone.zoneManager, new object[] { zone, c });
+            zone.Map.mapDrawer.MapMeshDirty(c, MapMeshFlagDefOf.Zone);
+            AutoHomeAreaMaker.Notify_ZoneCellAdded(c, zone);
+            Shuffled?.SetValue(zone, false);
         }
     }
 }

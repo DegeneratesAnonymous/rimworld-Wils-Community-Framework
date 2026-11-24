@@ -18,6 +18,7 @@ namespace FamilyLife
         public Job Wished;                  // what they were about to do inside, if known
         public IntVec3 WishCell = IntVec3.Invalid;
         public IntVec3 Inside, Outside;
+        public IntVec3 Spot = IntVec3.Invalid;   // where the host leads the guest: well inside the home, not the doorway
         public int Start, GrantedTick, LeftSince = -1;
         public int ArrivedTick = -1, LastKnock = -1000000, LastSummon = -1000000;
         public HashSet<int> Tried = new HashSet<int>();      // people already called who did not come
@@ -185,11 +186,38 @@ namespace FamilyLife
             return inside.IsValid;
         }
 
+        public static IntVec3 SpotFor(Pawn guest) => guest != null && ByGuest.TryGetValue(guest.thingIDNumber, out var p) ? p.Spot : IntVec3.Invalid;
+
+        /// <summary>
+        /// Where a host takes a guest: a free cell inside the home, roofed rooms first, near the middle of the zone and well away from the door,
+        /// so the visit happens in the house and not in the doorway.
+        /// </summary>
+        private static IntVec3 VisitSpot(GuestPass pass)
+        {
+            var zone = pass.Zone; var map = zone?.Map; if (map == null) return IntVec3.Invalid;
+            var cells = zone.Cells; if (cells.Count == 0) return IntVec3.Invalid;
+            float cx = 0f, cz = 0f; foreach (var c in cells) { cx += c.x; cz += c.z; }
+            var centre = new Vector2(cx / cells.Count, cz / cells.Count);
+            IntVec3 best = IntVec3.Invalid; float bestScore = float.MaxValue;
+            foreach (var cell in cells)
+            {
+                if (!cell.Standable(map) || cell.GetEdifice(map) != null || cell.GetFirstItem(map) != null) continue;
+                float score = Vector2.Distance(new Vector2(cell.x, cell.z), centre);
+                float fromDoor = cell.DistanceTo(pass.Outside);
+                if (fromDoor < 4f) score += 100f + (4f - fromDoor) * 10f;
+                var room = cell.GetRoom(map);
+                if (room == null || room.PsychologicallyOutdoors) score += 25f;
+                if (score < bestScore) { bestScore = score; best = cell; }
+            }
+            return best;
+        }
+
         public static void Grant(Pawn guest)
         {
             if (guest == null || !ByGuest.TryGetValue(guest.thingIDNumber, out var pass) || pass.Granted) return;
             pass.Granted = true;
             pass.GrantedTick = Find.TickManager.TicksGame;
+            pass.Spot = VisitSpot(pass);
             Trace(guest.LabelShort + " was let into " + pass.Zone.label);
             if (pass.Opener != null && pass.Opener.Spawned && pass.Opener.jobs != null)
             {
@@ -371,12 +399,21 @@ namespace FamilyLife
         protected override IEnumerable<Toil> MakeNewToils()
         {
             this.FailOnDespawnedOrNull(TargetIndex.A);
-            int ticks = 0;
+            int ticks = 0; bool led = false;
             var stay = new Toil { defaultCompleteMode = ToilCompleteMode.Never };
             stay.tickAction = () =>
             {
                 var guest = Guest;
                 if (guest == null || ++ticks > GuestPasses.PassLimit || GuestPasses.VisitOver(guest)) { ReadyForNextToil(); return; }
+                // First the host leads the way into the home, waiting for the guest to keep up; only then do they stay close.
+                var spot = GuestPasses.SpotFor(guest);
+                if (!led && spot.IsValid && ticks < 900 && pawn.Position.DistanceTo(spot) > 1.5f)
+                {
+                    if (pawn.Position.DistanceTo(guest.Position) > 6f) { if (pawn.pather.Moving) pawn.pather.StopDead(); }
+                    else if (!pawn.pather.Moving) pawn.pather.StartPath(spot, PathEndMode.OnCell);
+                    return;
+                }
+                led = true;
                 if (pawn.Position.DistanceTo(guest.Position) > 4f) { if (!pawn.pather.Moving) pawn.pather.StartPath(guest, PathEndMode.Touch); }
                 else { if (pawn.pather.Moving) pawn.pather.StopDead(); if (ticks % 90 == 0) pawn.rotationTracker.FaceTarget(guest); }
             };

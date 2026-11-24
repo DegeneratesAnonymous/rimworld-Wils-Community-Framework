@@ -133,7 +133,40 @@
   <WFL_Plan_Arrives>arrives {0}</WFL_Plan_Arrives>
   <WFL_Plan_Confirm>Confirm these choices</WFL_Plan_Confirm>
   <WFL_Plan_Close>Close</WFL_Plan_Close>
+  <WFL_S_OfferGuide>Offer the getting-started guide to new colonies</WFL_S_OfferGuide>
+  <WFL_S_OfferGuideTip>Once, a day into a colony with no family zone, offers a short guide. Never forced; you can also open it below at any time.</WFL_S_OfferGuideTip>
+  <WFL_S_OpenGuide>Open the getting-started guide</WFL_S_OpenGuide>
+  <WFL_GS_Title>Getting started with Wil's Family Life</WFL_GS_Title>
+  <WFL_GS_Offer>Would you like a short guide to setting up families, homes and roles? It takes five steps, ticks them off as you do them, and you can close it any time. You will only be asked once.</WFL_GS_Offer>
+  <WFL_GS_Yes>Show me around</WFL_GS_Yes>
+  <WFL_GS_No>No thanks</WFL_GS_No>
+  <WFL_GS_Intro>Each step ticks itself off when your colony has it. Press the button beside a step to be taken there; the next step also glows in the game itself.</WFL_GS_Intro>
+  <WFL_GS_Glow>The next step glows in the game's own interface: look for the pulsing button.</WFL_GS_Glow>
+  <WFL_GS_Show>Show me</WFL_GS_Show>
+  <WFL_GS_Again>Open again</WFL_GS_Again>
+  <WFL_GS_Progress>{0} of {1} steps done</WFL_GS_Progress>
+  <WFL_GS_Zone>Paint a family zone</WFL_GS_Zone>
+  <WFL_GS_ZoneWhy>The rooms a family calls home. Beds inside are shared out among its members.</WFL_GS_ZoneWhy>
+  <WFL_GS_Family>Give the zone to a family</WFL_GS_Family>
+  <WFL_GS_FamilyWhy>Select the zone and choose its family. The family then keeps its things there.</WFL_GS_FamilyWhy>
+  <WFL_GS_Storage>Switch on family storage</WFL_GS_Storage>
+  <WFL_GS_StorageWhy>Select a shelf or cellar inside the zone and press Family storage. It keeps only what the household uses.</WFL_GS_StorageWhy>
+  <WFL_GS_StorageHint>Select a shelf, cellar or stockpile inside a family zone and press the Family storage button.</WFL_GS_StorageHint>
+  <WFL_GS_Roles>Give people roles</WFL_GS_Roles>
+  <WFL_GS_RolesWhy>Quick setup suggests an entry-level profession for each adult from what they are good at.</WFL_GS_RolesWhy>
+  <WFL_GS_Window>Look over your families</WFL_GS_Window>
+  <WFL_GS_WindowWhy>The families window shows relationships, the household and its stores in one place.</WFL_GS_WindowWhy>
+  <WFL_S_ZoneStorage>New zones with storage inside: {0}</WFL_S_ZoneStorage>
+  <WFL_S_ZoneStorage_0>ask each time</WFL_S_ZoneStorage_0>
+  <WFL_S_ZoneStorage_1>always set it</WFL_S_ZoneStorage_1>
+  <WFL_S_ZoneStorage_2>never ask</WFL_S_ZoneStorage_2>
+  <WFL_ZS_Yes>Yes, set it</WFL_ZS_Yes>
+  <WFL_ZS_NotNow>Not now</WFL_ZS_NotNow>
+  <WFL_ZS_Always>Always do this</WFL_ZS_Always>
+  <WFL_ZS_Never>Never ask again</WFL_ZS_Never>
   <WFL_S_Governance>Leadership, institutions and house politics</WFL_S_Governance>
+  <WFL_S_Intrigue>House intrigue (opt-in): theft, schemes and political movements</WFL_S_Intrigue>
+  <WFL_S_IntrigueTip>Lets members steal from their own house, plot against its head and push political movements. Off by default; duties, elections and succession work without it.</WFL_S_IntrigueTip>
   <WFL_S_GovernanceTip>Lets Steward duties, succession, elections, schemes and house crime play out on their own. Turn off to keep only the records.</WFL_S_GovernanceTip>
   <WFL_Coup_Confronted>{0} confronted {1}.</WFL_Coup_Confronted>
   <WFL_Protection_Waiting>{0} has received a protection offer. Their answer is waiting in Families.</WFL_Protection_Waiting>
@@ -195,6 +228,17 @@
   <WFL_CampState_Expired>lapsed</WFL_CampState_Expired>
   <WFL_CampState_Cut>cut short</WFL_CampState_Cut>
   <WFL_Camp_Line>Camping trip ({0}): {1}. About {2} hours. They would like to bring: {3}</WFL_Camp_Line>
+  <WFL_Camp_OpenPlan>Plan the trip</WFL_Camp_OpenPlan>
+  <WFL_Camp_PlanTitle>The {0} family's camping trip</WFL_Camp_PlanTitle>
+  <WFL_Camp_PlanWhy>{0} and the family would like a day or two away ({1}).</WFL_Camp_PlanWhy>
+  <WFL_Camp_PlanFacts>About {0} hours at the camp. Status: {1}. {2}</WFL_Camp_PlanFacts>
+  <WFL_Camp_PlanFar>The place is about {0} tiles from home.</WFL_Camp_PlanFar>
+  <WFL_Camp_PlanBring>They would like to bring:</WFL_Camp_PlanBring>
+  <WFL_Camp_PlanReady>ready to go</WFL_Camp_PlanReady>
+  <WFL_Camp_PlanBusy>busy or unavailable right now</WFL_Camp_PlanBusy>
+  <WFL_Camp_PlanGuideAsk>Agreeing only says yes. Nothing moves until you form a caravan yourself, and you choose who goes. The trip counts once at least two of the family have stayed at the place the whole time.</WFL_Camp_PlanGuideAsk>
+  <WFL_Camp_PlanGuideGo>Agreed. Open the caravan screen from here, pick who goes, and take them to the place shown on the world map.</WFL_Camp_PlanGuideGo>
+  <WFL_Camp_PlanGuideDone>This trip is no longer open.</WFL_Camp_PlanGuideDone>
   <WFL_Camp_Plan>Agree to the trip</WFL_Camp_Plan>
   <WFL_Camp_Decline>Not now</WFL_Camp_Decline>
   <WFL_Camp_FormCaravan>Form the caravan</WFL_Camp_FormCaravan>
@@ -363,6 +407,14 @@
   <WFL_Estate_History>Past estates</WFL_Estate_History>
   <WFL_Estate_HistoryLine>The estate of {0}: {1} delivered, {2} lost ({3}).</WFL_Estate_HistoryLine>
   <WFL_Estate_Opened>{0} has died. Their {1} keepsake(s) will be sorted out by the family.</WFL_Estate_Opened>
+  <WFL_Dispute_Title>{0} of {1} is contested</WFL_Dispute_Title>
+  <WFL_Dispute_Text>{0} and {1} both claim {2}, a keepsake of {3}. The family will try to talk it through; if they cannot agree, it goes to the head of the house to decide. Open the Families window to see the claims.</WFL_Dispute_Text>
+  <WFL_Estate_OpenedTitle>{0} has died</WFL_Estate_OpenedTitle>
+  <WFL_Estate_SettledTitle>The estate of {0} is settled</WFL_Estate_SettledTitle>
+  <WFL_Theft_Title>{0} took from {1}</WFL_Theft_Title>
+  <WFL_Theft_Text>{0} took {2} of {1}'s family supplies. It was not asked for and it was not freely given. {1} will remember it, and so may anyone who saw.</WFL_Theft_Text>
+  <WFL_Restitution_Title>{0} made it right with {1}</WFL_Restitution_Title>
+  <WFL_Restitution_Text>{0} returned {2} to {1}. The wrong is not forgotten, but the family can start to move on.</WFL_Restitution_Text>
   <WFL_Estate_Settled>The estate of {0} is settled: {1} item(s) delivered, {2} lost.</WFL_Estate_Settled>
   <WFL_Estate_Received>{0} has taken {1}, left by {2}.</WFL_Estate_Received>
   <WFL_EstateStage_Mourning>mourning</WFL_EstateStage_Mourning>

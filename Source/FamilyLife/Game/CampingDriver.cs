@@ -55,8 +55,11 @@ namespace FamilyLife
             var trip = r.ProposeCamp(house.Id, motive.Value, tile, now, ctx);
             if (trip == null) return;
             var organizer = c.TryGetPawn(trip.OrganizerId);
-            Find.LetterStack.ReceiveLetter("WFL_Camp_LetterTitle".Translate(), "WFL_Camp_LetterText".Translate(organizer?.LabelShort ?? "?", ("WFL_CampMotive_" + trip.Motive).Translate(),
-                r.LineageDisplayName(house)), LetterDefOf.NeutralEvent, WorldTiles.Target(tile));
+            var def = DefDatabase<LetterDef>.GetNamedSilentFail("WFL_CampInvite");
+            if (def == null) { Find.LetterStack.ReceiveLetter("WFL_Camp_LetterTitle".Translate(), "WFL_Camp_LetterText".Translate(organizer?.LabelShort ?? "?", ("WFL_CampMotive_" + trip.Motive).Translate(), r.LineageDisplayName(house)), LetterDefOf.NeutralEvent, WorldTiles.Target(tile)); return; }
+            var letter = (ChoiceLetter_CampInvite)LetterMaker.MakeLetter("WFL_Camp_LetterTitle".Translate(), "WFL_Camp_LetterText".Translate(organizer?.LabelShort ?? "?", ("WFL_CampMotive_" + trip.Motive).Translate(), r.LineageDisplayName(house)), def, WorldTiles.Target(tile));
+            letter.tripId = trip.Id;
+            Find.LetterStack.ReceiveLetter(letter);
         }
 
         /// <summary>A safe place within a few tiles of home: land, passable, empty, reachable, and not freezing or scorching.</summary>

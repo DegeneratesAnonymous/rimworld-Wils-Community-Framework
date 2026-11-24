@@ -106,6 +106,19 @@ namespace FamilyLife
             foreach (var g in base.GetGizmos()) yield return g;
             yield return new Command_Action
             {
+                defaultLabel = "WFL_ZS_Button".Translate(), defaultDesc = "WFL_ZS_ButtonDesc_Treasury".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
+                action = () => ZoneStorage.Offer(this, ZoneStorage.Treasury)
+            };
+            yield return new Command_Action
+            {
+                defaultLabel = "WFL_TZ_Expand".Translate(), defaultDesc = "WFL_TZ_ExpandDesc".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex,
+                defaultIconColor = new Color(0.95f, 0.8f, 0.3f),
+                action = () => Find.DesignatorManager.Select(new Designator_ZoneExpand_Treasury(this))
+            };
+            yield return new Command_Action
+            {
                 defaultLabel = "WFL_TZ_Open".Translate(), defaultDesc = "WFL_TZ_OpenDesc".Translate(),
                 icon = ContentFinder<Texture2D>.Get("UI/Commands/AssignOwner", false) ?? BaseContent.BadTex,
                 action = () => MainTabWindow_Community.Open(TreasuryService.PageId)
@@ -113,7 +126,7 @@ namespace FamilyLife
         }
 
         public override void PostRegister() { base.PostRegister(); NoteZone(); }
-        public override void AddCell(IntVec3 c) { base.AddCell(c); Status.Computed = -99999; }
+        public override void AddCell(IntVec3 c) { ZoneForce.Add(this, c, base.AddCell); Status.Computed = -99999; }
         public override void RemoveCell(IntVec3 c) { base.RemoveCell(c); Status.Computed = -99999; }
         /// <summary>Deleting the zone removes only the zone. Accounts, debts and payroll live in the ledger and are untouched.</summary>
         public override void Delete(bool playSound) { var st = FamilyComponent.Current?.Registry.Treasury(); if (st != null && st.PrimaryZoneId == ID) st.PrimaryZoneId = 0; base.Delete(playSound); }
@@ -131,11 +144,13 @@ namespace FamilyLife
             zoneTypeToPlace = typeof(Zone_Treasury);
             defaultLabel = "WFL_TreasuryZone".Translate();
             defaultDesc = "WFL_TreasuryZoneDesc".Translate();
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex;
+            icon = ContentFinder<Texture2D>.Get("UI/Designators/ZoneCreate_Stockpile", false) ?? BaseContent.BadTex; defaultIconColor = new Color(0.95f, 0.8f, 0.3f);
             hotKey = null;
         }
 
         protected override Zone MakeNewZone() => new Zone_Treasury(Find.CurrentMap.zoneManager);
+
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells) { ZoneCells.Paint(Map, cells, zoneTypeToPlace, c => CanDesignateCell(c).Accepted, MakeNewZone, out bool any, zone => ZoneStorage.OfferNew(zone, ZoneStorage.Treasury)); Finalize(any); }
 
         public override AcceptanceReport CanDesignateCell(IntVec3 c)
         {
@@ -144,8 +159,38 @@ namespace FamilyLife
             if (existing != null && existing.GetType() != zoneTypeToPlace) return false;
             if (c.Fogged(Map)) return false;
             if (c.InNoZoneEdgeArea(Map)) return "TooCloseToMapEdge".Translate();
-            if (c.Impassable(Map)) return false;
+            if (ZoneCells.SolidAt(c, Map)) return false;
             return true;
+        }
+    }
+
+    /// <summary>Adds cells to one chosen treasury zone, from the zone's Expand button. Furniture may be painted over.</summary>
+    public class Designator_ZoneExpand_Treasury : Designator_ZoneAdd_Treasury
+    {
+        private readonly Zone_Treasury target;
+
+        public Designator_ZoneExpand_Treasury() { }
+        public Designator_ZoneExpand_Treasury(Zone_Treasury zone)
+        {
+            target = zone;
+            defaultLabel = "WFL_TZ_Expand".Translate();
+            defaultDesc = "WFL_TZ_ExpandDesc".Translate();
+        }
+
+        public override AcceptanceReport CanDesignateCell(IntVec3 c)
+        {
+            var ok = base.CanDesignateCell(c);
+            if (!ok.Accepted) return ok;
+            return target == null || target.Map == Map;
+        }
+
+        public override void DesignateMultiCell(IEnumerable<IntVec3> cells)
+        {
+            if (target == null || target.Map != Map) return;
+            int added = 0;
+            foreach (var c in cells)
+                if (CanDesignateCell(c).Accepted && Map.zoneManager.ZoneAt(c) == null) { target.AddCell(c); added++; }
+            Finalize(added > 0);
         }
     }
 }

@@ -157,22 +157,22 @@ namespace FamilyLife.Domain
             return people.Values.SelectMany(e => e.Xp.Keys.Select(k => k.Split(':')[0]).Concat(e.Quals.Select(q => q.Split(':')[0]))).Where(c => !known.Contains(c)).Distinct().OrderBy(c => c, StringComparer.Ordinal).ToList();
         }
 
-        public static bool Meets(CareerRule rule, Func<string, int> skill) => rule.Skills.All(s => skill(s.Key) >= s.Value);
+        public static bool Meets(CareerRule rule, Func<string, int> skill, int extra = 0) => rule.Skills.All(s => skill(s.Key) >= s.Value + extra);
 
         /// <summary>Awards any qualification the pawn now meets. Returns the new ones as "career" or "career:specialty". Earned qualifications are never removed, so later skill decay costs nothing.</summary>
-        public List<string> Evaluate(int person, CareerDefinition def, Func<string, int> skill)
+        public List<string> Evaluate(int person, CareerDefinition def, Func<string, int> skill, int extra = 0)
         {
             var gained = new List<string>(); var e = Of(person);
             if (def.Level2Branches.Count == 0)
             {
-                if (!e.Quals.Contains(def.Id) && GeneralXp(person, def.Id) >= def.Level2.GeneralXp && Meets(def.Level2, skill)) { e.Quals.Add(def.Id); gained.Add(def.Id); }
+                if (!e.Quals.Contains(def.Id) && GeneralXp(person, def.Id) >= def.Level2.GeneralXp && Meets(def.Level2, skill, extra)) { e.Quals.Add(def.Id); gained.Add(def.Id); }
             }
             else
             {
                 foreach (var branch in def.Level2Branches.OrderBy(x => x.Key, StringComparer.Ordinal))
                 {
                     string q = Special(def.Id, branch.Key);
-                    if (!e.Quals.Contains(q) && GeneralXp(person, def.Id) >= branch.Value.GeneralXp && SpecialtyXp(person, def.Id, branch.Key) >= branch.Value.SpecialtyXp && Meets(branch.Value, skill))
+                    if (!e.Quals.Contains(q) && GeneralXp(person, def.Id) >= branch.Value.GeneralXp && SpecialtyXp(person, def.Id, branch.Key) >= branch.Value.SpecialtyXp && Meets(branch.Value, skill, extra))
                     { e.Quals.Add(q); e.Quals.Add(def.Id); gained.Add(q); }
                 }
             }
@@ -182,7 +182,7 @@ namespace FamilyLife.Domain
                     string q = Special(def.Id, s.Key);
                     bool prerequisite = s.Value.RequiresAny.Count == 0 || s.Value.RequiresAny.Any(required => e.Quals.Contains(Special(def.Id, required)));
                     prerequisite = prerequisite && s.Value.RequiresAll.All(e.Quals.Contains);
-                    if (!e.Quals.Contains(q) && prerequisite && GeneralXp(person, def.Id) >= s.Value.GeneralXp && SpecialtyXp(person, def.Id, s.Key) >= s.Value.SpecialtyXp && Meets(s.Value, skill)) { e.Quals.Add(q); gained.Add(q); }
+                    if (!e.Quals.Contains(q) && prerequisite && GeneralXp(person, def.Id) >= s.Value.GeneralXp && SpecialtyXp(person, def.Id, s.Key) >= s.Value.SpecialtyXp && Meets(s.Value, skill, extra)) { e.Quals.Add(q); gained.Add(q); }
                 }
             return gained;
         }
@@ -191,21 +191,21 @@ namespace FamilyLife.Domain
         /// Where a person stands on each step of a career, for showing progress: the Level 2 step and each specialty, with experience against what is needed and each required skill against the
         /// person's own. A specialty is <see cref="CareerProgressRow.Available"/> once Level 2 is earned (specialty experience can be banked before that, and is shown).
         /// </summary>
-        public List<CareerProgressRow> Progress(int person, CareerDefinition def, Func<string, int> skill)
+        public List<CareerProgressRow> Progress(int person, CareerDefinition def, Func<string, int> skill, int extra = 0)
         {
             var rows = new List<CareerProgressRow>();
-            if (def.Level2Branches.Count == 0) rows.Add(Row(person, def, null, def.Level2, IsQualified(person, def.Id), true, skill));
+            if (def.Level2Branches.Count == 0) rows.Add(Row(person, def, null, def.Level2, IsQualified(person, def.Id), true, skill, extra));
             else foreach (var branch in def.Level2Branches.OrderBy(x => x.Key, StringComparer.Ordinal))
-                rows.Add(Row(person, def, branch.Key, branch.Value, IsSpecialist(person, def.Id, branch.Key), true, skill));
+                rows.Add(Row(person, def, branch.Key, branch.Value, IsSpecialist(person, def.Id, branch.Key), true, skill, extra));
             foreach (var s in def.Specialties.OrderBy(x => x.Key, StringComparer.Ordinal))
-                rows.Add(Row(person, def, s.Key, s.Value, IsSpecialist(person, def.Id, s.Key), IsQualified(person, def.Id) && (s.Value.RequiresAny.Count == 0 || s.Value.RequiresAny.Any(required => IsSpecialist(person, def.Id, required))) && s.Value.RequiresAll.All(q => Holds(person, q)), skill));
+                rows.Add(Row(person, def, s.Key, s.Value, IsSpecialist(person, def.Id, s.Key), IsQualified(person, def.Id) && (s.Value.RequiresAny.Count == 0 || s.Value.RequiresAny.Any(required => IsSpecialist(person, def.Id, required))) && s.Value.RequiresAll.All(q => Holds(person, q)), skill, extra));
             return rows;
         }
 
-        private CareerProgressRow Row(int person, CareerDefinition def, string specialty, CareerRule rule, bool earned, bool available, Func<string, int> skill)
+        private CareerProgressRow Row(int person, CareerDefinition def, string specialty, CareerRule rule, bool earned, bool available, Func<string, int> skill, int extra = 0)
         {
             var row = new CareerProgressRow { Key = specialty, Earned = earned, Available = available, GeneralXp = GeneralXp(person, def.Id), GeneralNeeded = rule.GeneralXp, SpecialtyXp = specialty == null ? 0 : SpecialtyXp(person, def.Id, specialty), SpecialtyNeeded = specialty == null ? 0 : rule.SpecialtyXp };
-            foreach (var k in rule.Skills.OrderBy(x => x.Key, StringComparer.Ordinal)) row.Skills.Add(new KeyValuePair<string, int[]>(k.Key, new[] { skill(k.Key), k.Value }));
+            foreach (var k in rule.Skills.OrderBy(x => x.Key, StringComparer.Ordinal)) row.Skills.Add(new KeyValuePair<string, int[]>(k.Key, new[] { skill(k.Key), k.Value + (earned ? 0 : extra) }));
             return row;
         }
 

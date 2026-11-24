@@ -13,7 +13,7 @@ namespace FamilyLife
     /// </summary>
     public static class CommunityWidgets
     {
-        public const float RowHeight = 26f;
+        public const float RowHeight = 34f;
         public static readonly Color Gold = new Color(.89f, .72f, .29f), Good = new Color(.45f, .78f, .45f), Fair = new Color(.9f, .75f, .3f), Poor = new Color(.85f, .38f, .33f), Muted = new Color(.62f, .62f, .64f);
 
         /// <summary>Green when high, amber in the middle, red when low (health, mood, food).</summary>
@@ -53,7 +53,9 @@ namespace FamilyLife
         /// <summary>A pawn's name that selects them and moves the camera on click.</summary>
         public static void NameButton(Rect r, Pawn pawn)
         {
-            Text.Anchor = TextAnchor.MiddleLeft; Widgets.Label(r, pawn.LabelShortCap); Text.Anchor = TextAnchor.UpperLeft;
+            float size = Mathf.Min(32f, r.height);
+            GUI.DrawTexture(new Rect(r.x, r.y, size, size), PortraitsCache.Get(pawn, new Vector2(size, size), Rot4.South, new Vector3(0f, 0f, .1f), 1.15f));
+            Text.Anchor = TextAnchor.MiddleLeft; Widgets.Label(new Rect(r.x + size + 4f, r.y, Mathf.Max(0f, r.width - size - 4f), r.height), pawn.LabelShortCap.ToString().Truncate(Mathf.Max(1f, r.width - size - 4f))); Text.Anchor = TextAnchor.UpperLeft;
             if (Widgets.ButtonInvisible(r)) { if (pawn.Spawned) CameraJumper.TryJumpAndSelect(pawn); else CameraJumper.TryJump(pawn); }
             TooltipHandler.TipRegion(r, pawn.LabelCap + "\n" + "WFL_Table_ClickToJump".Translate());
         }
@@ -73,3 +75,4 @@ namespace FamilyLife
         }
     }
 }
+

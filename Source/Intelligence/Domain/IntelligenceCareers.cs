@@ -22,13 +22,13 @@ namespace FamilyLife.Domain
             Level2 = new CareerRule { GeneralXp = 120 }.Skill("Intellectual", 6),
             Specialties = new Dictionary<string, CareerRule>
             {
-                { "Analyst", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 8).Skill("Social", 5) },
+                { "Analyst", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 10).Skill("Social", 5) },
                 { "Geneticist", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 10).Skill("Medicine", 10) },
                 { "DarkScholar", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 10) },
-                { "Author", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 8).Skill("Artistic", 8) },
-                { "MechCommander", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 8).Skill("Crafting", 6) },
-                { "Diplomat", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 6).Skill("Social", 8) },
-                { "Chemist", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 8).Skill("Medicine", 4) }
+                { "Author", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 10).Skill("Artistic", 8) },
+                { "MechCommander", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 10).Skill("Crafting", 6) },
+                { "Diplomat", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Social", 10).Skill("Intellectual", 6) },
+                { "Chemist", new CareerRule { GeneralXp = 250, SpecialtyXp = 60 }.Skill("Intellectual", 10).Skill("Medicine", 4) }
             }
         };
 

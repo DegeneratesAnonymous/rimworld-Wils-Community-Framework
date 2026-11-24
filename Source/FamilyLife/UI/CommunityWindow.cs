@@ -12,7 +12,8 @@ namespace FamilyLife
     /// <summary>The longer Community label gets a little more breathing room than a stock bottom-bar button.</summary>
     public sealed class CommunityMainButtonWorker : MainButtonWorker_ToggleTab
     {
-        public override float ButtonBarPercent => 1.12f;
+        // The base class's ButtonBarPercent is the fill of the button's progress bar (Research uses it); anything above zero paints the button lighter than its neighbours.
+        public override float ButtonBarPercent => 0f;
     }
 
     /// <summary>
@@ -21,7 +22,7 @@ namespace FamilyLife
     /// </summary>
     public class MainTabWindow_Community : MainTabWindow
     {
-        private const float NavWidth = 224f;
+        private float NavWidth => UI.screenWidth < 1000f ? 190f : 224f;
         private static string selected;
         private static readonly Dictionary<string, Vector2> scrolls = new Dictionary<string, Vector2>();
         private static readonly HashSet<string> failed = new HashSet<string>();
@@ -47,16 +48,18 @@ namespace FamilyLife
             selected = page.Id;
 
             var nav = new Rect(0f, 0f, NavWidth, inRect.height);
-            Widgets.DrawBoxSolid(nav, new Color(0.10f, 0.10f, 0.11f, 0.95f));
-            float y = 6f;
+            Widgets.DrawMenuSection(nav);   // the game's own panel style, so this tab matches Work, Animals and the others
+            float y = 6f; string lastGroup = null;
             Text.Font = GameFont.Small;
             var statuses = pages.Select(p => FamilyFramework.Pages.StatusOf(p)).ToList();
             var rowHeights = pages.Select((p, i) => Mathf.Max(34f, Text.CalcHeight(p.LabelKey.Translate(), NavWidth - (statuses[i] > 0 ? 92f : 66f)) + 12f)).ToList();
             var navList = new Rect(0f, 0f, nav.width, nav.height - 40f);
-            Widgets.BeginScrollView(navList, ref navScroll, new Rect(0f, 0f, NavWidth - 18f, Mathf.Max(navList.height, rowHeights.Sum() + 12f)));
+            Widgets.BeginScrollView(navList, ref navScroll, new Rect(0f, 0f, NavWidth - 18f, Mathf.Max(navList.height, rowHeights.Sum() + 96f)));
             int index = 0;
             foreach (var p in pages)
             {
+                string group = p.Order < 100 ? "WFL_UX_Community" : p.Order <= 130 ? "WFL_UX_Services" : "WFL_UX_Operations";
+                if (group != lastGroup) { Text.Font = GameFont.Tiny; GUI.color = CommunityWidgets.Muted; Widgets.Label(new Rect(12f, y + 4f, NavWidth - 24f, 20f), group.Translate()); GUI.color = Color.white; Text.Font = GameFont.Small; y += 28f; lastGroup = group; }
                 var row = new Rect(4f, y, NavWidth - 26f, rowHeights[index++] - 2f);
                 bool on = p.Id == page.Id;
                 if (on) Widgets.DrawBoxSolid(row, new Color(0.25f, 0.22f, 0.12f, 0.9f)); else if (Mouse.IsOver(row)) Widgets.DrawHighlight(row);
@@ -129,3 +132,4 @@ namespace FamilyLife
         static CommunityDefOf() { DefOfHelper.EnsureInitializedInCtor(typeof(CommunityDefOf)); }
     }
 }
+

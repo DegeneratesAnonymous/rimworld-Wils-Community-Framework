@@ -26,6 +26,7 @@ namespace FamilyLife
             FamilyFramework.ProductMade.Add("wils.crafting.specialtybonuses",Id,CraftingProducts.ApplyBonus);
             FamilyFramework.WorkshopSale.Add("wils.crafting.customerevents",Id,CraftingStories.Sale);
             FamilyFramework.Resets.Add("wils.crafting.reset",Id,CraftingStories.Reset);
+            FamilyFramework.WorkFocus.Add(Id + ".work", Id, new WorkFocusRule { Career = "wils.crafting.craft", WorkTypes = new[] { "Smithing", "Tailoring", "Crafting", "Art" } });
             CareerService.Registered(Id);
         }
     }

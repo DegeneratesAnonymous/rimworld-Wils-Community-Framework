@@ -411,6 +411,17 @@ Shortages averted: {5}</WFL_Stewardship_Tip>
   <WFL_ZoneBedsDealt>{0} people in {1} were given a bed in the new home.</WFL_ZoneBedsDealt>
   <WFL_ZoneBedsNone>No beds in this zone could be shared out: none is free of other owners, or nobody in the family can use them.</WFL_ZoneBedsNone>
   <WFL_ZoneDealBedsConfirm>Take back the beds in this zone that were given out to {0} and share them out again? Beds you gave to someone yourself since, beds locked in Better Beds, and beds owned by people outside the family stay as they are.</WFL_ZoneDealBedsConfirm>
+  <WFL_ZS_Button>Set storage to defaults</WFL_ZS_Button>
+  <WFL_ZS_ButtonDesc_Family>Make the shelves and stockpiles inside this zone hold only what a family needs: food, medicine, drugs, clothing, books and fuel.</WFL_ZS_ButtonDesc_Family>
+  <WFL_ZS_ButtonDesc_Treasury>Make the shelves and stockpiles inside this zone hold only the treasury's valuables: silver, gold, plasteel, jade and artifacts.</WFL_ZS_ButtonDesc_Treasury>
+  <WFL_ZS_Ask_Family>Found {0} shelves or stockpiles inside this family zone. Set them to hold only what a family needs (food, medicine, drugs, clothing, books, fuel)? Anything else stored there will be hauled out. You can still change each one yourself afterwards.</WFL_ZS_Ask_Family>
+  <WFL_ZS_Ask_Treasury>Found {0} shelves or stockpiles inside this treasury zone. Set them to hold only valuables (silver, gold, plasteel, jade, artifacts)? Anything else stored there will be hauled out. You can still change each one yourself afterwards.</WFL_ZS_Ask_Treasury>
+  <WFL_FS_Label>Family storage</WFL_FS_Label>
+  <WFL_FS_Desc>Give this storage to the family that owns the zone. The family keeps it to what the household uses: medicine for each member, only as much cooked food as will be eaten before it spoils at this temperature, one spare piece of clothing matched to each piece a member wears, the most useful book that still has something to teach the family (a finished one leaves and can pass to another household), drugs only for those who depend on them, and fuel only for something in the house that burns it. What is inside counts as the family's own, and family members reach for it first when they need a meal or medicine. People outside the family leave it alone, except a starving person where the family allows emergency sharing, or someone tending an emergency patient. Your direct orders always work.</WFL_FS_Desc>
+  <WFL_ZS_Done>Set {0} storage to the zone defaults.</WFL_ZS_Done>
+  <WFL_ZS_None>There is no shelf or stockpile inside this zone yet.</WFL_ZS_None>
+  <WFL_ZoneExpand>Expand zone</WFL_ZoneExpand>
+  <WFL_ZoneExpandDesc>Paint more cells into this family zone. Beds, tables and other furniture can be painted over.</WFL_ZoneExpandDesc>
   <WFL_ZoneDealBeds>Share out beds</WFL_ZoneDealBeds>
   <WFL_ZoneDealBedsDesc>Unassign the family's beds in this zone and give them out again: couples first, to the most comfortable place they can sleep together, then the children, then everyone else, to the most comfortable beds left. Any kind of bed. Beds owned by anyone outside the family stay as they are.</WFL_ZoneDealBedsDesc>
   <!-- Variants: a line may be given as WFL_Name_0, WFL_Name_1, ... and the game chooses among them. Add more freely. -->

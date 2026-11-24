@@ -30,6 +30,7 @@ namespace FamilyLife
             if (s != null && !s.governance) return;
             Step(() => Duties(c, now), "duties");
             Step(() => Elections(c, now), "elections");
+            if (s != null && !s.intrigue) return; // theft, schemes and political movements are opt-in
             Step(() => InstitutionMovements(c, now), "political movements");
             Step(() => Crime(c, now), "house crime");
             Step(() => Coups(c, now), "schemes");
