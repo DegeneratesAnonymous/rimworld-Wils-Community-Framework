@@ -12,7 +12,8 @@ namespace FamilyLife
     /// <summary>The longer Community label gets a little more breathing room than a stock bottom-bar button.</summary>
     public sealed class CommunityMainButtonWorker : MainButtonWorker_ToggleTab
     {
-        public override float ButtonBarPercent => 1.12f;
+        // The base class's ButtonBarPercent is the fill of the button's progress bar (Research uses it); anything above zero paints the button lighter than its neighbours.
+        public override float ButtonBarPercent => 0f;
     }
 
     /// <summary>
