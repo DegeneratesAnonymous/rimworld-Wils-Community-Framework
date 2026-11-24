@@ -57,6 +57,7 @@ namespace FamilyLife
 
         public override void RemoveCell(IntVec3 c)
         {
+            if (ZoneForce.ThingSpawning) return;      // a building appearing on a home's floor (every one, when a save loads) does not take that floor out of the home
             base.RemoveCell(c);
             GuestPasses.Invalidate(Map);
             var area = LinkedArea;
@@ -269,6 +270,20 @@ namespace FamilyLife
 namespace FamilyLife
 {
     /// <summary>
+    /// Whenever a building that cannot overlap zones spawns, the game removes the zone cells beneath it. On load every shelf and table spawns again, so
+    /// that stripped a home of every cell under its furniture. Family zones ignore the removal while this runs (see <see cref="Zone_Family.RemoveCell"/>).
+    /// </summary>
+    [HarmonyLib.HarmonyPatch(typeof(ZoneManager), "Notify_NoZoneOverlapThingSpawned")]
+    internal static class Patch_FamilyZoneKeepsFurnitureCells
+    {
+        private static void Prefix() => ZoneForce.ThingSpawning = true;
+        private static void Finalizer() => ZoneForce.ThingSpawning = false;
+    }
+}
+
+namespace FamilyLife
+{
+    /// <summary>
     /// The game refuses to put a zone cell under a building whose definition says zones cannot overlap it, which covers most furniture, and only logs an error.
     /// Our home-style zones are meant to hold furniture, so they add such a cell the same way the game does, minus that refusal.
     /// </summary>
@@ -276,6 +291,9 @@ namespace FamilyLife
     {
         private static readonly System.Reflection.MethodInfo Grid = typeof(ZoneManager).GetMethod("AddZoneGridCell", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
         private static readonly System.Reflection.FieldInfo Shuffled = typeof(Zone).GetField("cellsShuffled", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        /// <summary>True while the game is clearing zones from under a building that has just spawned.</summary>
+        public static bool ThingSpawning;
 
         /// <summary>
         /// When a save is loaded the game puts every zone cell back into its zone grid with the same refusal as above, so a cell under a building that cannot overlap zones
