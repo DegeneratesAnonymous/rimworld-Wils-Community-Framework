@@ -54,6 +54,7 @@ namespace FamilyLife
         public bool socialEvents = true;
         public bool zonesAllowWork = true;
         public bool familyDoors = true;
+        public bool familyHomeFirst = true;
         public bool familyMeals = true;
         public bool eventsFamily = true;
         public bool eventsIndividual = true;
@@ -111,6 +112,7 @@ namespace FamilyLife
             Scribe_Values.Look(ref socialEvents, "socialEvents", true);
             Scribe_Values.Look(ref zonesAllowWork, "zonesAllowWork", true);
             Scribe_Values.Look(ref familyDoors, "familyDoors", true);
+            Scribe_Values.Look(ref familyHomeFirst, "familyHomeFirst", true);
             Scribe_Values.Look(ref familyMeals, "familyMeals", true);
             Scribe_Values.Look(ref eventsFamily, "eventsFamily", true);
             Scribe_Values.Look(ref eventsIndividual, "eventsIndividual", true);
@@ -248,6 +250,7 @@ namespace FamilyLife
             list.CheckboxLabeled("WFL_S_Grief".Translate(), ref Settings.griefAmplification, "WFL_S_GriefTip".Translate());
             list.CheckboxLabeled("WFL_S_FamilyMeals".Translate(), ref Settings.familyMeals, "WFL_S_FamilyMealsTip".Translate());
             list.CheckboxLabeled("WFL_S_FamilyDoors".Translate(), ref Settings.familyDoors, "WFL_S_FamilyDoorsTip".Translate());
+            list.CheckboxLabeled("WFL_S_FamilyHomeFirst".Translate(), ref Settings.familyHomeFirst, "WFL_S_FamilyHomeFirstTip".Translate());
             list.CheckboxLabeled("WFL_S_RoleIcons".Translate(), ref Settings.showRoleIcons, "WFL_S_RoleIconsTip".Translate());
             if (Settings.showRoleIcons)
             {

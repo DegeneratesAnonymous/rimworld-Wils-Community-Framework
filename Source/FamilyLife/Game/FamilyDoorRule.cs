@@ -19,15 +19,16 @@ namespace FamilyLife
     /// </summary>
     internal static class FamilyDoorRule
     {
-        private const int WishLife = 120, MemberCacheTicks = 600;
+        private const int WishLife = 120, MemberCacheTicks = 120, HomeCacheTicks = 120;
         private static readonly Dictionary<int, DoorWish> wishes = new Dictionary<int, DoorWish>();
         private static readonly Dictionary<long, KeyValuePair<int, bool>> memberCache = new Dictionary<long, KeyValuePair<int, bool>>();
+        private static readonly Dictionary<int, KeyValuePair<int, bool>> homeCache = new Dictionary<int, KeyValuePair<int, bool>>();
         private static long Key(Pawn p, Lineage l) => ((long)p.thingIDNumber << 32) | (uint)l.Id;
 
         public static bool Enabled => FamilyLifeMod.Settings == null || FamilyLifeMod.Settings.familyDoors;
 
-        public static void Reset() { wishes.Clear(); memberCache.Clear(); }
-        public static void ClearCaches() => memberCache.Clear();
+        public static void Reset() { wishes.Clear(); memberCache.Clear(); homeCache.Clear(); }
+        public static void ClearCaches() { memberCache.Clear(); homeCache.Clear(); }
 
         /// <summary>Whether this pawn must not enter this cell: it is in a family zone the pawn does not belong to, and they have not been let in.</summary>
         public static bool Blocks(IntVec3 cell, Pawn pawn, bool noteWish)
@@ -41,11 +42,13 @@ namespace FamilyLife
             if (zone == null || zone.areaId == 0) return false;
             if (visitor)
             {
-                // Visitors and guests of the colony stay out of other people's homes. They are not asked to knock; they simply do not go there,
-                // unless they have been let in or they are taking part in a family gathering.
+                // Visitors and guests of the colony stay out of other people's homes unless they have been let in or are taking part in a family gathering.
+                // They knock like anyone else when they would have gone in (the wish is noted), so a visitor can be invited in.
                 if (pawn.Downed || pawn.InMentalState) return false;
                 if (pawn.GetLord()?.LordJob?.GetType().Name == "LordJob_FamilyGathering") return false;
-                return !GuestPasses.HasPassFor(pawn, zone);
+                if (GuestPasses.HasPassFor(pawn, zone)) return false;
+                if (noteWish) NoteWish(pawn, zone, cell);
+                return true;
             }
             if (pawn.Faction != Faction.OfPlayer || pawn.Drafted || pawn.Downed || pawn.InMentalState || pawn.IsPrisoner || pawn.IsSlave) return false;
             var component = FamilyComponent.Current;
@@ -53,8 +56,8 @@ namespace FamilyLife
             if (lineage == null) return false;
             if (!pawn.RaceProps.Humanlike)
             {
-                // A tame animal follows its master: it may go where its master may, and nowhere else in a home. It cannot knock.
-                var master = pawn.playerSettings?.Master;
+                // A tame animal follows its master (or, with none, the person it is bonded to): it may go where they may, and nowhere else in a home. It cannot knock.
+                var master = pawn.playerSettings?.Master ?? pawn.relations?.GetFirstDirectRelationPawn(PawnRelationDefOf.Bond);
                 if (master == null || master.Dead) return true;
                 return Blocks(cell, master, false);
             }
@@ -62,15 +65,52 @@ namespace FamilyLife
             if (GuestPasses.HasPassFor(pawn, zone)) return false;
             var bed = pawn.ownership?.OwnedBed;
             if (bed != null && bed.Spawned && bed.Map == map && bed.OccupiedRect().Cells.Any(zone.ContainsCell)) return false;      // they sleep here
+            if (IsEmergency(cell, pawn, map)) return false;                                                                        // a fire, someone hurt: help is never kept out
+            if (!SomeoneHomeCached(component, lineage, zone, pawn)) return false;                                                  // an empty home has no one to keep the others out of it
 
-            if (noteWish)
-            {
-                int now = Find.TickManager.TicksGame;
-                // Keep the job noted a moment ago for this same place, so the visit can pick up where the pawn was going.
-                Job kept = wishes.TryGetValue(pawn.thingIDNumber, out var prev) && prev.Zone == zone && now - prev.Tick < 120 ? prev.Job : null;
-                wishes[pawn.thingIDNumber] = new DoorWish { Pawn = pawn, Zone = zone, Tick = now, Cell = cell, Job = kept };
-            }
+            if (noteWish) NoteWish(pawn, zone, cell);
             return true;
+        }
+
+        private static void NoteWish(Pawn pawn, Zone_Family zone, IntVec3 cell)
+        {
+            int now = Find.TickManager.TicksGame;
+            // Keep the job noted a moment ago for this same place, so the visit can pick up where the pawn was going.
+            Job kept = wishes.TryGetValue(pawn.thingIDNumber, out var prev) && prev.Zone == zone && now - prev.Tick < 120 ? prev.Job : null;
+            wishes[pawn.thingIDNumber] = new DoorWish { Pawn = pawn, Zone = zone, Tick = now, Cell = cell, Job = kept };
+        }
+
+        /// <summary>Fire near the cell, a person lying hurt on it, or the pawn already fighting a fire, rescuing or tending: none of these waits at a door.</summary>
+        private static bool IsEmergency(IntVec3 cell, Pawn pawn, Map map)
+        {
+            var job = pawn.CurJobDef;
+            if (job == JobDefOf.BeatFire || job == JobDefOf.Rescue || job == JobDefOf.TendPatient) return true;
+            int cells = GenRadial.NumCellsInRadius(2.9f);
+            for (int i = 0; i < cells; i++)
+            {
+                var c = cell + GenRadial.RadialPattern[i];
+                if (c.InBounds(map) && c.GetFirstThing<Fire>(map) != null) return true;
+            }
+            foreach (var thing in cell.GetThingList(map))
+                if (thing is Pawn hurt && hurt != pawn && hurt.RaceProps.Humanlike && (hurt.Downed || hurt.health.HasHediffsNeedingTend())) return true;
+            return false;
+        }
+
+        private static bool SomeoneHomeCached(FamilyComponent component, Lineage lineage, Zone_Family zone, Pawn pawn)
+        {
+            int now = Find.TickManager.TicksGame;
+            if (homeCache.TryGetValue(zone.ID, out var cached) && now - cached.Key < HomeCacheTicks) return cached.Value;
+            bool home = GuestPasses.SomeoneHome(component, lineage, zone, pawn);
+            homeCache[zone.ID] = new KeyValuePair<int, bool>(now, home);
+            return home;
+        }
+
+        /// <summary>Whether this person belongs to the family whose home this is (used to send members to work in their own home first).</summary>
+        public static bool BelongsHere(Zone_Family zone, Pawn pawn)
+        {
+            var component = FamilyComponent.Current;
+            var lineage = component == null || zone == null ? null : zone.Family(component.Registry);
+            return lineage != null && IsMember(component, lineage, pawn);
         }
 
         /// <summary>A person of another faction who is not an enemy: a trader, a visitor, a guest, a relative come for a reunion.</summary>
@@ -112,7 +152,7 @@ namespace FamilyLife
         private static void Postfix(IntVec3 c, Pawn forPawn, ref bool __result)
         {
             if (!__result) return;
-            try { if (FamilyDoorRule.Blocks(c, forPawn, true)) __result = false; }
+            try { if (FamilyHomeWork.OutOfBounds(c, forPawn) || FamilyDoorRule.Blocks(c, forPawn, true)) __result = false; }
             catch (System.Exception ex) { HookSafety.Report("family door rule", ex); }
         }
     }

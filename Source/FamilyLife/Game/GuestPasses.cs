@@ -36,7 +36,7 @@ namespace FamilyLife
     /// </summary>
     internal static class GuestPasses
     {
-        public const int WaitLimit = 2500, PassLimit = 15000, NeverEnteredLimit = 1800, LeaveDelay = 900, CooldownAfterRefusal = 2500, CooldownAfterVisit = 0, CooldownNeverEntered = 5000, CooldownUnanswered = 12000, WalkLimit = 6000, KnockEvery = 180, SummonEvery = 120, MaxVisits = 3;
+        public const int WaitLimit = 2500, PassLimit = 15000, NeverEnteredLimit = 1800, LeaveDelay = 900, CooldownAfterRefusal = 2500, CooldownAfterVisit = 0, CooldownNeverEntered = 5000, CooldownUnanswered = 12000, WalkLimit = 6000, KnockEvery = 180, SummonEvery = 120, MaxVisits = 6;
         public static readonly Dictionary<int, GuestPass> ByGuest = new Dictionary<int, GuestPass>();
         private static readonly Dictionary<int, int> cooldown = new Dictionary<int, int>();
         private static readonly HashSet<string> IdleJobs = new HashSet<string> { "Wait_Wander", "GotoWander", "Wait", "Wait_MaintainPosture", "Wait_NoSleep" };
@@ -46,7 +46,14 @@ namespace FamilyLife
         public static bool IsActive(Pawn pawn) => pawn != null && ByGuest.ContainsKey(pawn.thingIDNumber);
         public static bool IsGranted(Pawn pawn) => pawn != null && ByGuest.TryGetValue(pawn.thingIDNumber, out var p) && p.Granted;
         /// <summary>Whether this pawn has been let into this zone and the visit is still going.</summary>
-        public static bool HasPassFor(Pawn pawn, Zone_Family zone) => pawn != null && ByGuest.TryGetValue(pawn.thingIDNumber, out var p) && p.Granted && !p.Done && p.Zone == zone;      // once the visit is over the door is closed again
+        public static bool HasPassFor(Pawn pawn, Zone_Family zone) => pawn != null && ByGuest.TryGetValue(pawn.thingIDNumber, out var p) && p.Granted && !p.Done && SameHome(p.Zone, zone);      // once the visit is over the door is closed again
+
+        /// <summary>Two zones of one family (they share the family's area) are one home: a pass for the first covers the next.</summary>
+        internal static bool SameHome(Zone_Family a, Zone_Family b)
+            => a != null && b != null && (a == b || (a.areaId != 0 && a.areaId == b.areaId && a.Map == b.Map));
+
+        private static bool InHome(Zone_Family home, IntVec3 cell)
+            => home?.Map != null && cell.InBounds(home.Map) && (home.ContainsCell(cell) || SameHome(home, home.Map.zoneManager.ZoneAt(cell) as Zone_Family));
 
         private static void Trace(string text)
         {
@@ -70,6 +77,13 @@ namespace FamilyLife
         private static bool Available(Pawn p) => p != null && p.Spawned && !p.Dead && !p.Downed && !p.Drafted && p.Awake() && !p.InMentalState
             && p.health.capacities.CapableOf(PawnCapacityDefOf.Moving);
 
+                /// <summary>Whoever is operating, tending, rescuing or fighting a fire is not called to the door.</summary>
+        private static bool Critical(Pawn p)
+        {
+            var job = p.CurJob; if (job == null) return false;
+            return job.def == JobDefOf.TendPatient || job.def == JobDefOf.Rescue || job.def == JobDefOf.BeatFire || job.bill is Bill_Medical;
+        }
+
         private static bool IdleEnough(Pawn p) => p.CurJob == null || IdleJobs.Contains(p.CurJobDef.defName);
 
         public static void Process(FamilyComponent component)
@@ -91,7 +105,7 @@ namespace FamilyLife
                     if (cooldown.TryGetValue(pawn.thingIDNumber, out int until) && now < until) continue;
                     if (zone.Map != pawn.Map || !zone.Map.zoneManager.AllZones.Contains(zone)) continue;
                     var lineage = zone.Family(registry);
-                    if (lineage == null || IsFamilyMember(registry, lineage, pawn)) continue;
+                    if (lineage == null || (pawn.Faction == Faction.OfPlayer && IsFamilyMember(registry, lineage, pawn))) continue;
                     if (ByGuest.Values.Any(p => p.Zone == zone && p.Lineage == lineage.Id && !p.Granted)) continue;      // someone is already at this door
                     Begin(registry, component, pawn, zone, lineage, now, wish);
                 }
@@ -117,13 +131,13 @@ namespace FamilyLife
         /// doing, they stop and come. If the one called does not come, the next knock calls someone else.
         /// </summary>
         /// <summary>Whether anyone of this family is inside the zone, awake and able to come to the door (an adult, or a child for a child guest).</summary>
-        private static bool SomeoneHome(FamilyComponent component, Lineage lineage, Zone_Family zone, Pawn guest)
+        internal static bool SomeoneHome(FamilyComponent component, Lineage lineage, Zone_Family zone, Pawn guest)
         {
             var registry = component.Registry;
             foreach (var person in registry.MembersOf(lineage.Id).Concat(registry.AffiliatesOf(lineage.Id)))
             {
                 var candidate = component.TryGetPawn(person.Id);
-                if (candidate != null && candidate != guest && Available(candidate) && candidate.Map == zone.Map && zone.ContainsCell(candidate.Position) && CanOpenFor(candidate, guest)) return true;
+                if (candidate != null && candidate != guest && Available(candidate) && candidate.Map == zone.Map && InHome(zone, candidate.Position) && !Critical(candidate) && CanOpenFor(candidate, guest)) return true;
             }
             return false;
         }
@@ -140,9 +154,9 @@ namespace FamilyLife
             {
                 var candidates = registry.MembersOf(lineage.Id).Concat(registry.AffiliatesOf(lineage.Id)).Distinct()
                     .Select(person => component.TryGetPawn(person.Id))
-                    .Where(candidate => candidate != null && candidate != guest && Available(candidate) && candidate.Map == guest.Map && pass.Zone.ContainsCell(candidate.Position) && CanOpenFor(candidate, guest))
+                    .Where(candidate => candidate != null && candidate != guest && Available(candidate) && !Critical(candidate) && candidate.Map == guest.Map && InHome(pass.Zone, candidate.Position) && CanOpenFor(candidate, guest))
                     .Where(candidate => round != 0 || !pass.Tried.Contains(candidate.thingIDNumber))
-                    .OrderBy(candidate => candidate.Position.DistanceTo(pass.Inside) + (candidate.DevelopmentalStage == DevelopmentalStage.Adult ? 0f : 40f));
+                    .OrderBy(candidate => candidate.Position.DistanceTo(pass.Inside) + (candidate.DevelopmentalStage == DevelopmentalStage.Adult ? 0f : 40f) + (IdleEnough(candidate) ? 0f : 15f));
                 // Cheap distance ranking first: stop at the nearest reachable opener rather than path-checking every relative.
                 foreach (var candidate in candidates)
                     if (candidate.CanReach(pass.Inside, PathEndMode.OnCell, Danger.Deadly)) { best = candidate; break; }
@@ -209,6 +223,8 @@ namespace FamilyLife
                 if (room == null || room.PsychologicallyOutdoors) score += 25f;
                 if (score < bestScore) { bestScore = score; best = cell; }
             }
+            if (!best.IsValid)
+                foreach (var cell in cells) { if (cell.Standable(map) && cell.GetEdifice(map) == null) { best = cell; break; } }
             return best;
         }
 
@@ -299,7 +315,7 @@ namespace FamilyLife
                 }
                 return;
             }
-            bool inside = pass.Zone.ContainsCell(guest.Position);
+            bool inside = InHome(pass.Zone, guest.Position);
             if (inside) { pass.Entered = true; pass.LeftSince = -1; }
             else if (pass.Entered && pass.LeftSince < 0) pass.LeftSince = now;
             bool left = pass.Entered && pass.LeftSince >= 0 && now - pass.LeftSince > LeaveDelay;
@@ -314,10 +330,15 @@ namespace FamilyLife
             ByGuest.Remove(guest.thingIDNumber);
             cooldown[guest.thingIDNumber] = Find.TickManager.TicksGame + cooldownTicks;
             if (guest.CurJobDef == FamilyJobDefOf.WFL_WaitAtDoor) guest.jobs.EndCurrentJob(JobCondition.Incompletable);
+            else if (pass.Granted && !pass.Done && guest.Spawned && guest.jobs != null && InHome(pass.Zone, guest.Position) && pass.Outside.IsValid)
+            {
+                try { guest.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, pass.Outside), JobCondition.InterruptForced, null, false); }      // the visit is over: see themselves out
+                catch (System.Exception ex) { HookSafety.Report("family door expiry", ex); }
+            }
             Trace(guest.LabelShort + "'s visit to " + pass.Zone?.label + " ended");
         }
 
-        public static void Reset() { RoleBar.Reset(); PostBadges.Reset(); RoleIcons.Reset(); ComfortDriver.Reset(); ByGuest.Clear(); cooldown.Clear(); FamilyDoorRule.Reset(); FamilyHome.Reset(); FamilyMeals.Reset(); HouseAgency.Reset(); SocialMoments.Reset(); KinVisitDriver.Reset(); KinRescueDriver.Reset(); EstateDriver.Reset(); AssemblyDriver.Reset(); GovernanceDriver.Reset(); GovernanceMeetings.Reset(); FamilyFramework.ResetAll(); PawnReadiness.Reset(); FamilyZoneView.Sync(); }
+        public static void Reset() { RoleBar.Reset(); PostBadges.Reset(); RoleIcons.Reset(); ComfortDriver.Reset(); ByGuest.Clear(); cooldown.Clear(); FamilyDoorRule.Reset(); FamilyHomeWork.Reset(); FamilyHome.Reset(); FamilyMeals.Reset(); HouseAgency.Reset(); SocialMoments.Reset(); KinVisitDriver.Reset(); KinRescueDriver.Reset(); EstateDriver.Reset(); AssemblyDriver.Reset(); GovernanceDriver.Reset(); GovernanceMeetings.Reset(); FamilyFramework.ResetAll(); PawnReadiness.Reset(); FamilyZoneView.Sync(); }
     }
 
     [DefOf]
